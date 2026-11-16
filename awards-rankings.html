@@ -12,6 +12,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Firebase SDK (Compat) für Echtzeit-Cloud-Synchronisation -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Canvas Confetti CDN -->
@@ -52,6 +55,8 @@
         </h1>
         <p id="teamHeaderSubtitle" class="text-[11px] sm:text-xs text-slate-800">Saison 2026/2027 &bull; Landesliga 1 &bull; 5 Spieltage</p>
       </div>
+      <!-- Cloud Sync Status Pill -->
+      <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
 
       <!-- Schneller Team- & Vereins-Wechsler -->
       <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">

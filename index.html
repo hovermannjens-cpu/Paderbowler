@@ -12,6 +12,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Firebase SDK (Compat) für Echtzeit-Cloud-Synchronisation -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- Shared Stats Engine & Cloud-Sync -->
+  <script src="shared-stats.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -40,6 +45,8 @@
         </h1>
         <p class="text-[11px] sm:text-xs text-slate-800">Übersicht &bull; Mannschaften &bull; Saisons</p>
       </div>
+      <!-- Cloud Sync Status Pill -->
+      <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
     </div>
 
     <!-- Saison-Wahl & Aktionen: Sauber umbrechend, passt immer ins Fenster -->
@@ -485,7 +492,16 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      if (typeof triggerCloudSync === 'function') {
+        triggerCloudSync();
+      }
     }
+
+    // Bei eingehenden Cloud-Updates sofort neu rendern
+    window.addEventListener('paderbowler:cloud-sync', () => {
+      loadState();
+      render();
+    });
 
     // 2. RENDERN
     function render() {

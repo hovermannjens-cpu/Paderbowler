@@ -288,6 +288,9 @@ function getAppState() {
 // Speichert den globalen App-Zustand in localStorage
 function saveAppState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof triggerCloudSync === 'function') {
+    triggerCloudSync();
+  }
 }
 
 // Lädt die Spieltage einer bestimmten Mannschaft
@@ -556,4 +559,203 @@ function calculateClubWidePlayerStats(seasonId = null, appState = null) {
       totalSchnapszahl
     };
   });
+}
+
+// =========================================================================
+// 5. FIREBASE FIRESTORE ECHTZEIT-CLOUD-SYNCHRONISATION
+// =========================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDDKNBi3mfDMDja8dpqg4Vdhb18EmDPzWY",
+  authDomain: "paderbowler.firebaseapp.com",
+  projectId: "paderbowler",
+  storageBucket: "paderbowler.firebasestorage.app",
+  messagingSenderId: "1054848185434",
+  appId: "1:1054848185434:web:213a1ebb73a3b9d6ded463",
+  measurementId: "G-G4J3C6XGFB"
+};
+
+let cloudDb = null;
+let isApplyingCloudUpdate = false;
+let cloudSyncDebounceTimer = null;
+let cloudStatus = 'init'; // 'init' | 'synced' | 'syncing' | 'offline' | 'error'
+let cloudStatusMessage = '';
+
+// Initialisiert Firebase und den Echtzeit-Listener
+function initPaderbowlerCloudSync() {
+  if (typeof firebase === 'undefined') {
+    cloudStatus = 'offline';
+    cloudStatusMessage = 'Lokal (Kein Firebase SDK)';
+    updateCloudStatusUI();
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    cloudDb = firebase.firestore();
+  } catch (err) {
+    console.warn("Firebase Init-Hinweis:", err);
+    cloudStatus = 'offline';
+    cloudStatusMessage = 'Lokal (Offline)';
+    updateCloudStatusUI();
+    return;
+  }
+
+  cloudStatus = 'syncing';
+  cloudStatusMessage = 'Verbinde mit Cloud...';
+  updateCloudStatusUI();
+
+  // Echtzeit-Listener auf das zentrale Vereins-Dokument
+  const docRef = cloudDb.collection('clubs').doc('paderbowler_stats');
+  
+  docRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      applyIncomingCloudData(data);
+      cloudStatus = 'synced';
+      cloudStatusMessage = 'Cloud synchronisiert';
+      updateCloudStatusUI();
+    } else {
+      // Dokument existiert noch nicht in Firebase -> Initial hochladen!
+      console.log("Initialisiere Cloud-Datenbank mit lokalem Datenbestand...");
+      pushLocalDataToCloud(true);
+    }
+  }, err => {
+    console.warn("Firestore Sync-Status:", err);
+    cloudStatus = 'error';
+    if (err.code === 'permission-denied') {
+      cloudStatusMessage = 'Cloud: Testmodus in Firestore aktivieren';
+    } else if (err.code === 'not-found') {
+      cloudStatusMessage = 'Cloud: Firestore-Datenbank erstellen';
+    } else {
+      cloudStatusMessage = 'Lokal gespeichert (Cloud getrennt)';
+    }
+    updateCloudStatusUI();
+  });
+}
+
+// Überträgt eintreffende Cloud-Daten in den lokalen Gerätespeicher
+function applyIncomingCloudData(data) {
+  if (!data || isApplyingCloudUpdate) return;
+  isApplyingCloudUpdate = true;
+
+  try {
+    if (data.hub) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.hub));
+    }
+    if (data.matchdays && typeof data.matchdays === 'object') {
+      Object.keys(data.matchdays).forEach(teamId => {
+        localStorage.setItem(`paderbowler_matchdays_${teamId}`, JSON.stringify(data.matchdays[teamId]));
+      });
+    }
+    // Event an alle offenen Fenster senden
+    window.dispatchEvent(new CustomEvent('paderbowler:cloud-sync', { detail: data }));
+  } catch (e) {
+    console.error("Fehler beim Verarbeiten von Cloud-Daten", e);
+  } finally {
+    setTimeout(() => { isApplyingCloudUpdate = false; }, 300);
+  }
+}
+
+// Lädt den gesamten lokalen Datenbestand in die Cloud hoch (debounced)
+function triggerCloudSync() {
+  if (isApplyingCloudUpdate) return;
+  if (cloudSyncDebounceTimer) clearTimeout(cloudSyncDebounceTimer);
+
+  cloudStatus = 'syncing';
+  cloudStatusMessage = 'Speichere in Cloud...';
+  updateCloudStatusUI();
+
+  cloudSyncDebounceTimer = setTimeout(() => {
+    pushLocalDataToCloud(false);
+  }, 600);
+}
+
+// Führt den tatsächlichen Schreibvorgang nach Firestore durch
+function pushLocalDataToCloud(isInitial = false) {
+  if (!cloudDb) return;
+  
+  try {
+    const hubState = getAppState();
+    const matchdaysObj = {};
+
+    // Sammle alle Spieltage der bekannten Teams
+    (hubState.teams || []).forEach(team => {
+      matchdaysObj[team.id] = getTeamMatchdays(team.id);
+    });
+
+    const payload = {
+      hub: hubState,
+      matchdays: matchdaysObj,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      clientTimestamp: new Date().toISOString()
+    };
+
+    cloudDb.collection('clubs').doc('paderbowler_stats').set(payload, { merge: true })
+      .then(() => {
+        cloudStatus = 'synced';
+        cloudStatusMessage = 'Cloud synchronisiert';
+        updateCloudStatusUI();
+      })
+      .catch(err => {
+        console.warn("Fehler beim Cloud-Upload:", err);
+        cloudStatus = 'error';
+        if (err.code === 'permission-denied') {
+          cloudStatusMessage = 'Cloud: Testmodus in Firestore aktivieren';
+        } else {
+          cloudStatusMessage = 'Lokal gespeichert (Cloud getrennt)';
+        }
+        updateCloudStatusUI();
+      });
+  } catch (err) {
+    console.error("pushLocalDataToCloud Exception:", err);
+  }
+}
+
+// Aktualisiert den visuellen Status-Indikator im Header
+function updateCloudStatusUI() {
+  const container = document.getElementById('cloudSyncStatusPill');
+  if (!container) return;
+
+  let badgeHtml = '';
+  if (cloudStatus === 'synced') {
+    badgeHtml = `
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-800 border border-emerald-500/40 text-[11px] font-bold shadow-sm cursor-pointer" title="${cloudStatusMessage} - Klicke zum Aktualisieren" onclick="triggerCloudSync()">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Cloud synchron</span>
+      </div>
+    `;
+  } else if (cloudStatus === 'syncing') {
+    badgeHtml = `
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-800 border border-amber-500/40 text-[11px] font-bold shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+        <span>Synchronisiere...</span>
+      </div>
+    `;
+  } else if (cloudStatus === 'error') {
+    badgeHtml = `
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-800 border border-rose-500/40 text-[11px] font-bold shadow-sm cursor-pointer" title="${cloudStatusMessage} - Klicke zum Wiederholen" onclick="initPaderbowlerCloudSync()">
+        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+        <span>${cloudStatusMessage.includes('aktivieren') ? 'Cloud aktivieren' : 'Lokal (Offline)'}</span>
+      </div>
+    `;
+  } else {
+    badgeHtml = `
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 border border-slate-300 text-[11px] font-bold shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+        <span>Lokal</span>
+      </div>
+    `;
+  }
+  container.innerHTML = badgeHtml;
+}
+
+// Starte Cloud-Sync automatisch beim Laden
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initPaderbowlerCloudSync);
+  } else {
+    initPaderbowlerCloudSync();
+  }
 }

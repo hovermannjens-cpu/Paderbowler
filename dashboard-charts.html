@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#E4D7CF] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paderbowler Stats 2 - Statistiken & Diagramme</title>
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#23548F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Shared Stats & Data Engine -->
+  <script src="shared-stats.js"></script>
+  <style>
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .touch-btn:active { transform: scale(0.95); }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased pb-24 bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- Header -->
+  <header class="bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md flex flex-wrap items-center justify-between gap-2.5">
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#23548F]">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+          Diagramme
+          <span id="teamHeaderBadge" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold">Pader-Bowler-06 2</span>
+        </h1>
+        <p id="teamHeaderSubtitle" class="text-[11px] sm:text-xs text-slate-800">Saison 2026/2027 &bull; Landesliga 1</p>
+      </div>
+
+      <!-- Schneller Team- & Vereins-Wechsler -->
+      <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
+        <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
+        <select id="teamHeaderSelect" onchange="switchChartScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+          <option value="all">Vereinsstatistik</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Navigation: Sauber umbrechend, bleibt immer im Fenster -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <a href="index.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>Teams</span>
+      </a>
+      <a id="navLinkInput" href="matchday-input.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-md">
+        <span>Erfassung</span>
+      </a>
+      <a id="navLinkAwards" href="awards-rankings.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-xs font-bold text-slate-950 border-2 border-[#cfae2e] touch-btn shadow-sm">
+        <span>Awards</span>
+      </a>
+      <a id="navLinkPdf" href="pdf-report.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
+        <span>PDF</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Modus-Umschalter: Mannschaft vs. Vereinsstatistik -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 shadow-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="scope-team-btn" onclick="setChartScope('team')" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm">
+          <span id="scope-team-label">Mannschaft</span>
+        </button>
+        <button id="scope-club-btn" onclick="setChartScope('all')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white">
+          <span>Vereinsstatistik</span>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-600 font-medium" id="scopeDescriptionText">
+        Diagramme & Kennzahlen für dieses Team.
+      </div>
+    </div>
+
+    <!-- 1. KENNZAHLEN -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+        <span id="kpi-avg-title" class="text-xs font-bold text-slate-600 uppercase tracking-wider block">Schnitt</span>
+        <span id="kpi-avg-val" class="text-2xl font-black text-[#23548F] mt-1 block">180.54</span>
+        <span id="kpi-avg-sub" class="text-xs text-slate-600">18.054 Pins in 100 Spielen</span>
+      </div>
+
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+        <span id="kpi-points-title" class="text-xs font-bold text-slate-600 uppercase tracking-wider block">Punkte</span>
+        <span id="kpi-points-val" class="text-2xl font-black text-[#70C04D] mt-1 block">38 / 50</span>
+        <span id="kpi-points-sub" class="text-xs text-slate-700 font-semibold">19 Siege &bull; 6 Niederlagen</span>
+      </div>
+
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">High Game</span>
+        <span id="kpi-high-val" class="text-2xl font-black text-[#70C04D] mt-1 block">256</span>
+        <span id="kpi-high-sub" class="text-xs text-slate-600">Gerrit Baumeister</span>
+      </div>
+
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">Bierframes</span>
+        <span id="kpi-bier-val" class="text-2xl font-black text-[#E8C543] mt-1 block">50</span>
+        <span id="kpi-bier-sub" class="text-xs text-slate-600">13 von Andre Klipenstein</span>
+      </div>
+    </div>
+
+    <!-- 2. DIAGRAMM 1: FORMKURVEN -->
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Formkurven</h2>
+          <p class="text-xs text-slate-600">Spieler in der Legende antippen zum Filtern:</p>
+        </div>
+        <div class="flex items-center gap-1.5 text-xs">
+          <button onclick="toggleAllLines(true)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs">Alle</button>
+          <button onclick="toggleAllLines(false)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs">Nur Team</button>
+        </div>
+      </div>
+      <div class="h-72 w-full pt-2">
+        <canvas id="chartFormkurve"></canvas>
+      </div>
+    </div>
+
+    <!-- 3. DIAGRAMM 2: BOWLINGCENTER -->
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Bowlingcenter</h2>
+          <p class="text-xs text-slate-600">Pins und Punkte je Spielort</p>
+        </div>
+        <span id="bestCenterBadge" class="text-xs px-2.5 py-1 rounded-lg bg-[#3E8370]/15 text-[#3E8370] border border-[#3E8370]/40 font-bold">
+          Beste Bahn: Skyline Bowling Detmold - Schnitt 194.05
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Center Balkendiagramm -->
+        <div class="h-64 w-full">
+          <canvas id="chartCenters"></canvas>
+        </div>
+
+        <!-- Center Detailtabelle -->
+        <div class="overflow-x-auto rounded-xl border border-[#A499A7]">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#E4D7CF]/60 text-slate-700 uppercase text-[10px] tracking-wider border-b border-[#A499A7]">
+              <tr>
+                <th class="py-2.5 px-3">Center</th>
+                <th class="py-2.5 px-2 text-center">Spielt.</th>
+                <th class="py-2.5 px-2 text-center text-[#23548F]">Schnitt</th>
+                <th class="py-2.5 px-2 text-center text-[#70C04D]">Punkte</th>
+                <th class="py-2.5 px-2 text-right">Pins</th>
+              </tr>
+            </thead>
+            <tbody id="centerTableBody" class="divide-y divide-[#A499A7]/40">
+              <!-- Dynamisch befüllt -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. DIAGRAMM 3: STRICHLISTEN -->
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Strichlisten</h2>
+          <p class="text-xs text-slate-600">Vergleich der Spieler:</p>
+        </div>
+
+        <!-- Metric Selector Dropdown -->
+        <select id="metricSelector" onchange="updateTallyChart(this.value)" class="bg-white border-2 border-[#A499A7] rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+          <option value="bier" selected>Bierframes</option>
+          <option value="miss">Räumfehler</option>
+          <option value="gutter">Gutter / Rinne</option>
+          <option value="turkey">Drillinge</option>
+          <option value="split">Split ≤ 50%</option>
+          <option value="open9">9. Frame offen</option>
+          <option value="over210">Spiele &gt; 210</option>
+          <option value="under170">Spiele &lt; 170</option>
+        </select>
+      </div>
+
+      <div class="h-64 w-full">
+        <canvas id="chartTallies"></canvas>
+      </div>
+    </div>
+
+    <!-- 5. SPIELER-DETAILKARTE (INDIVIDUELLE FORM & AWARDS) -->
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">
+            <span>Spieler-Detailprofil</span>
+          </h2>
+          <p class="text-xs text-slate-600">Einzelauswertung pro Spieler:</p>
+        </div>
+
+        <!-- Spieler Auswahl -->
+        <select id="playerProfileSelect" onchange="renderPlayerProfile(this.value)" class="bg-white border-2 border-[#A499A7] rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+          <!-- Dynamisch gefüllt -->
+        </select>
+      </div>
+
+      <div id="playerProfileContent">
+        <!-- Dynamischer Spieler-Steckbrief -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JavaScript Logik & Chart.js Initialisierung -->
+  <script>
+    let appState = null;
+    let activeTeamId = 'team_pb2';
+    let activeSeasonId = 'season_2026_2027';
+    let isClubWide = false;
+    let currentTeam = null;
+    let currentSeason = null;
+
+    let playersData = [];
+    let matchdaysData = [];
+    let centerStats = [];
+
+    let chartFormkurveInstance = null;
+    let chartCentersInstance = null;
+    let chartTalliesInstance = null;
+    let selectedPlayerProfileId = null;
+
+    // Palette Farben:
+    // Navy #23548F, Green #70C04D, Gold #E8C543, Slate Indigo #43447D, Coral #ED755D, Red #DE4341
+    const playerColors = {
+      player_hatzig: "#23548F",
+      player_baumeister: "#70C04D",
+      player_klipenstein: "#E8C543",
+      player_gerdhenrich: "#43447D",
+      player_hoppe: "#ED755D",
+      player_stoewer: "#DE4341"
+    };
+    const defaultColorPalette = ["#23548F", "#70C04D", "#E8C543", "#43447D", "#ED755D", "#DE4341", "#3E8370", "#A62F8B", "#9D5A47", "#DE9090"];
+
+    function initCharts() {
+      appState = getAppState();
+
+      const params = new URLSearchParams(window.location.search);
+      const teamParam = params.get('team');
+      const seasonParam = params.get('season');
+
+      activeSeasonId = seasonParam || localStorage.getItem('paderbowler_active_season') || appState.currentSeasonId;
+      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || appState.seasons[0];
+
+      if (teamParam === 'all' || (!teamParam && localStorage.getItem('paderbowler_active_team') === 'all')) {
+        isClubWide = true;
+        activeTeamId = 'all';
+      } else {
+        isClubWide = false;
+        activeTeamId = teamParam || localStorage.getItem('paderbowler_active_team') || appState.teams[0]?.id || 'team_pb2';
+        currentTeam = appState.teams.find(t => t.id === activeTeamId);
+        if (!currentTeam) {
+          currentTeam = appState.teams[0];
+          activeTeamId = currentTeam?.id || 'team_pb2';
+        }
+      }
+
+      loadDataAndRenderAll();
+    }
+
+    function loadDataAndRenderAll() {
+      // 1. Spieler-Statistiken laden
+      let rawPlayers = [];
+      if (isClubWide) {
+        rawPlayers = calculateClubWidePlayerStats(activeSeasonId, appState);
+      } else {
+        rawPlayers = calculatePlayerStatsForTeam(activeTeamId, appState);
+      }
+
+      // 2. Spieltage & Formkurven berechnen
+      computeMatchdaysAndCurves(rawPlayers);
+
+      // 3. Center-Statistiken berechnen
+      computeCenterStats();
+
+      // 4. Header & Scope UI aktualisieren
+      updateHeaderUI();
+
+      // 5. KPIs aktualisieren
+      updateKpis();
+
+      // 6. Diagramme zeichnen
+      renderFormkurvenChart();
+      renderCentersChart();
+      renderCenterTable();
+
+      const metricSel = document.getElementById('metricSelector');
+      updateTallyChart(metricSel ? metricSel.value : 'bier');
+
+      // 7. Spieler-Profil Dropdown befüllen & rendern
+      populatePlayerProfileDropdown();
+    }
+
+    function computeMatchdaysAndCurves(rawPlayers) {
+      matchdaysData = [];
+
+      let teamsToInspect = [];
+      if (isClubWide) {
+        teamsToInspect = appState.teams.filter(t => t.seasonId === activeSeasonId);
+      } else {
+        if (currentTeam) teamsToInspect = [currentTeam];
+      }
+
+      const mdAggregate = {};
+
+      teamsToInspect.forEach(team => {
+        const teamMds = getTeamMatchdays(team.id);
+        Object.values(teamMds).forEach(md => {
+          const num = md.number;
+          if (!mdAggregate[num]) {
+            const centerObj = appState.centers.find(c => c.id === md.centerId);
+            const centerName = centerObj ? centerObj.name.split(',')[0].replace(' Bowling Center', '').replace(' Bowling', '').trim() : 'Center';
+            let dateStr = md.date;
+            if (dateStr && dateStr.includes('-')) {
+              const parts = dateStr.split('-');
+              dateStr = `${parts[2]}.${parts[1]}.`;
+            }
+            mdAggregate[num] = {
+              number: num,
+              date: dateStr || `Spieltag ${num}`,
+              center: centerName,
+              totalPins: 0,
+              gamesCount: 0,
+              wins: 0,
+              draws: 0,
+              losses: 0,
+              playerScores: {}
+            };
+          }
+
+          const agg = mdAggregate[num];
+          for (let g = 1; g <= 5; g++) {
+            const lineup = md.gameLineups?.[g] || [];
+            const opp = md.gameOpponents?.[g] || { pins: 0 };
+            let ourGamePins = 0;
+            lineup.forEach(pId => {
+              const p = md.gamePlayerPins?.[g]?.[pId] || 0;
+              if (p > 0) {
+                ourGamePins += p;
+                agg.totalPins += p;
+                agg.gamesCount++;
+
+                if (!agg.playerScores[pId]) agg.playerScores[pId] = { pins: 0, games: 0 };
+                agg.playerScores[pId].pins += p;
+                agg.playerScores[pId].games++;
+              }
+            });
+
+            if (ourGamePins > 0 && opp.pins > 0) {
+              if (ourGamePins > opp.pins) agg.wins++;
+              else if (ourGamePins === opp.pins) agg.draws++;
+              else agg.losses++;
+            }
+          }
+        });
+      });
+
+      const sortedNumbers = Object.keys(mdAggregate).map(Number).sort((a, b) => a - b);
+      sortedNumbers.forEach(num => {
+        const agg = mdAggregate[num];
+        if (agg.gamesCount > 0) {
+          const avg = parseFloat((agg.totalPins / agg.gamesCount).toFixed(2));
+          const points = agg.wins * 2 + agg.draws;
+          matchdaysData.push({
+            number: num,
+            date: agg.date,
+            center: agg.center,
+            avg: avg,
+            points: points,
+            pins: agg.totalPins,
+            playerScores: agg.playerScores
+          });
+        }
+      });
+
+      playersData = rawPlayers.map((p, idx) => {
+        const color = playerColors[p.id] || defaultColorPalette[idx % defaultColorPalette.length];
+        const curve = matchdaysData.map(md => {
+          const pScore = md.playerScores[p.id];
+          if (pScore && pScore.games > 0) {
+            return parseFloat((pScore.pins / pScore.games).toFixed(2));
+          }
+          return null;
+        });
+
+        return {
+          ...p,
+          displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim(),
+          color,
+          curve
+        };
+      });
+    }
+
+    function computeCenterStats() {
+      const centerMap = {};
+      let teamsToInspect = isClubWide 
+        ? appState.teams.filter(t => t.seasonId === activeSeasonId)
+        : (currentTeam ? [currentTeam] : []);
+
+      teamsToInspect.forEach(team => {
+        const teamMds = getTeamMatchdays(team.id);
+        Object.values(teamMds).forEach(md => {
+          const centerObj = appState.centers.find(c => c.id === md.centerId);
+          const cName = centerObj ? `${centerObj.name}, ${centerObj.city}` : "Unbekanntes Center";
+
+          let mdPins = 0;
+          let mdGames = 0;
+          let mdWins = 0;
+          let mdDraws = 0;
+          let mdLosses = 0;
+          let mdHasGames = false;
+
+          for (let g = 1; g <= 5; g++) {
+            const lineup = md.gameLineups?.[g] || [];
+            const opp = md.gameOpponents?.[g] || { pins: 0 };
+            let ourGamePins = 0;
+            lineup.forEach(pId => {
+              const p = md.gamePlayerPins?.[g]?.[pId] || 0;
+              if (p > 0) {
+                ourGamePins += p;
+                mdPins += p;
+                mdGames++;
+                mdHasGames = true;
+              }
+            });
+
+            if (ourGamePins > 0 && opp.pins > 0) {
+              if (ourGamePins > opp.pins) mdWins++;
+              else if (ourGamePins === opp.pins) mdDraws++;
+              else mdLosses++;
+            }
+          }
+
+          if (mdHasGames) {
+            if (!centerMap[cName]) {
+              centerMap[cName] = {
+                name: cName,
+                matchdays: 0,
+                pins: 0,
+                gamesCount: 0,
+                points: 0,
+                maxPoints: 0
+              };
+            }
+            centerMap[cName].matchdays++;
+            centerMap[cName].pins += mdPins;
+            centerMap[cName].gamesCount += mdGames;
+            centerMap[cName].points += (mdWins * 2 + mdDraws);
+            centerMap[cName].maxPoints += 10;
+          }
+        });
+      });
+
+      centerStats = Object.values(centerMap).map(c => ({
+        ...c,
+        avg: c.gamesCount > 0 ? parseFloat((c.pins / c.gamesCount).toFixed(2)) : 0
+      })).sort((a, b) => b.avg - a.avg);
+
+      const bestBadge = document.getElementById('bestCenterBadge');
+      if (bestBadge) {
+        if (centerStats.length > 0) {
+          bestBadge.innerText = `Beste Bahn: ${centerStats[0].name.split(',')[0]} (${centerStats[0].avg.toFixed(2)})`;
+        } else {
+          bestBadge.innerText = `Noch keine Spieltage ausgetragen`;
+        }
+      }
+    }
+
+    function updateKpis() {
+      let totalPins = 0;
+      let totalGames = 0;
+      playersData.forEach(p => {
+        totalPins += p.totalPins;
+        totalGames += p.gamesPlayed;
+      });
+      const avgVal = totalGames > 0 ? (totalPins / totalGames).toFixed(2) : "0.00";
+
+      const kpiAvgTitle = document.getElementById('kpi-avg-title');
+      if (kpiAvgTitle) kpiAvgTitle.innerText = isClubWide ? "Vereinsschnitt" : "Mannschaftsschnitt";
+      const kpiAvgVal = document.getElementById('kpi-avg-val');
+      if (kpiAvgVal) kpiAvgVal.innerText = avgVal;
+      const kpiAvgSub = document.getElementById('kpi-avg-sub');
+      if (kpiAvgSub) kpiAvgSub.innerText = `${totalPins.toLocaleString('de-DE')} Pins in ${totalGames} Spielen`;
+
+      let totalPointsWon = 0;
+      let totalPointsMax = 0;
+
+      matchdaysData.forEach(md => {
+        totalPointsWon += md.points;
+        totalPointsMax += 10;
+      });
+
+      const kpiPtsTitle = document.getElementById('kpi-points-title');
+      if (kpiPtsTitle) kpiPtsTitle.innerText = isClubWide ? "Vereins-Siege" : "Siegpunkte";
+      const kpiPtsVal = document.getElementById('kpi-points-val');
+      if (kpiPtsVal) {
+        if (isClubWide) {
+          kpiPtsVal.innerText = `${totalPointsWon} Pkt.`;
+        } else {
+          kpiPtsVal.innerText = `${totalPointsWon} / ${totalPointsMax}`;
+        }
+      }
+      const kpiPtsSub = document.getElementById('kpi-points-sub');
+      if (kpiPtsSub) {
+        if (isClubWide) {
+          const seasonTeams = appState.teams.filter(t => t.seasonId === activeSeasonId);
+          kpiPtsSub.innerText = `Über alle ${seasonTeams.length} Mannschaften hinweg`;
+        } else {
+          kpiPtsSub.innerText = `${currentTeam?.matchdaysCount || matchdaysData.length} Spieltage gewertet`;
+        }
+      }
+
+      let highGame = 0;
+      let highPlayerName = "-";
+      playersData.forEach(p => {
+        if (p.highGame > highGame) {
+          highGame = p.highGame;
+          highPlayerName = p.displayName;
+        }
+      });
+      const kpiHighVal = document.getElementById('kpi-high-val');
+      if (kpiHighVal) kpiHighVal.innerText = `${highGame} Pins`;
+      const kpiHighSub = document.getElementById('kpi-high-sub');
+      if (kpiHighSub) kpiHighSub.innerText = highPlayerName;
+
+      let totalBier = 0;
+      let maxBier = 0;
+      let maxBierPlayerName = "-";
+      playersData.forEach(p => {
+        totalBier += p.totalBierframes;
+        if (p.totalBierframes > maxBier) {
+          maxBier = p.totalBierframes;
+          maxBierPlayerName = p.displayName.split(' ')[0];
+        }
+      });
+      const kpiBierVal = document.getElementById('kpi-bier-val');
+      if (kpiBierVal) kpiBierVal.innerText = `${totalBier}`;
+      const kpiBierSub = document.getElementById('kpi-bier-sub');
+      if (kpiBierSub) kpiBierSub.innerText = maxBier > 0 ? `${maxBier} von ${maxBierPlayerName}` : "Noch keine Bierframes";
+    }
+
+    function updateHeaderUI() {
+      const badge = document.getElementById('teamHeaderBadge');
+      const subtitle = document.getElementById('teamHeaderSubtitle');
+      const scopeTeamBtn = document.getElementById('scope-team-btn');
+      const scopeClubBtn = document.getElementById('scope-club-btn');
+      const scopeDesc = document.getElementById('scopeDescriptionText');
+      const select = document.getElementById('teamHeaderSelect');
+
+      if (select) {
+        select.innerHTML = `
+          <option value="all" ${isClubWide ? 'selected' : ''}>Vereinsstatistik</option>
+          <optgroup label="Einzelne Mannschaften">
+            ${appState.teams.filter(t => t.seasonId === activeSeasonId).map(t => `
+              <option value="${t.id}" ${(!isClubWide && t.id === activeTeamId) ? 'selected' : ''}>${t.name} (${t.league})</option>
+            `).join('')}
+          </optgroup>
+        `;
+      }
+
+      if (isClubWide) {
+        badge.innerText = "Vereinsstatistik";
+        badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-[#43447D] text-white font-bold border border-[#43447D]";
+        subtitle.innerText = `Saison ${currentSeason?.name || '2026/2027'} • Gesamt-Statistik aller ${playersData.length} Spieler • Alle Mannschaften`;
+        if (scopeDesc) scopeDesc.innerText = "Diagramme & Auswertungen kombiniert über alle Mannschaften des Vereins.";
+
+        if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#43447D] text-white border-2 border-[#43447D] shadow";
+        if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
+      } else {
+        badge.innerText = currentTeam ? currentTeam.name : "Pader-Bowler-06 2";
+        badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold";
+        subtitle.innerText = `Saison ${currentSeason?.name || '2026/2027'} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Statistik`;
+        if (scopeDesc) scopeDesc.innerText = `Diagramme & Kennzahlen ausschließlich für ${currentTeam?.name || ''}.`;
+
+        if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow";
+        if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
+      }
+
+      const targetTeamParam = isClubWide ? 'all' : activeTeamId;
+      const linkInput = document.getElementById('navLinkInput');
+      if (linkInput) linkInput.href = `matchday-input.html?team=${isClubWide ? (appState.teams[0]?.id || 'team_pb2') : activeTeamId}&season=${activeSeasonId}`;
+      const linkAwards = document.getElementById('navLinkAwards');
+      if (linkAwards) linkAwards.href = `awards-rankings.html?team=${targetTeamParam}&season=${activeSeasonId}`;
+      const linkPdf = document.getElementById('navLinkPdf');
+      if (linkPdf) linkPdf.href = `pdf-report.html?team=${isClubWide ? (appState.teams[0]?.id || 'team_pb2') : activeTeamId}&season=${activeSeasonId}`;
+    }
+
+    function switchChartScope(newVal) {
+      if (newVal === 'all') {
+        isClubWide = true;
+        activeTeamId = 'all';
+        localStorage.setItem('paderbowler_active_team', 'all');
+      } else {
+        isClubWide = false;
+        activeTeamId = newVal;
+        currentTeam = appState.teams.find(t => t.id === newVal);
+        localStorage.setItem('paderbowler_active_team', newVal);
+      }
+
+      loadDataAndRenderAll();
+
+      if (window.history.pushState) {
+        const newUrl = `dashboard-charts.html?team=${activeTeamId}&season=${activeSeasonId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+
+    function setChartScope(scope) {
+      if (scope === 'all') {
+        switchChartScope('all');
+      } else {
+        const fallbackId = (currentTeam && currentTeam.id !== 'all') ? currentTeam.id : (appState.teams[0]?.id || 'team_pb2');
+        switchChartScope(fallbackId);
+      }
+    }
+
+    // 1. Formkurven Chart
+    function renderFormkurvenChart() {
+      const canvas = document.getElementById('chartFormkurve');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (chartFormkurveInstance) chartFormkurveInstance.destroy();
+
+      const labels = matchdaysData.map(m => `ST ${m.number} (${m.center})`);
+      const teamAvgLabel = isClubWide ? 'Vereins-Schnitt' : 'Team-Schnitt';
+
+      const datasets = [
+        {
+          label: teamAvgLabel,
+          data: matchdaysData.map(m => m.avg),
+          borderColor: '#0f172a',
+          backgroundColor: '#0f172a',
+          borderWidth: 3,
+          tension: 0.25,
+          pointRadius: 5,
+          pointHoverRadius: 8
+        },
+        ...playersData.map(p => ({
+          label: p.displayName,
+          data: p.curve,
+          borderColor: p.color,
+          backgroundColor: p.color,
+          borderWidth: 2,
+          borderDash: [4, 4],
+          tension: 0.2,
+          pointRadius: 4,
+          spanGaps: true
+        }))
+      ];
+
+      chartFormkurveInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#1e293b', font: { size: 11, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} Pins`
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: 120,
+              max: 230,
+              grid: { color: 'rgba(164, 153, 167, 0.25)' },
+              ticks: { color: '#475569', font: { weight: 'bold' }, stepSize: 15 }
+            },
+            x: {
+              grid: { color: 'rgba(164, 153, 167, 0.15)' },
+              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } }
+            }
+          }
+        }
+      });
+    }
+
+    function toggleAllLines(showAll) {
+      if (!chartFormkurveInstance) return;
+      chartFormkurveInstance.data.datasets.forEach((ds, idx) => {
+        if (idx === 0) ds.hidden = false;
+        else ds.hidden = !showAll;
+      });
+      chartFormkurveInstance.update();
+    }
+
+    // 2. Bowlingcenter Chart & Table
+    function renderCentersChart() {
+      const canvas = document.getElementById('chartCenters');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (chartCentersInstance) chartCentersInstance.destroy();
+
+      const centerColors = ['#23548F', '#3E8370', '#70C04D', '#E8C543', '#43447D', '#ED755D'];
+
+      chartCentersInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: centerStats.map(c => c.name.split(',')[0]),
+          datasets: [{
+            label: isClubWide ? 'Vereinsschnitt (Pins)' : 'Mannschaftsschnitt (Pins)',
+            data: centerStats.map(c => c.avg),
+            backgroundColor: centerStats.map((_, i) => centerColors[i % centerColors.length]),
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              min: 130,
+              max: 215,
+              grid: { color: 'rgba(164, 153, 167, 0.25)' },
+              ticks: { color: '#475569', font: { weight: 'bold' } }
+            },
+            x: {
+              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCenterTable() {
+      const tbody = document.getElementById('centerTableBody');
+      if (!tbody) return;
+      if (centerStats.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-600 font-bold">Keine Center-Daten vorhanden.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = centerStats.map(c => `
+        <tr class="hover:bg-[#E4D7CF]/30">
+          <td class="py-2 px-3 font-semibold text-slate-900">${c.name}</td>
+          <td class="py-2 px-2 text-center text-slate-600 font-bold">${c.matchdays}</td>
+          <td class="py-2 px-2 text-center font-black text-[#23548F]">${c.avg.toFixed(2)}</td>
+          <td class="py-2 px-2 text-center font-black text-[#70C04D]">${c.points}/${c.maxPoints}</td>
+          <td class="py-2 px-2 text-right font-bold text-slate-900">${c.pins.toLocaleString('de-DE')}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 3. Strichlisten Ranking Chart
+    function updateTallyChart(metricKey) {
+      const metricLabels = {
+        bier: 'Bierframes',
+        miss: 'Räumfehler',
+        gutter: 'Gutter / Rinne',
+        turkey: 'Drillinge',
+        split: 'Split ≤ 50%',
+        open9: '9. Frame offen',
+        over210: 'Spiele > 210',
+        under170: 'Spiele < 170'
+      };
+
+      const propMap = {
+        bier: 'totalBierframes',
+        miss: 'totalRaeumfehler',
+        gutter: 'totalGutterAnwurf',
+        turkey: 'totalDrilling',
+        split: 'totalSplitUnder50',
+        open9: 'totalNinthFrameOpen',
+        over210: 'totalOver210',
+        under170: 'totalUnder170'
+      };
+
+      const metricBarColors = {
+        bier: '#E8C543',
+        miss: '#DE4341',
+        gutter: '#A62F8B',
+        turkey: '#70C04D',
+        split: '#9D5A47',
+        open9: '#ED755D',
+        over210: '#23548F',
+        under170: '#DE9090'
+      };
+
+      const key = propMap[metricKey] || 'totalBierframes';
+      const sorted = [...playersData].sort((a, b) => (b[key] || 0) - (a[key] || 0));
+
+      const canvas = document.getElementById('chartTallies');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (chartTalliesInstance) chartTalliesInstance.destroy();
+
+      const fillColor = metricBarColors[metricKey] || '#23548F';
+
+      chartTalliesInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: sorted.map(p => p.displayName),
+          datasets: [{
+            label: metricLabels[metricKey] || metricKey,
+            data: sorted.map(p => p[key] || 0),
+            backgroundColor: fillColor,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(164, 153, 167, 0.25)' },
+              ticks: { color: '#475569', font: { weight: 'bold' }, stepSize: 2 }
+            },
+            x: {
+              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // 4. Spieler Profil Detailansicht
+    function populatePlayerProfileDropdown() {
+      const select = document.getElementById('playerProfileSelect');
+      if (!select) return;
+
+      select.innerHTML = playersData.map(p => `
+        <option value="${p.id}">${p.displayName} - Schnitt ${p.average.toFixed(2)}</option>
+      `).join('');
+
+      if (playersData.length > 0) {
+        if (!selectedPlayerProfileId || !playersData.some(p => p.id === selectedPlayerProfileId)) {
+          selectedPlayerProfileId = playersData[0].id;
+        }
+        select.value = selectedPlayerProfileId;
+        renderPlayerProfile(selectedPlayerProfileId);
+      } else {
+        document.getElementById('playerProfileContent').innerHTML = `
+          <div class="p-6 text-center text-slate-600 font-bold">Keine Spieler im Kader dieser Auswahl vorhanden.</div>
+        `;
+      }
+    }
+
+    function renderPlayerProfile(playerId) {
+      selectedPlayerProfileId = playerId;
+      const p = playersData.find(x => x.id === playerId);
+      if (!p) return;
+
+      let honor = "Stammspieler";
+      const maxAvg = Math.max(...playersData.map(x => x.average));
+      const maxPins = Math.max(...playersData.map(x => x.totalPins));
+      const maxHigh = Math.max(...playersData.map(x => x.highGame));
+      const maxBier = Math.max(...playersData.map(x => x.totalBierframes));
+      const maxGutter = Math.max(...playersData.map(x => x.totalGutterAnwurf));
+      const maxMiss = Math.max(...playersData.map(x => x.totalRaeumfehler));
+      const maxDrilling = Math.max(...playersData.map(x => x.totalDrilling));
+      const maxUnder170 = Math.max(...playersData.map(x => x.totalUnder170));
+      const maxOver210 = Math.max(...playersData.map(x => x.totalOver210));
+
+      if (p.average === maxAvg && p.gamesPlayed >= 5) honor = "Führender Saison-MVP";
+      else if (p.totalPins === maxPins && p.totalPins > 0) honor = "Führender Gesamtpins";
+      else if (p.totalBierframes === maxBier && maxBier > 0) honor = "Führender Bierframes";
+      else if (p.highGame === maxHigh && maxHigh > 0) honor = "Führender High-Game";
+      else if (p.totalDrilling === maxDrilling && maxDrilling > 0) honor = "Führender Strike-Maestro";
+      else if (p.totalGutterAnwurf === maxGutter && maxGutter > 0) honor = "Führender Goldene Rinne";
+      else if (p.totalRaeumfehler === maxMiss && maxMiss > 0) honor = "Führender Räumfehler";
+      else if (p.totalUnder170 === maxUnder170 && maxUnder170 > 0) honor = "Führender Bahn-Bändiger";
+      else if (p.totalOver210 === maxOver210 && maxOver210 > 0) honor = "High-Roller über 210";
+
+      const container = document.getElementById('playerProfileContent');
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+          <!-- Steckbrief Spalte 1: Schnitt & Einsätze -->
+          <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3.5 space-y-2">
+            <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Ergebnis-Profil</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Saisonschnitt:</span>
+              <span class="text-base font-black text-[#23548F]">${p.average.toFixed(2)} Pins</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Gesamtpins:</span>
+              <span class="text-sm font-bold text-slate-900">${p.totalPins.toLocaleString('de-DE')}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Gespielte Spiele:</span>
+              <span class="text-sm font-bold text-slate-900">${p.gamesPlayed} Einsätze</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Höchstes Einzelspiel:</span>
+              <span class="text-sm font-extrabold text-[#70C04D]">${p.highGame} Pins</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Niedrigstes Spiel:</span>
+              <span class="text-sm font-bold text-slate-600">${p.lowGame} Pins</span>
+            </div>
+          </div>
+
+          <!-- Steckbrief Spalte 2: Strichlisten-Highlights -->
+          <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3.5 space-y-2">
+            <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Strichlisten-Bilanz</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Bierframes:</span>
+              <span class="text-sm font-extrabold text-[#E8C543]">${p.totalBierframes}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Räumfehler:</span>
+              <span class="text-sm font-extrabold text-[#DE4341]">${p.totalRaeumfehler}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Gutter:</span>
+              <span class="text-sm font-extrabold text-[#A62F8B]">${p.totalGutterAnwurf}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Drillinge:</span>
+              <span class="text-sm font-extrabold text-[#70C04D]">${p.totalDrilling}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Split ≤ 50% / 9. offen:</span>
+              <span class="text-sm font-bold text-slate-800">${p.totalSplitUnder50} / ${p.totalNinthFrameOpen}</span>
+            </div>
+          </div>
+
+          <!-- Steckbrief Spalte 3: Kuriositäten & Schwellenwerte -->
+          <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3.5 space-y-2">
+            <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Schwellenwerte & Status</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Spiele &gt; 210:</span>
+              <span class="text-sm font-black text-[#23548F]">${p.totalOver210}x</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Spiele &lt; 170:</span>
+              <span class="text-sm font-black text-[#DE9090]">${p.totalUnder170}x</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700">Schnapszahlen:</span>
+              <span class="text-sm font-black text-[#A62F8B]">${p.totalSchnapszahl}x</span>
+            </div>
+            <div class="pt-1 border-t border-[#A499A7]/50">
+              <span class="text-[10px] text-slate-600 block">Aktueller Status:</span>
+              <span class="text-xs font-bold text-[#23548F] block truncate">
+                ${honor}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', initCharts);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#E4D7CF] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paderbowler Stats 2 - Spieltag</title>
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#23548F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgSand: '#E4D7CF',
+            bgSlate: '#A499A7',
+            cGreen: '#70C04D',
+            cTeal: '#3E8370',
+            cOlive: '#2E4D11',
+            cButter: '#F7F6BD',
+            cGold: '#E8C543',
+            cBrown: '#9D5A47',
+            cNavy: '#23548F',
+            cIndigo: '#43447D',
+            cCoral: '#ED755D',
+            cRed: '#DE4341',
+            cBerry: '#C73856',
+            cRose: '#DE9090',
+            cPlum: '#A62F8B'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .touch-btn:active { transform: scale(0.92); }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; margin: 0; 
+    }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased pb-28 bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- Header: Hintergrund 2 (#A499A7) -->
+  <header class="bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md flex flex-wrap items-center justify-between gap-2.5 text-slate-900">
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#23548F]" id="teamHeaderLogo">
+      <div>
+        <h1 class="text-sm sm:text-base font-extrabold text-slate-950 flex items-center gap-1.5 sm:gap-2">
+          <span id="teamHeaderName">Pader-Bowler-06 2</span>
+          <span id="teamHeaderLeague" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold">Landesliga 1</span>
+        </h1>
+        <p id="teamHeaderSeason" class="text-[11px] sm:text-xs font-semibold text-slate-800">Saison 2026/2027</p>
+      </div>
+
+      <!-- Schneller Mannschaftswechsel im Header -->
+      <div class="hidden sm:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2 shadow-sm">
+        <span class="text-xs text-slate-700 mr-2 font-bold">Team:</span>
+        <select id="teamHeaderSelect" onchange="switchTeam(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+        </select>
+      </div>
+    </div>
+
+    <!-- Aktions-Buttons: Alle sauber umbrechend, bleiben zu jeder Zeit im Fenster -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <a href="index.html" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>Teams</span>
+      </a>
+      <a href="dashboard-charts.html" id="navLinkCharts" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-[#23548F] border-2 border-[#23548F] touch-btn shadow-sm">
+        <span>Diagramme</span>
+      </a>
+      <a href="awards-rankings.html" id="navLinkAwards" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-xs font-bold text-slate-950 border-2 border-[#cfae2e] touch-btn shadow-sm">
+        <span>Awards</span>
+      </a>
+      <a href="pdf-report.html" id="navLinkPdf" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
+        <span>PDF</span>
+      </a>
+      <button onclick="openModal('modalWbuImport')" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>WBU Import</span>
+      </button>
+      <button onclick="openModal('modalCenter')" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>Center</span>
+      </button>
+      <button onclick="openModal('modalPlayer')" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>Spieler</span>
+      </button>
+      <button onclick="finishSeasonPrompt()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#43447D] hover:bg-[#343563] text-xs text-white border-2 border-[#43447D] touch-btn font-bold shadow-sm">
+        <span>Abschluss</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Wenn noch keine Spieltage angelegt sind -->
+    <div id="noMatchdaysBanner" class="hidden bg-white border-2 border-[#A499A7] rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-sm">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-[#E4D7CF] border-2 border-[#A499A7] flex items-center justify-center font-black text-xl text-[#23548F]">
+        ST
+      </div>
+      <div class="space-y-1">
+        <h2 class="text-lg font-black text-slate-900" id="noMatchdaysTitle">Noch keine Spieltage angelegt</h2>
+        <p class="text-xs text-slate-600 max-w-md mx-auto">
+          Die Spieltage für diese Mannschaft sind noch frei. Lege den 1. Spieltag an, um Ergebnisse und Strichlisten einzutragen.
+        </p>
+      </div>
+      <button onclick="openModal('modalMatchday')" class="px-6 py-3 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white font-black text-xs border-2 border-[#23548F] shadow-md touch-btn">
+        + 1. Spieltag anlegen
+      </button>
+    </div>
+
+    <!-- 1. FENSTER: SPIELTAG & GEGNER (Sauberes Kartenfenster mit Navy-Akzenten) -->
+    <div id="windowMatchday" class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
+        
+        <!-- Spieltag Dropdown -->
+        <div class="flex items-center gap-2.5">
+          <span class="text-xs font-black uppercase text-slate-700 tracking-wider">Spieltag</span>
+          <select id="selectedMatchday" onchange="changeMatchday(this.value)" class="bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-4 py-2.5 text-sm sm:text-base font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+            <!-- Dynamisch befüllt -->
+          </select>
+          <button onclick="openModal('modalMatchday')" class="w-11 h-11 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white border-2 border-[#23548F] font-black text-xl touch-btn flex items-center justify-center shadow-sm" title="Neuen Spieltag anlegen">
+            +
+          </button>
+        </div>
+
+        <!-- Bowlingcenter Dropdown -->
+        <div class="flex-1 max-w-sm">
+          <select id="centerSelect" onchange="onCenterChange(this.value)" class="w-full bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+            <!-- Dynamisch befüllt -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Spiel-Reiter (Spiel 1 bis 5) farblich sauber abgetrennt -->
+      <div class="grid grid-cols-5 gap-2 bg-[#E4D7CF]/40 p-1.5 rounded-xl border border-[#A499A7]">
+        <button onclick="selectGame(1)" id="tabGame1" class="tab-game py-2.5 rounded-lg text-xs font-black bg-[#23548F] text-white border border-[#23548F] shadow">Spiel 1</button>
+        <button onclick="selectGame(2)" id="tabGame2" class="tab-game py-2.5 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300">Spiel 2</button>
+        <button onclick="selectGame(3)" id="tabGame3" class="tab-game py-2.5 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300">Spiel 3</button>
+        <button onclick="selectGame(4)" id="tabGame4" class="tab-game py-2.5 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300">Spiel 4</button>
+        <button onclick="selectGame(5)" id="tabGame5" class="tab-game py-2.5 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300">Spiel 5</button>
+      </div>
+
+      <!-- GEGNER & ERGEBNIS-ZEILE -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Gegner auswählen</label>
+          <select id="currentGameOpponent" onchange="onOpponentChange(this.value)" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl px-4 py-3 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+            <!-- Dynamisch befüllt -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Gegner Pins</label>
+          <div class="flex items-center">
+            <button onclick="stepOpponentPins(-10)" class="h-14 px-3 sm:px-4 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 rounded-l-xl border-y-2 border-l-2 border-[#A499A7] font-black text-sm touch-btn shrink-0">-10</button>
+            <button onclick="stepOpponentPins(-1)" class="h-14 px-3 sm:px-4 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 border-y-2 border-l-2 border-[#A499A7] font-black text-sm touch-btn shrink-0">-1</button>
+            <input type="number" id="opponentPinsInput" value="0" oninput="updateGameState()" class="w-full min-w-0 h-14 text-center bg-white border-2 border-[#A499A7] text-2xl text-slate-950 font-black focus:outline-none focus:border-[#23548F]">
+            <button onclick="stepOpponentPins(1)" class="h-14 px-3 sm:px-4 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 border-y-2 border-r-2 border-[#A499A7] font-black text-sm touch-btn shrink-0">+1</button>
+            <button onclick="stepOpponentPins(10)" class="h-14 px-3 sm:px-4 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 rounded-r-xl border-y-2 border-r-2 border-[#A499A7] font-black text-sm touch-btn shrink-0">+10</button>
+          </div>
+        </div>
+
+        <!-- Ergebnis & Gesamtergebnis: Navy-Box mit Sieg/Niederlage Farb-Signal -->
+        <div class="bg-[#23548F] text-white border-2 border-[#23548F] rounded-xl p-3.5 flex flex-col justify-between shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs text-white/80 font-bold block">Ergebnis</span>
+              <span id="gameScoreSummary" class="text-xl font-black text-white">- vs -</span>
+            </div>
+            <span id="gamePointsBadge" class="px-3.5 py-1.5 text-xs font-black rounded-full bg-slate-200 text-slate-700 border-2 border-slate-300">
+              OFFEN
+            </span>
+          </div>
+          <div class="border-t border-white/20 pt-2 mt-2 flex items-center justify-between text-xs text-white/90">
+            <span>Gesamt:</span>
+            <span id="matchdayTotalSummary" class="font-extrabold text-white">0 Punkte &bull; 0 Pins</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. FENSTER: AUFSTELLUNG (Kartenfenster mit Teal-Akzenten) -->
+    <div id="windowLineup" class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <h2 class="text-base font-black text-slate-950">Aufstellung</h2>
+          <span id="lineupCounterBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/30 font-bold">4 von 4</span>
+        </div>
+        <button onclick="openModal('modalPlayer')" class="px-3.5 py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
+          <span>+ Ersatzspieler</span>
+        </button>
+      </div>
+
+      <!-- Schnellauswahl-Pills für alle Kader-Spieler -->
+      <div class="flex flex-wrap gap-2.5" id="squadLineupPills">
+        <!-- Dynamisch -->
+      </div>
+
+      <!-- PINS DER 4 AKTIVEN SPIELER -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1" id="activePlayerPinCards">
+        <!-- Dynamisch -->
+      </div>
+    </div>
+
+    <!-- 3. FENSTER: STRICHLISTE & SUMMEN -->
+    <div id="windowTallies" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-black text-slate-950 tracking-tight">Strichliste</h2>
+      </div>
+
+      <!-- Summen-Kasten: Palette-Farben für die einzelnen Kennzahlen -->
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Summen</span>
+          <span class="text-xs font-bold text-slate-500">Spieltag</span>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5" id="matchdaySummaryTiles">
+          <!-- Dynamische Summen-Kacheln -->
+        </div>
+      </div>
+
+      <!-- DIE SPIELER KARTEN: Name größer und zentriert, Metriken größer und zentriert, Tasten größer -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="playerTallyCards">
+        <!-- Dynamisch -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================= -->
+  <!-- MODALS: CENTER ANLEGEN, SPIELER ANLEGEN, SPIELTAG ANLEGEN -->
+  <!-- ======================================================= -->
+
+  <!-- Modal: Neues Center anlegen -->
+  <div id="modalCenter" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Center anlegen</h3>
+        <button onclick="closeModal('modalCenter')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Name des Centers</label>
+          <input type="text" id="newCenterName" placeholder="Bowling Arena" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Straße & Hausnummer</label>
+          <input type="text" id="newCenterAddress" placeholder="Musterstr. 10" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">PLZ</label>
+            <input type="text" id="newCenterZip" placeholder="33100" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-slate-700 mb-1 font-bold">Ort</label>
+            <input type="text" id="newCenterCity" placeholder="Paderborn" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalCenter')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveNewCenter()" class="px-4 py-2 rounded-lg bg-[#23548F] hover:bg-[#1a4170] font-bold text-xs text-white border-2 border-[#23548F] shadow-sm">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Neuer Spieler anlegen -->
+  <div id="modalPlayer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Spieler anlegen</h3>
+        <button onclick="closeModal('modalPlayer')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Vorname</label>
+            <input type="text" id="newPlayerFirst" placeholder="Michael" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Nachname</label>
+            <input type="text" id="newPlayerLast" placeholder="Meier" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">E-Mail</label>
+          <input type="email" id="newPlayerEmail" placeholder="michi@paderbowler.de" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <input type="checkbox" id="newPlayerRegular" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+          <label for="newPlayerRegular" class="text-slate-800 font-bold">Stammspieler</label>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalPlayer')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveNewPlayer()" class="px-4 py-2 rounded-lg bg-[#70C04D] hover:bg-[#5ea83e] font-bold text-xs text-white border-2 border-[#5ea83e] shadow-sm">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Neuer Spieltag anlegen -->
+  <div id="modalMatchday" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Spieltag anlegen</h3>
+        <button onclick="closeModal('modalMatchday')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Spieltag Nummer</label>
+          <input type="number" id="newMdNumber" value="1" min="1" max="20" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Datum</label>
+          <input type="date" id="newMdDate" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Bowlingcenter</label>
+          <select id="newMdCenter" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <!-- Dynamisch gefüllt -->
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalMatchday')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveNewMatchday()" class="px-4 py-2 rounded-lg bg-[#23548F] hover:bg-[#1a4170] font-black text-xs text-white border-2 border-[#23548F] shadow-sm">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: WBU Liga Import -->
+  <div id="modalWbuImport" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">WBU Import</h3>
+        <button onclick="closeModal('modalWbuImport')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <label class="block text-slate-700 font-bold">WBU Tabelle oder Text einfügen:</label>
+          <button onclick="insertWbuSampleData()" class="text-[11px] text-[#23548F] hover:underline font-bold">Beispieldaten</button>
+        </div>
+        <textarea id="wbuInputText" rows="6" placeholder="WBU Daten hier einfügen..." class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl p-3 text-xs text-slate-900 font-mono focus:outline-none focus:border-[#23548F]"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalWbuImport')" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-xs text-slate-700 font-bold border border-[#A499A7]">Abbrechen</button>
+        <button onclick="importWbuText()" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4170] font-black text-xs text-white border-2 border-[#23548F] shadow-md touch-btn">Importieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Logik -->
+  <script>
+    // 1. Bowlingcenter Liste
+    let bowlingCenters = [
+      { id: "center_elite", name: "Elite Bowling Center, Bielefeld" },
+      { id: "center_muenster", name: "Bowltreff Münster, Münster" },
+      { id: "center_detmold", name: "Skyline Bowling, Detmold" },
+      { id: "center_hamm", name: "Maxi Strike, Hamm" },
+      { id: "center_paderborn", name: "Pader Bowling, Paderborn" }
+    ];
+
+    // 2. Kader Spieler Liste
+    let allPlayers = [
+      { id: "player_hatzig", name: "Pascal Hatzig", isRegular: true },
+      { id: "player_baumeister", name: "Gerrit Baumeister", isRegular: true },
+      { id: "player_klipenstein", name: "Andre Klipenstein", isRegular: true },
+      { id: "player_gerdhenrich", name: "Gary Gerdhenrich", isRegular: true },
+      { id: "player_hoppe", name: "Joachim Hoppe", isRegular: true },
+      { id: "player_stoewer", name: "Marvin Stöwer", isRegular: false }
+    ];
+
+    // Initialer Datenbestand für Pader-Bowler-06 2
+    const initialPb2Matchdays = {
+      1: {
+        number: 1, date: "2026-09-06", centerId: "center_elite",
+        gameOpponents: {
+          1: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 674 },
+          2: { id: "opp_detmold", name: "BV Detmold 2", pins: 709 },
+          3: { id: "opp_holsen", name: "VfL Holsen 3", pins: 742 },
+          4: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 676 },
+          5: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 757 }
+        },
+        gameLineups: {
+          1: ["player_klipenstein", "player_hatzig", "player_gerdhenrich", "player_baumeister"],
+          2: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          3: ["player_klipenstein", "player_hoppe", "player_gerdhenrich", "player_baumeister"],
+          4: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          5: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_gerdhenrich"]
+        },
+        gamePlayerPins: {
+          1: { player_klipenstein: 222, player_hatzig: 198, player_gerdhenrich: 169, player_baumeister: 174 },
+          2: { player_klipenstein: 183, player_hatzig: 155, player_hoppe: 164, player_baumeister: 203 },
+          3: { player_klipenstein: 181, player_hoppe: 141, player_gerdhenrich: 152, player_baumeister: 161 },
+          4: { player_klipenstein: 227, player_hatzig: 246, player_hoppe: 163, player_baumeister: 157 },
+          5: { player_klipenstein: 190, player_hatzig: 195, player_hoppe: 167, player_gerdhenrich: 182 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 0, miss: 6, gutter: 0, split: 2, open9: 2, turkey: 3 },
+          player_hatzig: { bier: 1, miss: 2, gutter: 0, split: 1, open9: 0, turkey: 3 },
+          player_hoppe: { bier: 1, miss: 5, gutter: 0, split: 0, open9: 1, turkey: 0 },
+          player_gerdhenrich: { bier: 1, miss: 5, gutter: 0, split: 0, open9: 1, turkey: 1 },
+          player_baumeister: { bier: 4, miss: 7, gutter: 0, split: 1, open9: 1, turkey: 0 },
+          player_stoewer: { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 }
+        }
+      },
+      2: {
+        number: 2, date: "2026-09-20", centerId: "center_elite",
+        gameOpponents: {
+          1: { id: "opp_detmold", name: "BV Detmold 2", pins: 583 },
+          2: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 644 },
+          3: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 571 },
+          4: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 603 },
+          5: { id: "opp_holsen", name: "VfL Holsen 3", pins: 686 }
+        },
+        gameLineups: {
+          1: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          2: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          3: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          4: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          5: ["player_klipenstein", "player_hoppe", "player_baumeister", "player_stoewer"]
+        },
+        gamePlayerPins: {
+          1: { player_hatzig: 189, player_hoppe: 164, player_baumeister: 223, player_stoewer: 150 },
+          2: { player_klipenstein: 134, player_hatzig: 169, player_hoppe: 207, player_baumeister: 192 },
+          3: { player_hatzig: 179, player_hoppe: 192, player_baumeister: 218, player_stoewer: 141 },
+          4: { player_klipenstein: 162, player_hatzig: 165, player_hoppe: 185, player_baumeister: 205 },
+          5: { player_klipenstein: 156, player_hoppe: 148, player_baumeister: 158, player_stoewer: 156 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 5, miss: 5, gutter: 0, split: 2, open9: 2, turkey: 0 },
+          player_hatzig: { bier: 0, miss: 5, gutter: 0, split: 2, open9: 2, turkey: 2 },
+          player_hoppe: { bier: 0, miss: 5, gutter: 0, split: 2, open9: 3, turkey: 1 },
+          player_gerdhenrich: { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 },
+          player_baumeister: { bier: 2, miss: 11, gutter: 0, split: 2, open9: 2, turkey: 3 },
+          player_stoewer: { bier: 2, miss: 14, gutter: 2, split: 1, open9: 1, turkey: 0 }
+        }
+      },
+      3: {
+        number: 3, date: "2026-10-04", centerId: "center_muenster",
+        gameOpponents: {
+          1: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 569 },
+          2: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 620 },
+          3: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 541 },
+          4: { id: "opp_holsen", name: "VfL Holsen 3", pins: 574 },
+          5: { id: "opp_detmold", name: "BV Detmold 2", pins: 616 }
+        },
+        gameLineups: {
+          1: ["player_klipenstein", "player_hoppe", "player_gerdhenrich", "player_baumeister"],
+          2: ["player_klipenstein", "player_hoppe", "player_gerdhenrich", "player_baumeister"],
+          3: ["player_klipenstein", "player_gerdhenrich", "player_baumeister", "player_stoewer"],
+          4: ["player_klipenstein", "player_hoppe", "player_baumeister", "player_stoewer"],
+          5: ["player_klipenstein", "player_hoppe", "player_gerdhenrich", "player_stoewer"]
+        },
+        gamePlayerPins: {
+          1: { player_klipenstein: 161, player_hoppe: 167, player_gerdhenrich: 172, player_baumeister: 181 },
+          2: { player_klipenstein: 139, player_hoppe: 182, player_gerdhenrich: 186, player_baumeister: 171 },
+          3: { player_klipenstein: 145, player_gerdhenrich: 177, player_baumeister: 171, player_stoewer: 139 },
+          4: { player_klipenstein: 153, player_hoppe: 169, player_baumeister: 188, player_stoewer: 161 },
+          5: { player_klipenstein: 157, player_hoppe: 168, player_gerdhenrich: 181, player_stoewer: 150 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 4, miss: 15, gutter: 2, split: 2, open9: 3, turkey: 1 },
+          player_hatzig: { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 },
+          player_hoppe: { bier: 0, miss: 2, gutter: 0, split: 0, open9: 1, turkey: 1 },
+          player_gerdhenrich: { bier: 2, miss: 3, gutter: 0, split: 1, open9: 0, turkey: 0 },
+          player_baumeister: { bier: 1, miss: 10, gutter: 0, split: 1, open9: 0, turkey: 1 },
+          player_stoewer: { bier: 0, miss: 14, gutter: 1, split: 1, open9: 1, turkey: 0 }
+        }
+      },
+      4: {
+        number: 4, date: "2026-10-18", centerId: "center_detmold",
+        gameOpponents: {
+          1: { id: "opp_holsen", name: "VfL Holsen 3", pins: 641 },
+          2: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 595 },
+          3: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 701 },
+          4: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 689 },
+          5: { id: "opp_detmold", name: "BV Detmold 2", pins: 679 }
+        },
+        gameLineups: {
+          1: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          2: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          3: ["player_klipenstein", "player_hatzig", "player_gerdhenrich", "player_baumeister"],
+          4: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"],
+          5: ["player_klipenstein", "player_hatzig", "player_hoppe", "player_baumeister"]
+        },
+        gamePlayerPins: {
+          1: { player_klipenstein: 180, player_hatzig: 192, player_hoppe: 185, player_baumeister: 200 },
+          2: { player_klipenstein: 196, player_hatzig: 201, player_hoppe: 158, player_baumeister: 256 },
+          3: { player_klipenstein: 216, player_hatzig: 170, player_gerdhenrich: 139, player_baumeister: 195 },
+          4: { player_klipenstein: 170, player_hatzig: 215, player_hoppe: 204, player_baumeister: 219 },
+          5: { player_klipenstein: 176, player_hatzig: 203, player_hoppe: 216, player_baumeister: 190 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 4, miss: 5, gutter: 0, split: 3, open9: 1, turkey: 1 },
+          player_hatzig: { bier: 2, miss: 3, gutter: 0, split: 1, open9: 0, turkey: 2 },
+          player_hoppe: { bier: 1, miss: 3, gutter: 0, split: 1, open9: 2, turkey: 1 },
+          player_gerdhenrich: { bier: 2, miss: 1, gutter: 0, split: 0, open9: 1, turkey: 0 },
+          player_baumeister: { bier: 1, miss: 4, gutter: 0, split: 1, open9: 0, turkey: 7 },
+          player_stoewer: { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 }
+        }
+      },
+      5: {
+        number: 5, date: "2026-11-08", centerId: "center_hamm",
+        gameOpponents: {
+          1: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 681 },
+          2: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 637 },
+          3: { id: "opp_holsen", name: "VfL Holsen 3", pins: 724 },
+          4: { id: "opp_detmold", name: "BV Detmold 2", pins: 722 },
+          5: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 634 }
+        },
+        gameLineups: {
+          1: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          2: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          3: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          4: ["player_hatzig", "player_hoppe", "player_baumeister", "player_stoewer"],
+          5: ["player_hatzig", "player_hoppe", "player_gerdhenrich", "player_baumeister"]
+        },
+        gamePlayerPins: {
+          1: { player_hatzig: 178, player_hoppe: 180, player_baumeister: 171, player_stoewer: 228 },
+          2: { player_hatzig: 213, player_hoppe: 173, player_baumeister: 211, player_stoewer: 196 },
+          3: { player_hatzig: 176, player_hoppe: 154, player_baumeister: 181, player_stoewer: 210 },
+          4: { player_hatzig: 202, player_hoppe: 157, player_baumeister: 183, player_stoewer: 128 },
+          5: { player_hatzig: 248, player_hoppe: 149, player_gerdhenrich: 195, player_baumeister: 233 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 },
+          player_hatzig: { bier: 3, miss: 5, gutter: 0, split: 0, open9: 1, turkey: 2 },
+          player_hoppe: { bier: 7, miss: 11, gutter: 0, split: 1, open9: 3, turkey: 1 },
+          player_gerdhenrich: { bier: 0, miss: 2, gutter: 0, split: 0, open9: 0, turkey: 1 },
+          player_baumeister: { bier: 3, miss: 4, gutter: 0, split: 1, open9: 1, turkey: 2 },
+          player_stoewer: { bier: 3, miss: 7, gutter: 0, split: 0, open9: 1, turkey: 4 }
+        }
+      },
+      6: {
+        number: 6, date: "2027-02-14", centerId: "center_elite",
+        gameOpponents: {
+          1: { id: "opp_detmold", name: "BV Detmold 2", pins: 685 },
+          2: { id: "opp_hamm", name: "MaxiStrike Hamm 2", pins: 710 },
+          3: { id: "opp_holsen", name: "VfL Holsen 3", pins: 695 },
+          4: { id: "opp_bielefeld", name: "Bowlingfreunde Bielefeld 3", pins: 720 },
+          5: { id: "opp_brackwede", name: "BV Brackwede 3", pins: 700 }
+        },
+        gameLineups: {
+          1: ["player_klipenstein", "player_hatzig", "player_baumeister", "player_hoppe"],
+          2: ["player_klipenstein", "player_hatzig", "player_baumeister", "player_stoewer"],
+          3: ["player_gerdhenrich", "player_hatzig", "player_baumeister", "player_hoppe"],
+          4: ["player_klipenstein", "player_gerdhenrich", "player_baumeister", "player_hoppe"],
+          5: ["player_klipenstein", "player_hatzig", "player_baumeister", "player_stoewer"]
+        },
+        gamePlayerPins: {
+          1: { player_klipenstein: 195, player_hatzig: 204, player_baumeister: 178, player_hoppe: 168 },
+          2: { player_klipenstein: 180, player_hatzig: 190, player_baumeister: 210, player_stoewer: 155 },
+          3: { player_gerdhenrich: 170, player_hatzig: 195, player_baumeister: 185, player_hoppe: 160 },
+          4: { player_klipenstein: 190, player_gerdhenrich: 165, player_baumeister: 200, player_hoppe: 175 },
+          5: { player_klipenstein: 185, player_hatzig: 215, player_baumeister: 220, player_stoewer: 160 }
+        },
+        matchdayTallies: {
+          player_klipenstein: { bier: 1, miss: 2, gutter: 0, split: 1, open9: 0, turkey: 1 },
+          player_hatzig: { bier: 0, miss: 1, gutter: 0, split: 0, open9: 1, turkey: 2 },
+          player_hoppe: { bier: 1, miss: 3, gutter: 0, split: 1, open9: 1, turkey: 0 },
+          player_gerdhenrich: { bier: 0, miss: 1, gutter: 0, split: 0, open9: 0, turkey: 1 },
+          player_baumeister: { bier: 2, miss: 1, gutter: 0, split: 0, open9: 0, turkey: 1 },
+          player_stoewer: { bier: 0, miss: 2, gutter: 1, split: 1, open9: 0, turkey: 0 }
+        }
+      }
+    };
+
+    // 3. Multi-Team & Multi-Saison State Management
+    const STORAGE_KEY = 'paderbowler_stats_hub_v1';
+
+    let appState = null;
+    let currentTeam = null;
+    let currentSeason = null;
+    let activeTeamId = "team_pb2";
+    let activeSeasonId = "season_2026_2027";
+
+    let matchdaysData = {};
+    let currentMatchday = 6;
+    let currentGame = 1;
+
+    function loadAppStateAndTeam() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramTeam = urlParams.get('team');
+      const paramSeason = urlParams.get('season');
+
+      const storedHub = localStorage.getItem(STORAGE_KEY);
+      if (storedHub) {
+        try {
+          appState = JSON.parse(storedHub);
+        } catch(e) {
+          console.error("Fehler beim Parsen von appState", e);
+        }
+      }
+
+      if (!appState || !appState.teams || appState.teams.length === 0) {
+        appState = {
+          currentSeasonId: "season_2026_2027",
+          seasons: [{ id: "season_2026_2027", name: "2026/2027", isCurrent: true }],
+          centers: bowlingCenters,
+          players: allPlayers,
+          teams: [{
+            id: "team_pb2",
+            seasonId: "season_2026_2027",
+            name: "Pader-Bowler-06 2",
+            league: "Landesliga 1",
+            playerIds: allPlayers.map(p => p.id),
+            opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
+            matchdaysCount: 5,
+            totalPins: 18054,
+            points: "38 : 12",
+            average: 180.54
+          }]
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      }
+
+      // Bestimme aktive Team-ID
+      if (paramTeam && appState.teams.some(t => t.id === paramTeam)) {
+        activeTeamId = paramTeam;
+      } else if (localStorage.getItem('paderbowler_active_team') && appState.teams.some(t => t.id === localStorage.getItem('paderbowler_active_team'))) {
+        activeTeamId = localStorage.getItem('paderbowler_active_team');
+      } else {
+        activeTeamId = appState.teams[0]?.id || "team_pb2";
+      }
+      localStorage.setItem('paderbowler_active_team', activeTeamId);
+
+      currentTeam = appState.teams.find(t => t.id === activeTeamId) || appState.teams[0];
+
+      // Bestimme aktive Saison
+      if (paramSeason && appState.seasons.some(s => s.id === paramSeason)) {
+        activeSeasonId = paramSeason;
+      } else if (currentTeam.seasonId) {
+        activeSeasonId = currentTeam.seasonId;
+      } else {
+        activeSeasonId = appState.currentSeasonId || appState.seasons[0].id;
+      }
+      localStorage.setItem('paderbowler_active_season', activeSeasonId);
+
+      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || { id: activeSeasonId, name: "2026/2027" };
+
+      // Bowlingcenter aus Stammdaten
+      if (appState.centers && appState.centers.length > 0) {
+        bowlingCenters = appState.centers.map(c => ({
+          id: c.id,
+          name: `${c.name}, ${c.city}`
+        }));
+      }
+
+      // Kader dieser Mannschaft: Nur die tatsächlich für diese Mannschaft zugewiesenen / angehakten Spieler!
+      const assigned = (currentTeam.playerIds || [])
+        .map(id => appState.players.find(p => p.id === id))
+        .filter(Boolean);
+      allPlayers = assigned.map(p => ({ id: p.id, name: p.name, isRegular: true }));
+
+      // Spieltagsdaten dieser Mannschaft laden
+      const teamDataKey = `paderbowler_matchdays_${currentTeam.id}`;
+      const storedMatchdays = localStorage.getItem(teamDataKey);
+
+      if (storedMatchdays) {
+        try {
+          matchdaysData = JSON.parse(storedMatchdays);
+        } catch(e) {
+          console.error("Fehler beim Parsen von matchdaysData", e);
+        }
+      }
+
+      // Neu angelegte Mannschaften: Spieltage sind noch frei und müssen erst angelegt werden!
+      if (!matchdaysData || Object.keys(matchdaysData).length === 0) {
+        if (currentTeam.id === 'team_pb2') {
+          matchdaysData = JSON.parse(JSON.stringify(initialPb2Matchdays));
+          localStorage.setItem(teamDataKey, JSON.stringify(matchdaysData));
+          currentMatchday = 6;
+        } else {
+          matchdaysData = {};
+          currentMatchday = null;
+        }
+      } else {
+        const keys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
+        if (currentMatchday && keys.includes(currentMatchday)) {
+          // bleibt
+        } else {
+          currentMatchday = keys.length > 0 ? keys[0] : null;
+        }
+      }
+    }
+
+    function showMatchdayContent(hasMatchdays) {
+      const banner = document.getElementById('noMatchdaysBanner');
+      const w1 = document.getElementById('windowMatchday');
+      const w2 = document.getElementById('windowLineup');
+      const w3 = document.getElementById('windowTallies');
+
+      if (hasMatchdays) {
+        if (banner) banner.classList.add('hidden');
+        if (w1) w1.classList.remove('hidden');
+        if (w2) w2.classList.remove('hidden');
+        if (w3) w3.classList.remove('hidden');
+      } else {
+        if (banner) {
+          banner.classList.remove('hidden');
+          const title = document.getElementById('noMatchdaysTitle');
+          if (title && currentTeam) title.innerText = `Noch keine Spieltage für ${currentTeam.name} angelegt`;
+        }
+        if (w1) w1.classList.add('hidden');
+        if (w2) w2.classList.add('hidden');
+        if (w3) w3.classList.add('hidden');
+      }
+    }
+
+    function renderHeader() {
+      document.getElementById('teamHeaderName').innerText = currentTeam.name;
+      document.getElementById('teamHeaderLeague').innerText = currentTeam.league;
+      document.getElementById('teamHeaderSeason').innerText = `Saison ${currentSeason.name}`;
+
+      const logoEl = document.getElementById('teamHeaderLogo');
+      if (logoEl) {
+        if (currentTeam.name.includes(' 1') || (currentTeam.name.includes(' I') && !currentTeam.name.includes(' II'))) {
+          logoEl.innerText = "PB 1";
+        } else if (currentTeam.name.includes(' 2') || currentTeam.name.includes(' II')) {
+          logoEl.innerText = "PB 2";
+        } else {
+          logoEl.innerText = currentTeam.name.substring(0, 3).toUpperCase();
+        }
+      }
+
+      // Team-Schnellwechsler im Header
+      const select = document.getElementById('teamHeaderSelect');
+      if (select) {
+        select.innerHTML = '';
+        const currentSeasonTeams = appState.teams.filter(t => t.seasonId === activeSeasonId);
+        const teamsToDisplay = currentSeasonTeams.length > 0 ? currentSeasonTeams : appState.teams;
+        teamsToDisplay.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = `${t.name} - ${t.league}`;
+          opt.selected = (t.id === currentTeam.id);
+          select.appendChild(opt);
+        });
+      }
+
+      // Navigationslinks anpassen
+      const linkCharts = document.getElementById('navLinkCharts');
+      if (linkCharts) linkCharts.href = `dashboard-charts.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+      const linkAwards = document.getElementById('navLinkAwards');
+      if (linkAwards) linkAwards.href = `awards-rankings.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+      const linkPdf = document.getElementById('navLinkPdf');
+      if (linkPdf) linkPdf.href = `pdf-report.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+    }
+
+    function switchTeam(newTeamId) {
+      localStorage.setItem('paderbowler_active_team', newTeamId);
+      const targetTeam = appState.teams.find(t => t.id === newTeamId);
+      const sId = targetTeam?.seasonId || activeSeasonId;
+      window.location.href = `matchday-input.html?team=${newTeamId}&season=${sId}`;
+    }
+
+    // Gegner Dropdown: Freie Auswahl für jedes Spiel
+    function renderOpponentsDropdown() {
+      const select = document.getElementById('currentGameOpponent');
+      if (!select) return;
+
+      let oppList = currentTeam.opponents || [];
+
+      const md = getActiveMatchday();
+      if (!md) return;
+      const currentOpp = md.gameOpponents?.[currentGame] || { id: "", pins: 0 };
+
+      let html = `<option value="" ${!currentOpp.id ? 'selected' : ''}>-- Gegner auswählen --</option>`;
+      html += oppList.map((opp, idx) => {
+        const oppId = `opp_${idx}`;
+        const isSelected = (currentOpp.id === oppId || currentOpp.name === opp || (!currentOpp.id && currentOpp.name === opp));
+        return `<option value="${oppId}" ${isSelected ? 'selected' : ''}>${opp}</option>`;
+      }).join('');
+      html += `<option value="__new__">+ Neuen Gegner hinzufügen...</option>`;
+      select.innerHTML = html;
+    }
+
+    function onOpponentChange(value) {
+      if (value === '__new__') {
+        const newOppName = prompt("Name der neuen gegnerischen Mannschaft:");
+        if (newOppName && newOppName.trim()) {
+          const trimmed = newOppName.trim();
+          if (!currentTeam.opponents) currentTeam.opponents = [];
+          if (!currentTeam.opponents.includes(trimmed)) {
+            currentTeam.opponents.push(trimmed);
+            const teamIdx = appState.teams.findIndex(t => t.id === currentTeam.id);
+            if (teamIdx !== -1) appState.teams[teamIdx] = currentTeam;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+          }
+          const md = getActiveMatchday();
+          const oppIdx = currentTeam.opponents.indexOf(trimmed);
+          const oppId = `opp_${oppIdx}`;
+          if (!md.gameOpponents[currentGame]) md.gameOpponents[currentGame] = { id: oppId, name: trimmed, pins: 0 };
+          else {
+            md.gameOpponents[currentGame].id = oppId;
+            md.gameOpponents[currentGame].name = trimmed;
+          }
+          renderOpponentsDropdown();
+          document.getElementById('currentGameOpponent').value = oppId;
+          updateGameState();
+        } else {
+          renderOpponentsDropdown();
+        }
+        return;
+      }
+
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.gameOpponents[currentGame]) md.gameOpponents[currentGame] = { id: value, pins: 0 };
+      md.gameOpponents[currentGame].id = value;
+      if (value) {
+        const idx = parseInt(value.replace('opp_', ''));
+        md.gameOpponents[currentGame].name = (currentTeam.opponents && currentTeam.opponents[idx]) ? currentTeam.opponents[idx] : value;
+      } else {
+        md.gameOpponents[currentGame].name = "";
+      }
+      updateGameState();
+    }
+
+    function renderMatchdayDropdown() {
+      const select = document.getElementById('selectedMatchday');
+      if (!select) return;
+
+      const keys = Object.keys(matchdaysData).map(k => parseInt(k)).sort((a,b) => a - b);
+      if (keys.length === 0) {
+        select.innerHTML = '<option value="">Kein Spieltag angelegt</option>';
+        return;
+      }
+      select.innerHTML = keys.map(k => {
+        const md = matchdaysData[k];
+        const dateFormatted = md.date ? formatDate(md.date) : '';
+        return `<option value="${k}" ${k === currentMatchday ? 'selected' : ''}>Spieltag ${k}${dateFormatted ? ' - ' + dateFormatted : ''}</option>`;
+      }).join('');
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return '';
+      const parts = isoStr.split('-');
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return isoStr;
+    }
+
+    function persistCurrentTeamData() {
+      if (!currentTeam) return;
+
+      const teamDataKey = `paderbowler_matchdays_${currentTeam.id}`;
+      localStorage.setItem(teamDataKey, JSON.stringify(matchdaysData));
+
+      let totalPins = 0;
+      let totalGamesCount = 0;
+      let playedMatchdays = 0;
+      let wins = 0;
+      let draws = 0;
+      let losses = 0;
+
+      Object.values(matchdaysData).forEach(md => {
+        let mdHasGames = false;
+        for (let g = 1; g <= 5; g++) {
+          const opp = md.gameOpponents[g] || { pins: 0 };
+          const lineups = md.gameLineups[g] || [];
+          let ourPins = 0;
+          lineups.forEach(pId => {
+            ourPins += md.gamePlayerPins[g]?.[pId] || 0;
+          });
+
+          if (ourPins > 0) {
+            mdHasGames = true;
+            totalPins += ourPins;
+            totalGamesCount += lineups.length;
+            if (opp.pins > 0) {
+              if (ourPins > opp.pins) wins++;
+              else if (ourPins === opp.pins) draws++;
+              else losses++;
+            }
+          }
+        }
+        if (mdHasGames) playedMatchdays++;
+      });
+
+      const pointsWon = wins * 2 + draws;
+      const pointsLost = losses * 2 + draws;
+      const avg = totalGamesCount > 0 ? parseFloat((totalPins / totalGamesCount).toFixed(2)) : 0;
+
+      currentTeam.matchdaysCount = playedMatchdays;
+      currentTeam.totalPins = totalPins;
+      currentTeam.points = `${pointsWon} : ${pointsLost}`;
+      currentTeam.average = avg;
+
+      const teamIdx = appState.teams.findIndex(t => t.id === currentTeam.id);
+      if (teamIdx !== -1) {
+        appState.teams[teamIdx] = currentTeam;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function getActiveMatchday() {
+      if (!currentMatchday) return null;
+      if (!matchdaysData[currentMatchday]) {
+        matchdaysData[currentMatchday] = {
+          number: currentMatchday,
+          date: new Date().toISOString().split('T')[0],
+          centerId: "",
+          gameOpponents: {},
+          gameLineups: {},
+          gamePlayerPins: {},
+          matchdayTallies: {}
+        };
+      }
+      return matchdaysData[currentMatchday];
+    }
+
+    function checkSchnapszahl(pins) {
+      if (!pins || pins < 10) return false;
+      const s = pins.toString();
+      const c = s[0];
+      for (let i = 1; i < s.length; i++) {
+        if (s[i] !== c) return false;
+      }
+      return true;
+    }
+
+    function getPlayerMatchdayAutoStats(playerId) {
+      const md = getActiveMatchday();
+      let under170 = 0;
+      let over210 = 0;
+      let schnaps = 0;
+
+      if (md && md.gamePlayerPins) {
+        for (let g = 1; g <= 5; g++) {
+          const pins = md.gamePlayerPins[g]?.[playerId];
+          if (pins && pins > 0) {
+            if (pins < 170) under170++;
+            if (pins > 210) over210++;
+            if (checkSchnapszahl(pins)) schnaps++;
+          }
+        }
+      }
+      return { under170, over210, schnaps };
+    }
+
+    function getMatchdayTotals() {
+      const md = getActiveMatchday();
+      if (!md) return { totalOurPins: 0, totalOppPins: 0, totalPoints: 0 };
+      let totalOurPins = 0;
+      let totalOppPins = 0;
+      let totalPoints = 0;
+
+      for (let g = 1; g <= 5; g++) {
+        const opp = md.gameOpponents[g] || { pins: 0 };
+        const lineups = md.gameLineups[g] || [];
+        let gameOur = 0;
+        lineups.forEach(pId => {
+          gameOur += md.gamePlayerPins[g]?.[pId] || 0;
+        });
+
+        totalOurPins += gameOur;
+        totalOppPins += opp.pins || 0;
+        if (gameOur > opp.pins && opp.pins > 0) totalPoints += 2;
+        else if (gameOur === opp.pins && opp.pins > 0) totalPoints += 1;
+      }
+      return { totalOurPins, totalOppPins, totalPoints };
+    }
+
+    function init() {
+      loadAppStateAndTeam();
+      renderHeader();
+      renderMatchdayDropdown();
+      renderCenterDropdown();
+
+      const keys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
+      if (keys.length > 0) {
+        if (!currentMatchday || !keys.includes(currentMatchday)) currentMatchday = keys[0];
+        showMatchdayContent(true);
+        changeMatchday(currentMatchday);
+      } else {
+        currentMatchday = null;
+        showMatchdayContent(false);
+      }
+    }
+
+    function renderCenterDropdown() {
+      const select = document.getElementById('centerSelect');
+      const md = getActiveMatchday();
+      const cId = md ? md.centerId : "";
+      select.innerHTML = `
+        <option value="">-- Bowlingcenter auswählen --</option>
+        ${bowlingCenters.map(c => `
+          <option value="${c.id}" ${c.id === cId ? 'selected' : ''}>${c.name}</option>
+        `).join('')}
+      `;
+    }
+
+    function onCenterChange(newCenterId) {
+      const md = getActiveMatchday();
+      if (md) {
+        md.centerId = newCenterId;
+        persistCurrentTeamData();
+      }
+    }
+
+    function changeMatchday(num) {
+      currentMatchday = parseInt(num);
+      const md = getActiveMatchday();
+      if (!md) return;
+
+      const select = document.getElementById('centerSelect');
+      if (select) select.value = md.centerId || "";
+      const mdSelect = document.getElementById('selectedMatchday');
+      if (mdSelect) mdSelect.value = currentMatchday;
+      selectGame(1);
+    }
+
+    function selectGame(gameNum) {
+      currentGame = gameNum;
+      document.querySelectorAll('.tab-game').forEach((btn, idx) => {
+        if (idx + 1 === gameNum) {
+          btn.className = "tab-game py-2.5 rounded-lg text-xs font-black bg-[#23548F] text-white border border-[#23548F] shadow";
+        } else {
+          btn.className = "tab-game py-2.5 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300";
+        }
+      });
+
+      const md = getActiveMatchday();
+      if (!md) return;
+      renderOpponentsDropdown();
+      const currentOpp = md.gameOpponents[currentGame] || { id: "", pins: 0 };
+      const oppSelect = document.getElementById('currentGameOpponent');
+      if (oppSelect) oppSelect.value = currentOpp.id || "";
+      const oppPinsInput = document.getElementById('opponentPinsInput');
+      if (oppPinsInput) oppPinsInput.value = currentOpp.pins || 0;
+
+      renderLineupPills();
+      renderActivePlayerPinCards();
+      renderPlayerTallyCards();
+      renderSummaryTiles();
+      updateGameState();
+    }
+
+    function renderLineupPills() {
+      const container = document.getElementById('squadLineupPills');
+      const md = getActiveMatchday();
+      if (!md) return;
+      
+      let activeIds = (md.gameLineups[currentGame] || []).filter(id => allPlayers.some(p => p.id === id));
+      md.gameLineups[currentGame] = activeIds;
+
+      if (allPlayers.length === 0) {
+        container.innerHTML = `
+          <div class="w-full p-4 text-center bg-[#E4D7CF]/30 rounded-xl border-2 border-dashed border-[#A499A7] text-slate-700 font-bold text-xs space-y-2">
+            <p>Keine Spieler im Kader dieser Mannschaft hinterlegt.</p>
+            <button onclick="openModal('modalPlayer')" class="px-3.5 py-1.5 bg-[#23548F] text-white rounded-lg text-xs font-bold shadow-sm touch-btn">+ Spieler zum Kader hinzufügen</button>
+          </div>
+        `;
+        const counterBadge = document.getElementById('lineupCounterBadge');
+        if (counterBadge) counterBadge.innerText = '0 von 4';
+        return;
+      }
+
+      container.innerHTML = allPlayers.map(p => {
+        const isSelected = activeIds.includes(p.id);
+        const cleanPlayerName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        return `
+          <button onclick="togglePlayerInLineup('${p.id}')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-1.5 touch-btn border-2 ${
+            isSelected 
+              ? 'bg-[#23548F] text-white border-[#23548F] shadow-sm' 
+              : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+          }">
+            <span>${cleanPlayerName}</span>
+          </button>
+        `;
+      }).join('');
+
+      const counterBadge = document.getElementById('lineupCounterBadge');
+      if (counterBadge) {
+        counterBadge.innerText = `${activeIds.length} von 4`;
+        counterBadge.className = `text-xs px-2.5 py-0.5 rounded-full border-2 font-black ${
+          activeIds.length === 4 
+            ? 'bg-[#70C04D]/20 text-[#2E4D11] border-[#70C04D]' 
+            : 'bg-[#E8C543]/20 text-[#85650d] border-[#E8C543]'
+        }`;
+      }
+    }
+
+    function togglePlayerInLineup(playerId) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      let activeIds = md.gameLineups[currentGame] || [];
+      if (activeIds.includes(playerId)) {
+        activeIds = activeIds.filter(id => id !== playerId);
+      } else {
+        if (activeIds.length >= 4) {
+          alert("Es können maximal 4 Spieler gleichzeitig pro Spiel aufgestellt werden.");
+          return;
+        }
+        activeIds.push(playerId);
+      }
+      md.gameLineups[currentGame] = activeIds;
+      renderLineupPills();
+      renderActivePlayerPinCards();
+      updateGameState();
+    }
+
+    function renderActivePlayerPinCards() {
+      const container = document.getElementById('activePlayerPinCards');
+      const md = getActiveMatchday();
+      if (!md) return;
+      const activeIds = (md.gameLineups[currentGame] || []).filter(id => allPlayers.some(p => p.id === id));
+
+      if (activeIds.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 text-center p-6 bg-[#E4D7CF]/30 rounded-xl border-2 border-dashed border-[#A499A7] text-slate-600 font-bold text-xs">
+            Noch keine Spieler aufgestellt. Wähle oben bis zu 4 Spieler für Spiel ${currentGame} aus.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeIds.map((pId, idx) => {
+        const playerObj = allPlayers.find(p => p.id === pId);
+        const rawName = playerObj ? playerObj.name : pId;
+        const cleanPlayerName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
+        const pins = md.gamePlayerPins[currentGame]?.[pId] ?? 0;
+
+        let badgesHtml = '';
+        if (pins > 0) {
+          if (pins < 170) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#E8C543]/20 text-[#85650d] border border-[#E8C543]">&lt; 170</span>';
+          if (pins > 210) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#70C04D]/20 text-[#2E4D11] border border-[#70C04D]">&gt; 210</span>';
+          if (checkSchnapszahl(pins)) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#A62F8B]/20 text-[#A62F8B] border border-[#A62F8B]">Schnaps</span>';
+        }
+
+        return `
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+            <div>
+              <span class="text-xs text-[#23548F] font-black block uppercase tracking-wider">Position ${idx + 1}</span>
+              <span class="text-base sm:text-lg font-black text-slate-950 block mt-0.5">${cleanPlayerName}</span>
+              <div class="flex items-center flex-wrap gap-1.5 mt-2">
+                ${badgesHtml || '<span class="text-xs text-slate-500 font-semibold">Regulär</span>'}
+              </div>
+            </div>
+            <div class="flex items-center justify-center sm:justify-end w-full sm:w-auto">
+              <button onclick="stepPlayerPin('${pId}', -1)" class="w-12 sm:w-14 h-12 sm:h-14 rounded-l-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-xl border-y-2 border-l-2 border-[#A499A7] touch-btn shrink-0 flex items-center justify-center select-none">-1</button>
+              <input type="number" value="${pins}" oninput="setPlayerPin('${pId}', this.value)" class="w-20 sm:w-24 min-w-0 h-12 sm:h-14 text-center font-black bg-white border-2 border-[#A499A7] text-2xl text-slate-950 focus:outline-none focus:border-[#23548F]">
+              <button onclick="stepPlayerPin('${pId}', 1)" class="w-12 sm:w-14 h-12 sm:h-14 rounded-r-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-xl border-y-2 border-r-2 border-[#A499A7] touch-btn shadow-sm shrink-0 flex items-center justify-center select-none">+1</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function stepPlayerPin(playerId, delta) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.gamePlayerPins[currentGame]) md.gamePlayerPins[currentGame] = {};
+      const current = md.gamePlayerPins[currentGame][playerId] ?? 0;
+      md.gamePlayerPins[currentGame][playerId] = Math.max(0, current + delta);
+      renderActivePlayerPinCards();
+      renderPlayerTallyCards();
+      renderSummaryTiles();
+      updateGameState();
+    }
+
+    function setPlayerPin(playerId, val) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.gamePlayerPins[currentGame]) md.gamePlayerPins[currentGame] = {};
+      md.gamePlayerPins[currentGame][playerId] = Math.max(0, parseInt(val) || 0);
+      renderActivePlayerPinCards();
+      renderPlayerTallyCards();
+      renderSummaryTiles();
+      updateGameState();
+    }
+
+    function stepOpponentPins(delta) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      const input = document.getElementById('opponentPinsInput');
+      const val = Math.max(0, (parseInt(input.value) || 0) + delta);
+      input.value = val;
+      if (!md.gameOpponents[currentGame]) md.gameOpponents[currentGame] = { id: "", pins: 0 };
+      md.gameOpponents[currentGame].pins = val;
+      updateGameState();
+    }
+
+    function updateGameState() {
+      const md = getActiveMatchday();
+      if (!md) return;
+      const activeIds = (md.gameLineups[currentGame] || []).filter(id => allPlayers.some(p => p.id === id));
+      let ourPins = 0;
+      activeIds.forEach(pId => {
+        ourPins += md.gamePlayerPins[currentGame]?.[pId] ?? 0;
+      });
+
+      const oppSelect = document.getElementById('currentGameOpponent');
+      const oppPinsInput = document.getElementById('opponentPinsInput');
+      const oppPins = parseInt(oppPinsInput.value) || 0;
+      const selectedOppVal = oppSelect ? oppSelect.value : "";
+
+      if (!md.gameOpponents[currentGame]) {
+        md.gameOpponents[currentGame] = { id: selectedOppVal, pins: oppPins };
+      } else {
+        md.gameOpponents[currentGame].id = selectedOppVal;
+        md.gameOpponents[currentGame].pins = oppPins;
+      }
+
+      const scoreEl = document.getElementById('gameScoreSummary');
+      const badgeEl = document.getElementById('gamePointsBadge');
+
+      if (!selectedOppVal && ourPins === 0 && oppPins === 0) {
+        if (scoreEl) scoreEl.innerText = "- vs -";
+        if (badgeEl) badgeEl.outerHTML = '<span id="gamePointsBadge" class="px-3.5 py-1.5 text-xs font-black rounded-full bg-slate-200 text-slate-700 border-2 border-slate-300">OFFEN</span>';
+      } else {
+        if (scoreEl) scoreEl.innerText = `${ourPins} vs ${oppPins}`;
+        let badgeHtml = '<span class="px-3.5 py-1.5 text-xs font-black rounded-full bg-[#DE4341] text-white border-2 border-[#DE4341]">NIEDERLAGE</span>';
+        if (ourPins > oppPins) {
+          badgeHtml = '<span class="px-3.5 py-1.5 text-xs font-black rounded-full bg-[#70C04D] text-white border-2 border-[#70C04D]">SIEG</span>';
+        } else if (ourPins === oppPins && ourPins > 0) {
+          badgeHtml = '<span class="px-3.5 py-1.5 text-xs font-black rounded-full bg-[#E8C543] text-slate-950 border-2 border-[#cfae2e]">REMIS</span>';
+        }
+        if (badgeEl) badgeEl.outerHTML = `<span id="gamePointsBadge">${badgeHtml}</span>`;
+      }
+
+      const totals = getMatchdayTotals();
+      document.getElementById('matchdayTotalSummary').innerText = `${totals.totalPoints} Punkte • ${totals.totalOurPins} Pins`;
+      persistCurrentTeamData();
+    }
+
+    // Spieltag-Summen Kacheln
+    function renderSummaryTiles() {
+      const container = document.getElementById('matchdaySummaryTiles');
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.matchdayTallies) md.matchdayTallies = {};
+
+      let sumBier = 0, sumMiss = 0, sumGutter = 0, sumSplit = 0, sumOpen9 = 0, sumTurkey = 0, sumUnder170 = 0, sumOver210 = 0, sumSchnaps = 0;
+      allPlayers.forEach(p => {
+        const t = md.matchdayTallies[p.id] || {};
+        sumBier += t.bier || 0;
+        sumMiss += t.miss || 0;
+        sumGutter += t.gutter || 0;
+        sumSplit += t.split || 0;
+        sumOpen9 += t.open9 || 0;
+        sumTurkey += t.turkey || 0;
+        const auto = getPlayerMatchdayAutoStats(p.id);
+        sumUnder170 += auto.under170;
+        sumOver210 += auto.over210;
+        sumSchnaps += auto.schnaps;
+      });
+
+      container.innerHTML = `
+        <div class="bg-[#E8C543]/20 border-2 border-[#E8C543] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#85650d] block">Bierframe</span>
+          <span class="text-lg font-black text-[#85650d]">${sumBier}</span>
+        </div>
+        <div class="bg-[#DE4341]/15 border-2 border-[#DE4341] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#DE4341] block">Räumfehler</span>
+          <span class="text-lg font-black text-[#DE4341]">${sumMiss}</span>
+        </div>
+        <div class="bg-[#A62F8B]/15 border-2 border-[#A62F8B] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#A62F8B] block">Gutter</span>
+          <span class="text-lg font-black text-[#A62F8B]">${sumGutter}</span>
+        </div>
+        <div class="bg-[#9D5A47]/15 border-2 border-[#9D5A47] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#9D5A47] block">Split</span>
+          <span class="text-lg font-black text-[#9D5A47]">${sumSplit}</span>
+        </div>
+        <div class="bg-[#ED755D]/15 border-2 border-[#ED755D] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#c24e37] block">9. offen</span>
+          <span class="text-lg font-black text-[#c24e37]">${sumOpen9}</span>
+        </div>
+        <div class="bg-[#70C04D]/20 border-2 border-[#70C04D] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#2E4D11] block">Drilling</span>
+          <span class="text-lg font-black text-[#2E4D11]">${sumTurkey}</span>
+        </div>
+        <div class="bg-[#E8C543]/20 border-2 border-[#E8C543] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#85650d] block">&lt; 170</span>
+          <span class="text-lg font-black text-[#85650d]">${sumUnder170}</span>
+        </div>
+        <div class="bg-[#3E8370]/15 border-2 border-[#3E8370] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#3E8370] block">&gt; 210</span>
+          <span class="text-lg font-black text-[#3E8370]">${sumOver210}</span>
+        </div>
+        <div class="bg-[#A62F8B]/15 border-2 border-[#A62F8B] rounded-xl p-2.5 text-center shadow-sm">
+          <span class="text-xs font-black text-[#A62F8B] block">Schnaps</span>
+          <span class="text-lg font-black text-[#A62F8B]">${sumSchnaps}</span>
+        </div>
+      `;
+    }
+
+    // Spieler Karten in Strichliste: Name größer und zentriert
+    function renderPlayerTallyCards() {
+      const container = document.getElementById('playerTallyCards');
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.matchdayTallies) md.matchdayTallies = {};
+
+      if (allPlayers.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 text-center p-8 bg-white border-2 border-[#A499A7] rounded-2xl text-slate-600 font-bold text-xs space-y-2 shadow-sm">
+            <p>Noch keine Spieler im Kader dieser Mannschaft hinterlegt.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allPlayers.map(p => {
+        const t = md.matchdayTallies[p.id] || { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 };
+        const auto = getPlayerMatchdayAutoStats(p.id);
+        const cleanPlayerName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+
+        return `
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-4">
+            
+            <!-- Spieler-Name größer und zentriert -->
+            <div class="text-center border-b-2 border-[#A499A7]/40 pb-3">
+              <h3 class="font-black text-xl sm:text-2xl text-slate-950 tracking-tight">${cleanPlayerName}</h3>
+              <div class="flex items-center justify-center flex-wrap gap-2 mt-2">
+                <span class="text-xs font-bold text-slate-700 bg-[#E4D7CF]/60 px-3 py-0.5 rounded-full border border-[#A499A7]">${p.isRegular ? 'Stamm' : 'Ersatz'}</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#E8C543]/20 text-[#85650d] font-black text-xs border border-[#E8C543]">&lt; 170: ${auto.under170}</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#70C04D]/20 text-[#2E4D11] font-black text-xs border border-[#70C04D]">&gt; 210: ${auto.over210}</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#A62F8B]/20 text-[#A62F8B] font-black text-xs border border-[#A62F8B]">Schnaps: ${auto.schnaps}</span>
+              </div>
+            </div>
+
+            <!-- Die 6 manuellen Strichlisten-Metriken: Labels größer & zentriert, Stepper groß & griffig -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              ${renderLargeTallyMetric(p.id, 'bier', 'Bierframe', t.bier, 'text-[#85650d]')}
+              ${renderLargeTallyMetric(p.id, 'miss', 'Räumfehler', t.miss, 'text-[#DE4341]')}
+              ${renderLargeTallyMetric(p.id, 'gutter', 'Gutter', t.gutter, 'text-[#A62F8B]')}
+              ${renderLargeTallyMetric(p.id, 'split', 'Split', t.split, 'text-[#9D5A47]')}
+              ${renderLargeTallyMetric(p.id, 'open9', '9. offen', t.open9, 'text-[#c24e37]')}
+              ${renderLargeTallyMetric(p.id, 'turkey', 'Drilling', t.turkey, 'text-[#2E4D11]')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Metrik-Kachel mit zentriertem Titel sowie exakt gleich großen Stepper- und Zahlenfeldern (grau wie bei -1)
+    function renderLargeTallyMetric(playerId, metricKey, label, value, textColor) {
+      return `
+        <div class="bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl p-2.5 sm:p-3 flex flex-col justify-between shadow-sm">
+          <span class="text-xs sm:text-sm font-black ${textColor} text-center block mb-2 tracking-wide truncate">${label}</span>
+          <div class="grid grid-cols-3 w-full h-11 sm:h-13">
+            <button type="button" onclick="stepTally('${playerId}', '${metricKey}', -1)" class="w-full h-full rounded-l-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-lg border-y-2 border-l-2 border-[#A499A7] flex items-center justify-center touch-btn select-none">-1</button>
+            <input type="number" id="tally_${playerId}_${metricKey}" value="${value}" oninput="setTally('${playerId}', '${metricKey}', this.value)" class="w-full h-full text-center bg-white font-black text-xl ${textColor} border-y-2 border-[#A499A7] focus:outline-none focus:border-[#23548F] min-w-0 p-0 m-0">
+            <button type="button" onclick="stepTally('${playerId}', '${metricKey}', 1)" class="w-full h-full rounded-r-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-lg border-y-2 border-r-2 border-[#A499A7] flex items-center justify-center touch-btn shadow-sm select-none">+1</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function stepTally(playerId, key, delta) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.matchdayTallies[playerId]) md.matchdayTallies[playerId] = { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 };
+      md.matchdayTallies[playerId][key] = Math.max(0, (md.matchdayTallies[playerId][key] || 0) + delta);
+      const el = document.getElementById(`tally_${playerId}_${key}`);
+      if (el) el.value = md.matchdayTallies[playerId][key];
+      renderSummaryTiles();
+      persistCurrentTeamData();
+    }
+
+    function setTally(playerId, key, val) {
+      const md = getActiveMatchday();
+      if (!md) return;
+      if (!md.matchdayTallies[playerId]) md.matchdayTallies[playerId] = { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 };
+      md.matchdayTallies[playerId][key] = Math.max(0, parseInt(val) || 0);
+      renderSummaryTiles();
+      persistCurrentTeamData();
+    }
+
+    // Modal Funktionen
+    function openModal(modalId) {
+      if (modalId === 'modalMatchday') {
+        const keys = Object.keys(matchdaysData).map(Number);
+        const nextNum = keys.length > 0 ? Math.max(...keys) + 1 : 1;
+        const numInput = document.getElementById('newMdNumber');
+        if (numInput) numInput.value = nextNum;
+        const dateInput = document.getElementById('newMdDate');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+        const centerSelect = document.getElementById('newMdCenter');
+        if (centerSelect) {
+          centerSelect.innerHTML = bowlingCenters.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+      }
+      document.getElementById(modalId).classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function saveNewCenter() {
+      const name = document.getElementById('newCenterName').value.trim();
+      const city = document.getElementById('newCenterCity').value.trim();
+      if (!name || !city) {
+        alert("Bitte Name und Ort angeben.");
+        return;
+      }
+      const displayName = `${name}, ${city}`;
+      const newId = `center_${Date.now()}`;
+      bowlingCenters.push({ id: newId, name: displayName });
+      
+      if (!appState.centers) appState.centers = [];
+      appState.centers.push({ id: newId, name, city });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+      const md = getActiveMatchday();
+      if (md) md.centerId = newId;
+
+      renderCenterDropdown();
+      document.getElementById('centerSelect').value = newId;
+      closeModal('modalCenter');
+      persistCurrentTeamData();
+    }
+
+    function saveNewPlayer() {
+      const first = document.getElementById('newPlayerFirst').value.trim();
+      const last = document.getElementById('newPlayerLast').value.trim();
+      const isRegular = document.getElementById('newPlayerRegular').checked;
+
+      if (!first || !last) {
+        alert("Bitte Vorname und Nachname eingeben.");
+        return;
+      }
+
+      const displayName = `${first} ${last}`;
+      const newId = `player_${Date.now()}`;
+      allPlayers.push({ id: newId, name: displayName, isRegular });
+
+      if (!appState.players) appState.players = [];
+      appState.players.push({ id: newId, name: displayName, email: "" });
+      if (!currentTeam.playerIds) currentTeam.playerIds = [];
+      currentTeam.playerIds.push(newId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+
+      renderLineupPills();
+      renderPlayerTallyCards();
+      renderSummaryTiles();
+      closeModal('modalPlayer');
+      persistCurrentTeamData();
+    }
+
+    function saveNewMatchday() {
+      const num = parseInt(document.getElementById('newMdNumber').value);
+      const date = document.getElementById('newMdDate').value;
+      const centerId = document.getElementById('newMdCenter')?.value || bowlingCenters[0]?.id || "";
+      if (!num || isNaN(num)) {
+        alert("Bitte eine gültige Spieltagsnummer eingeben.");
+        return;
+      }
+
+      const initialRoster = allPlayers.slice(0, 4).map(p => p.id);
+
+      const mdObj = {
+        number: num,
+        date: date,
+        centerId: centerId,
+        gameOpponents: {},
+        gameLineups: {},
+        gamePlayerPins: {},
+        matchdayTallies: {}
+      };
+
+      // 5 noch nicht eingetragene Spiele: Gegner sind noch frei und werden erst ausgewählt!
+      for (let g = 1; g <= 5; g++) {
+        mdObj.gameOpponents[g] = { id: "", name: "", pins: 0 };
+        mdObj.gameLineups[g] = [...initialRoster];
+        mdObj.gamePlayerPins[g] = {};
+        initialRoster.forEach(pId => { mdObj.gamePlayerPins[g][pId] = 0; });
+      }
+
+      allPlayers.forEach(p => {
+        mdObj.matchdayTallies[p.id] = { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 };
+      });
+
+      matchdaysData[num] = mdObj;
+      currentMatchday = num;
+      closeModal('modalMatchday');
+      persistCurrentTeamData();
+      renderMatchdayDropdown();
+      showMatchdayContent(true);
+      changeMatchday(num);
+    }
+
+    function finishSeasonPrompt() {
+      const confirmed = confirm(`Möchtest du die Saison für "${currentTeam.name}" jetzt offiziell abschließen?\n\nDadurch werden alle finalen Jahres-Awards ermittelt und die Siegerehrung aufgerufen.`);
+      if (confirmed) {
+        window.location.href = `awards-rankings.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+      }
+    }
+
+    function insertWbuSampleData() {
+      document.getElementById('wbuInputText').value = 
+`Baumeister, Gerrit 194 189 211 202 256
+Klipenstein, Andre 192 203 191 177 192
+Hoppe, Joachim 220 0 0 202 172
+Gerdhenrich, Gary 157 181 197 165 0
+Stöwer, Marvin 0 211 180 0 189
+
+Gegner Pins:
+BV Brackwede 3: 674
+MaxiStrike Hamm 2: 640
+BV Detmold 2: 651
+VfL Holsen 3: 712
+Bowlingfreunde Bielefeld 3: 655`;
+    }
+
+    function importWbuText() {
+      const text = document.getElementById('wbuInputText').value.trim();
+      if (!text) {
+        alert("Bitte zuerst Text einfügen.");
+        return;
+      }
+
+      const md = getActiveMatchday();
+      if (!md) {
+        alert("Bitte zuerst einen Spieltag anlegen.");
+        return;
+      }
+
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let importedCount = 0;
+
+      lines.forEach(line => {
+        const pinMatches = line.match(/\b([5-9]\d|[12]\d\d|300)\b/g);
+        if (pinMatches && pinMatches.length >= 3) {
+          const firstNumIdx = line.search(/\b([5-9]\d|[12]\d\d|300)\b/);
+          const rawName = line.substring(0, firstNumIdx).toLowerCase();
+
+          const targetPlayer = allPlayers.find(p => {
+            const low = p.name.toLowerCase();
+            return (rawName.includes('baumeister') && low.includes('baumeister')) ||
+                   (rawName.includes('klipenstein') && low.includes('klipenstein')) ||
+                   (rawName.includes('hatzig') && low.includes('hatzig')) ||
+                   (rawName.includes('hoppe') && low.includes('hoppe')) ||
+                   (rawName.includes('gerdhenrich') && low.includes('gerdhenrich')) ||
+                   (rawName.includes('stöwer') && low.includes('stöwer')) ||
+                   (rawName.includes('stoewer') && low.includes('stöwer'));
+          });
+
+          if (targetPlayer) {
+            const pins = pinMatches.slice(0, 5).map(p => parseInt(p));
+            pins.forEach((score, gameIdx) => {
+              const gNum = gameIdx + 1;
+              if (score > 0) {
+                if (!md.gamePlayerPins[gNum]) md.gamePlayerPins[gNum] = {};
+                md.gamePlayerPins[gNum][targetPlayer.id] = score;
+
+                if (!md.gameLineups[gNum]) md.gameLineups[gNum] = [];
+                if (!md.gameLineups[gNum].includes(targetPlayer.id)) {
+                  if (md.gameLineups[gNum].length < 4) {
+                    md.gameLineups[gNum].push(targetPlayer.id);
+                  }
+                }
+              }
+            });
+            importedCount++;
+          }
+        }
+      });
+
+      selectGame(currentGame);
+      renderSummaryTiles();
+      persistCurrentTeamData();
+      closeModal('modalWbuImport');
+      alert(`Ergebnisse von ${importedCount} Spielern wurden erfolgreich importiert!`);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>

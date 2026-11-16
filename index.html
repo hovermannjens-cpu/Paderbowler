@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#E4D7CF] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paderbowler Stats 2 - Startseite & Mannschaften</title>
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#23548F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .touch-btn:active { transform: scale(0.96); }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased pb-24 bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md flex flex-wrap items-center justify-between gap-2.5">
+    
+    <!-- Logo & Vereinsname -->
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#23548F]">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+          Pader-Bowler-06 e.V.
+          <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold">Stats & Liga</span>
+        </h1>
+        <p class="text-[11px] sm:text-xs text-slate-800">Übersicht &bull; Mannschaften &bull; Saisons</p>
+      </div>
+    </div>
+
+    <!-- Saison-Wahl & Aktionen: Sauber umbrechend, passt immer ins Fenster -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <div class="flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2 sm:px-2.5 py-1">
+        <span class="text-xs text-slate-700 mr-1.5 font-bold">Saison:</span>
+        <select id="seasonSelect" onchange="changeSeason(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+          <!-- Dynamisch per JS befüllt -->
+        </select>
+      </div>
+
+      <a id="btnHeaderClubStats" href="awards-rankings.html?team=all" onclick="selectActiveTeam('all', appState.currentSeasonId)" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#43447D] hover:bg-[#343564] text-xs font-bold text-white border-2 border-[#43447D] touch-btn shadow">
+        <span>Vereinsstatistik</span>
+      </a>
+
+      <button onclick="openModal('modalNewSeason')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-900 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>+ Saison</span>
+      </button>
+
+      <button onclick="openModal('modalNewTeam')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-md">
+        <span>+ Mannschaft</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Saison Status Leiste -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm">
+      <div>
+        <div class="flex items-center gap-2">
+          <span id="currentSeasonBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-[#70C04D]/20 text-[#2E4D11] border border-[#70C04D]/50 font-bold">Laufende Saison</span>
+          <h2 id="currentSeasonHeading" class="text-lg font-black text-slate-900">Saison 2026/2027</h2>
+        </div>
+        <p class="text-xs text-slate-600 mt-0.5">Wähle eine Mannschaft oder öffne die Gesamtstatistik.</p>
+      </div>
+
+      <!-- Vereinsstatistik & Schnelle Stammdaten-Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+        <a id="btnClubStats" href="awards-rankings.html?team=all" onclick="selectActiveTeam('all', appState.currentSeasonId)" class="px-3.5 py-2 rounded-xl bg-[#43447D] hover:bg-[#343564] font-extrabold text-xs text-white border-2 border-[#43447D] shadow touch-btn transition">
+          <span>Vereinsstatistik</span>
+        </a>
+        <a id="btnClubCharts" href="dashboard-charts.html?team=all" onclick="selectActiveTeam('all', appState.currentSeasonId)" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 font-bold text-xs text-[#43447D] border-2 border-[#43447D] touch-btn shadow-sm">
+          <span>Vereins-Diagramme</span>
+        </a>
+        <button onclick="openModal('modalCentersCatalog')" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+          <span>Center: <span id="countCenters" class="font-black text-[#23548F]">5</span></span>
+        </button>
+        <button onclick="openModal('modalPlayersCatalog')" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+          <span>Spieler: <span id="countPlayers" class="font-black text-[#23548F]">6</span></span>
+        </button>
+        <button onclick="openModal('modalInstallApp')" class="px-3.5 py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-sm">
+          <span>App auf Handy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MANNSCHAFTS-KACHELN GRID -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+          <span>Mannschaften</span>
+          <span id="countTeams" class="px-2 py-0.5 rounded-full bg-[#23548F] text-white text-[10px] font-black">2</span>
+        </h3>
+      </div>
+
+      <div id="teamsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Dynamisch per JS generiert -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: NEUE SAISON ANLEGEN                              -->
+  <!-- ======================================================= -->
+  <div id="modalNewSeason" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Saison anlegen</h3>
+        <button onclick="closeModal('modalNewSeason')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Saison-Bezeichnung</label>
+          <input type="text" id="newSeasonName" placeholder="2027/2028" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+
+        <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3 space-y-2">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Optionen:</span>
+          <label class="flex items-center gap-2 text-slate-800 cursor-pointer">
+            <input type="checkbox" id="copyTeamsToNewSeason" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+            <span>Bestehende Mannschaften übernehmen</span>
+          </label>
+          <label class="flex items-center gap-2 text-slate-800 cursor-pointer">
+            <input type="checkbox" id="copyPlayersToNewSeason" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+            <span>Spieler-Zuweisungen übernehmen</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalNewSeason')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveNewSeason()" class="px-4 py-2 rounded-lg bg-[#E8C543] hover:bg-[#d8b535] font-black text-xs text-slate-950 border-2 border-[#cfae2e] shadow-sm">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: NEUE MANNSCHAFT ANLEGEN                          -->
+  <!-- ======================================================= -->
+  <div id="modalNewTeam" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3 shrink-0">
+        <h3 class="font-bold text-base text-slate-900">Mannschaft anlegen</h3>
+        <button onclick="closeModal('modalNewTeam')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs overflow-y-auto flex-1 pr-1">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Mannschaftsname</label>
+            <input type="text" id="newTeamName" placeholder="Pader-Bowler-06 3" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Liga</label>
+            <input type="text" id="newTeamLeague" placeholder="Bezirksliga 1" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+        </div>
+
+        <!-- 1. EIGENER KADER PER EINGABE EINFÜGEN -->
+        <div class="space-y-2 pt-1 border-t border-[#A499A7]/40">
+          <label class="block text-slate-800 font-black text-xs">Eigener Kader (Spieler per Eingabe einfügen):</label>
+          <div class="flex gap-2">
+            <input type="text" id="newTeamPlayerInput" placeholder="Vorname Nachname (oder mehrere mit Komma)" onkeydown="if(event.key==='Enter'){event.preventDefault();addNewTeamPlayerFromInput();}" class="flex-1 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-3 py-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <button type="button" onclick="addNewTeamPlayerFromInput()" class="px-3.5 py-2 bg-[#23548F] hover:bg-[#1a4270] text-white border-2 border-[#23548F] rounded-lg font-black text-xs shadow-sm whitespace-nowrap touch-btn">+ Spieler</button>
+          </div>
+
+          <!-- Ausgewählte Kader-Spieler Chips -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-bold text-slate-700">Kader dieser Mannschaft:</span>
+              <span id="newTeamSquadCountBadge" class="text-[11px] font-black text-[#23548F] bg-[#23548F]/10 px-2 py-0.5 rounded-full border border-[#23548F]/30">0 Spieler</span>
+            </div>
+            <div id="newTeamSquadChips" class="flex flex-wrap gap-1.5 p-2.5 bg-[#E4D7CF]/30 border-2 border-[#A499A7] rounded-xl min-h-[44px] items-center">
+              <span class="text-[11px] text-slate-500 italic">Noch keine Spieler hinzugefügt.</span>
+            </div>
+          </div>
+
+          <!-- Bestehende Vereinsspieler übernehmen (KEINE VORAUSWAHL!) -->
+          <div class="pt-1">
+            <span class="block text-[11px] font-bold text-slate-700 mb-1">Bestehende Vereinsspieler übernehmen (optional, keine Vorauswahl):</span>
+            <div id="newTeamPlayersList" class="bg-white border-2 border-[#A499A7] rounded-xl p-2.5 max-h-28 overflow-y-auto space-y-1.5">
+              <!-- Dynamisch per JS (ALLE Checkboxen standardmäßig UNCHECKED) -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. GEGNER PER EINGABE EINFÜGEN -->
+        <div class="space-y-2 pt-2 border-t border-[#A499A7]/40">
+          <label class="block text-slate-800 font-black text-xs">Gegner in dieser Liga (per Eingabe hinzufügen):</label>
+          <div class="flex gap-2">
+            <input type="text" id="newTeamOpponentInput" placeholder="Gegnername (z. B. BV Detmold 3 oder mit Komma)" onkeydown="if(event.key==='Enter'){event.preventDefault();addNewTeamOpponentFromInput();}" class="flex-1 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-3 py-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <button type="button" onclick="addNewTeamOpponentFromInput()" class="px-3.5 py-2 bg-[#3E8370] hover:bg-[#326a5b] text-white border-2 border-[#3E8370] rounded-lg font-black text-xs shadow-sm whitespace-nowrap touch-btn">+ Gegner</button>
+          </div>
+          <div id="newTeamOpponentsChips" class="flex flex-wrap gap-1.5 p-2 bg-[#E4D7CF]/30 border-2 border-[#A499A7] rounded-xl min-h-[38px] items-center">
+            <span class="text-[11px] text-slate-500 italic">Noch keine Gegner hinzugefügt.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-[#A499A7]/50 shrink-0">
+        <button onclick="closeModal('modalNewTeam')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveNewTeam()" class="px-5 py-2 rounded-lg bg-[#23548F] hover:bg-[#1a4270] font-black text-xs text-white border-2 border-[#23548F] shadow-md touch-btn">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: MANNSCHAFT VERWALTEN (KADER, GEGNER, SPIELTAGE) -->
+  <!-- ======================================================= -->
+  <div id="modalManageTeam" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">
+          <span id="manageTeamHeading">Mannschaft</span>
+        </h3>
+        <button onclick="closeModal('modalManageTeam')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs max-h-[70vh] overflow-y-auto">
+        <!-- Stammdaten -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Name</label>
+            <input type="text" id="manageTeamName" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+          <div>
+            <label class="block text-slate-700 mb-1 font-bold">Liga</label>
+            <input type="text" id="manageTeamLeague" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          </div>
+        </div>
+
+        <!-- Kader-Zuweisung -->
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Zugewiesene Spieler</label>
+          <div id="manageTeamPlayersList" class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-2.5 max-h-36 overflow-y-auto space-y-1.5">
+            <!-- Dynamisch gerendert per JS -->
+          </div>
+          <div class="flex gap-2 mt-2">
+            <input type="text" id="manageNewPlayerInput" placeholder="Spieler per Name hinzufügen..." onkeydown="if(event.key==='Enter'){event.preventDefault();addNewPlayerToManagedTeam();}" class="flex-1 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <button type="button" onclick="addNewPlayerToManagedTeam()" class="px-3 py-1.5 bg-[#23548F] hover:bg-[#1a4270] text-white border border-[#23548F] rounded-lg text-xs font-bold shadow-sm whitespace-nowrap touch-btn">+ Spieler</button>
+          </div>
+        </div>
+
+        <!-- Gegner-Teams -->
+        <div>
+          <label class="block text-slate-700 mb-1 font-bold">Gegner-Teams</label>
+          <div id="manageTeamOpponentsList" class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-2.5 max-h-28 overflow-y-auto space-y-1 text-slate-800">
+            <!-- Dynamisch gerendert per JS -->
+          </div>
+          <div class="flex gap-2 mt-2">
+            <input type="text" id="manageNewOpponentInput" placeholder="Gegner hinzufügen..." onkeydown="if(event.key==='Enter'){event.preventDefault();addOpponentToManagedTeam();}" class="flex-1 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <button onclick="addOpponentToManagedTeam()" class="px-3 py-1.5 bg-[#3E8370] hover:bg-[#326a5b] text-white border border-[#3E8370] rounded-lg text-xs font-bold shadow-sm whitespace-nowrap touch-btn">+ Hinzufügen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-[#A499A7]/50">
+        <button onclick="deleteManagedTeam()" class="px-3 py-2 rounded-lg bg-white hover:bg-rose-50 text-[#DE4341] border-2 border-[#DE4341] text-xs font-bold shadow-sm">
+          <span>Mannschaft löschen</span>
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeModal('modalManageTeam')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Schließen</button>
+          <button onclick="saveManagedTeam()" class="px-4 py-2 rounded-lg bg-[#23548F] hover:bg-[#1a4270] font-bold text-xs text-white border-2 border-[#23548F] shadow-sm">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: BOWLINGCENTER KATALOG (ÜBERSICHT)                -->
+  <!-- ======================================================= -->
+  <div id="modalCentersCatalog" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Bowlingcenter</h3>
+        <button onclick="closeModal('modalCentersCatalog')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div id="catalogCentersList" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+        <!-- Dynamisch per JS -->
+      </div>
+
+      <div class="p-3 bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl space-y-2 text-xs">
+        <span class="font-bold text-slate-800 block">Neues Center anlegen:</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="catCenterName" placeholder="Bowling Arena" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          <input type="text" id="catCenterCity" placeholder="Paderborn" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <button onclick="saveCatalogCenter()" class="w-full py-2 bg-[#23548F] hover:bg-[#1a4270] rounded-lg font-bold text-white text-xs border-2 border-[#23548F] shadow-sm">+ Center anlegen</button>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalCentersCatalog')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Fertig</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: SPIELERPOOL KATALOG                             -->
+  <!-- ======================================================= -->
+  <div id="modalPlayersCatalog" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">Spieler</h3>
+        <button onclick="closeModal('modalPlayersCatalog')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div id="catalogPlayersList" class="space-y-2 max-h-60 overflow-y-auto text-xs">
+        <!-- Dynamisch per JS -->
+      </div>
+
+      <div class="p-3 bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl space-y-2 text-xs">
+        <span class="font-bold text-slate-800 block">Neuen Spieler anlegen:</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="catPlayerFirst" placeholder="Vorname" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          <input type="text" id="catPlayerLast" placeholder="Nachname" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="catPlayerNick" placeholder="Spitzname" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          <input type="email" id="catPlayerEmail" placeholder="E-Mail" class="bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+        <button onclick="saveCatalogPlayer()" class="w-full py-2 bg-[#70C04D] hover:bg-[#5ea83e] rounded-lg font-bold text-white text-xs border-2 border-[#5ea83e] shadow-sm">+ Spieler anlegen</button>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalPlayersCatalog')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Fertig</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: MANNSCHAFT LÖSCHEN (PASSWORT: 12345)            -->
+  <!-- ======================================================= -->
+  <div id="modalDeleteTeamPassword" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#DE4341] rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#DE4341]/30 pb-3">
+        <h3 class="font-bold text-base text-[#DE4341]">Mannschaft löschen</h3>
+        <button onclick="closeModal('modalDeleteTeamPassword')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-700">
+          Möchtest du die Mannschaft <strong id="deleteTeamTargetName" class="text-slate-900"></strong> wirklich löschen? Alle Spieltage und Statistiken werden entfernt.
+        </p>
+        <div class="bg-[#E4D7CF]/30 p-3 rounded-xl border border-[#A499A7] space-y-1.5">
+          <label class="block text-slate-700 font-bold text-xs uppercase tracking-wider">Passwort eingeben:</label>
+          <input type="password" id="deleteTeamPasswordInput" placeholder="Passwort" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold tracking-widest text-center focus:ring-2 focus:ring-[#DE4341] focus:outline-none" onkeydown="if(event.key==='Enter') confirmDeleteTeamWithPassword()">
+          <span id="deleteTeamError" class="text-[#DE4341] text-xs font-bold hidden">Falsches Passwort! Bitte 12345 eingeben.</span>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalDeleteTeamPassword')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="confirmDeleteTeamWithPassword()" class="px-4 py-2 rounded-lg bg-[#DE4341] hover:bg-[#c23634] font-black text-xs text-white border-2 border-[#DE4341] shadow-md">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: APP AUF HANDY INSTALLIEREN (.APK & PWA)          -->
+  <!-- ======================================================= -->
+  <div id="modalInstallApp" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900">App auf Smartphone installieren</h3>
+        <button onclick="closeModal('modalInstallApp')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <!-- 1. Direkte PWA-Installation -->
+        <div class="bg-[#E4D7CF]/30 border-2 border-[#A499A7] rounded-xl p-3.5 space-y-2">
+          <span class="font-black text-slate-900 text-sm block">1. Direkt über den Handy-Browser (Empfohlen, ohne Datei)</span>
+          <p class="text-slate-700 leading-relaxed">
+            Die Web-App ist als <strong>Progressive Web App (PWA)</strong> vorbereitet. Du kannst sie ohne App Store direkt auf deinem Startbildschirm ablegen:
+          </p>
+          <ul class="list-disc list-inside text-slate-800 space-y-1 font-medium">
+            <li><strong>Android (Chrome / Edge / Firefox):</strong> Öffne die Seite, tippe oben rechts auf das Menü (3 Punkte) und wähle <em>"App installieren"</em> oder <em>"Zum Startbildschirm hinzufügen"</em>.</li>
+            <li><strong>iPhone / iPad (Safari):</strong> Öffne die Seite in Safari, tippe unten auf das <em>Teilen-Symbol</em> (Viereck mit Pfeil nach oben) und wähle <em>"Zum Home-Bildschirm"</em>.</li>
+          </ul>
+          <p class="text-[11px] text-slate-600 font-semibold pt-1">
+            Die App startet danach wie eine normale App im Vollbild mit eigenem PB-Icon.
+          </p>
+        </div>
+
+        <!-- 2. Echte .APK Installationsdatei für Android -->
+        <div class="bg-white border-2 border-[#23548F] rounded-xl p-3.5 space-y-2">
+          <span class="font-black text-[#23548F] text-sm block">2. Als echte .APK-Installationsdatei (Android)</span>
+          <p class="text-slate-700 leading-relaxed">
+            Wenn du eine echte <strong>.apk</strong>-Datei zum Weitergeben oder Installieren benötigst:
+          </p>
+          <ol class="list-decimal list-inside text-slate-800 space-y-1 font-medium">
+            <li>Lade den Projektordner auf einen Webspace hoch (z. B. via GitHub Pages oder Vercel).</li>
+            <li>Gehe auf <strong>PWABuilder.com</strong> (kostenloses Microsoft Tool).</li>
+            <li>Gib deine Webadresse ein und klicke auf <em>"Package for Android"</em>.</li>
+            <li>Du erhältst sofort eine fertige <code>.apk</code>-Datei, die du direkt auf dem Android-Handy anklicken und installieren kannst.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalInstallApp')" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white text-xs font-black border-2 border-[#23548F] shadow-sm touch-btn">Verstanden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT: DATA & INTERACTIVITY ==================== -->
+  <script>
+    // 1. INITIALE STAMMDATEN (MULTI-TEAM & MULTI-SAISON)
+    const STORAGE_KEY = 'paderbowler_stats_hub_v1';
+
+    let appState = {
+      currentSeasonId: "season_2026_2027",
+      seasons: [
+        { id: "season_2026_2027", name: "2026/2027", isCurrent: true }
+      ],
+      centers: [
+        { id: "center_elite", name: "Elite Bowling Center", city: "Bielefeld" },
+        { id: "center_muenster", name: "Bowltreff Münster", city: "Münster" },
+        { id: "center_detmold", name: "Skyline Bowling", city: "Detmold" },
+        { id: "center_hamm", name: "Maxi Strike", city: "Hamm" },
+        { id: "center_paderborn", name: "Pader Bowling", city: "Paderborn" }
+      ],
+      players: [
+        { id: "player_hatzig", name: "Pascal Hatzig", email: "kalle@paderbowler.de" },
+        { id: "player_baumeister", name: "Gerrit Baumeister", email: "gerrit@paderbowler.de" },
+        { id: "player_klipenstein", name: "Andre Klipenstein", email: "olaf@paderbowler.de" },
+        { id: "player_gerdhenrich", name: "Gary Gerdhenrich", email: "gary@paderbowler.de" },
+        { id: "player_hoppe", name: "Joachim Hoppe", email: "jo@paderbowler.de" },
+        { id: "player_stoewer", name: "Marvin Stöwer", email: "marvin@paderbowler.de" }
+      ],
+      teams: [
+        {
+          id: "team_pb2",
+          seasonId: "season_2026_2027",
+          name: "Pader-Bowler-06 2",
+          league: "Landesliga 1",
+          playerIds: ["player_hatzig", "player_baumeister", "player_klipenstein", "player_gerdhenrich", "player_hoppe", "player_stoewer"],
+          opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
+          matchdaysCount: 5,
+          totalPins: 18054,
+          points: "38 : 12",
+          average: 180.54
+        },
+        {
+          id: "team_pb1",
+          seasonId: "season_2026_2027",
+          name: "Pader-Bowler-06 1",
+          league: "Oberliga 1",
+          playerIds: ["player_hatzig", "player_baumeister"],
+          opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+          matchdaysCount: 0,
+          totalPins: 0,
+          points: "0 : 0",
+          average: 0.0
+        }
+      ]
+    };
+
+    function loadState() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          appState = JSON.parse(stored);
+        } catch (e) {
+          console.error("Fehler beim Laden von State", e);
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    // 2. RENDERN
+    function render() {
+      renderSeasonsDropdown();
+      renderTeams();
+      updateCounters();
+    }
+
+    function renderSeasonsDropdown() {
+      const select = document.getElementById('seasonSelect');
+      select.innerHTML = '';
+
+      appState.seasons.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.name}${s.isCurrent ? ' - Aktiv' : ''}`;
+        opt.selected = (s.id === appState.currentSeasonId);
+        select.appendChild(opt);
+      });
+
+      const current = appState.seasons.find(s => s.id === appState.currentSeasonId) || appState.seasons[0];
+      document.getElementById('currentSeasonHeading').textContent = `Saison ${current.name}`;
+      document.getElementById('currentSeasonBadge').textContent = current.isCurrent ? 'Laufende Saison' : 'Abgeschlossene Saison';
+
+      const btnClubStats = document.getElementById('btnClubStats');
+      if (btnClubStats) btnClubStats.href = `awards-rankings.html?team=all&season=${appState.currentSeasonId}`;
+      const btnClubCharts = document.getElementById('btnClubCharts');
+      if (btnClubCharts) btnClubCharts.href = `dashboard-charts.html?team=all&season=${appState.currentSeasonId}`;
+      const btnHeaderClubStats = document.getElementById('btnHeaderClubStats');
+      if (btnHeaderClubStats) btnHeaderClubStats.href = `awards-rankings.html?team=all&season=${appState.currentSeasonId}`;
+    }
+
+    function renderTeams() {
+      const container = document.getElementById('teamsGrid');
+      container.innerHTML = '';
+
+      const currentTeams = appState.teams.filter(t => t.seasonId === appState.currentSeasonId);
+      document.getElementById('countTeams').textContent = currentTeams.length;
+
+      if (currentTeams.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 text-center p-8 bg-white border-2 border-[#A499A7] rounded-2xl space-y-3">
+            <h4 class="text-sm font-bold text-slate-900">Keine Mannschaften in dieser Saison</h4>
+            <p class="text-xs text-slate-600">Lege die erste Mannschaft an, um zu beginnen.</p>
+            <button onclick="openModal('modalNewTeam')" class="px-4 py-2 bg-[#23548F] hover:bg-[#1a4270] rounded-xl text-xs font-bold text-white shadow-md border-2 border-[#23548F]">+ Neue Mannschaft</button>
+          </div>
+        `;
+        return;
+      }
+
+      currentTeams.forEach(team => {
+        const card = document.createElement('div');
+        card.className = "bg-white border-2 border-[#A499A7] hover:border-[#23548F] rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4 transition";
+
+        // Spieler-Vorschau
+        const teamPlayers = appState.players.filter(p => (team.playerIds || []).includes(p.id));
+        const playerNames = teamPlayers.map(p => p.name.replace(/\s*\([^)]*\)/g, '').split(' ')[0]).join(', ') || 'Noch keine Spieler';
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <!-- Kopfbereich -->
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>${team.name}</span>
+                </h4>
+                <span class="text-xs text-[#23548F] font-bold">${team.league}</span>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full bg-[#E4D7CF]/70 border border-[#A499A7] font-bold text-slate-800">
+                ${team.matchdaysCount} Spieltage
+              </span>
+            </div>
+
+            <!-- Bilanz-Kacheln -->
+            <div class="grid grid-cols-3 gap-2 text-center bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/60">
+              <div>
+                <span class="text-xs font-bold text-slate-600 block">Punkte</span>
+                <span class="text-base font-black text-[#70C04D]">${team.points || '0 : 0'}</span>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-slate-600 block">Schnitt</span>
+                <span class="text-base font-black text-[#23548F]">${team.average > 0 ? team.average.toFixed(2) : '-'}</span>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-slate-600 block">Pins</span>
+                <span class="text-base font-black text-slate-900">${team.totalPins > 0 ? team.totalPins.toLocaleString('de-DE') : '-'}</span>
+              </div>
+            </div>
+
+            <!-- Details -->
+            <div class="text-xs text-slate-600 space-y-1">
+              <div>
+                <span class="font-bold text-slate-800">Kader:</span>
+                <span class="text-slate-700">${playerNames}</span>
+              </div>
+              <div>
+                <span class="font-bold text-slate-800">Gegner:</span>
+                <span class="text-slate-700 truncate block">${(team.opponents || []).join(', ') || 'Keine eingetragen'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aktionsleiste: Passt immer komplett ins Display ohne seitliches Scrollen -->
+          <div class="pt-3 border-t border-[#A499A7]/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
+            <div class="grid grid-cols-4 gap-1.5 flex-1 w-full sm:w-auto">
+              <a href="matchday-input.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs flex items-center justify-center border-2 border-[#23548F] touch-btn shadow-md">
+                <span>Erfassen</span>
+              </a>
+              <a href="dashboard-charts.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-white hover:bg-slate-50 text-[#23548F] text-xs font-bold border-2 border-[#23548F] touch-btn shadow-sm flex items-center justify-center">
+                <span>Diagramme</span>
+              </a>
+              <a href="awards-rankings.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 text-xs font-bold border-2 border-[#cfae2e] touch-btn shadow-sm flex items-center justify-center">
+                <span>Awards</span>
+              </a>
+              <a href="pdf-report.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white text-xs font-bold border-2 border-[#3E8370] touch-btn shadow-sm flex items-center justify-center">
+                <span>PDF</span>
+              </a>
+            </div>
+
+            <!-- Verwaltung & Löschen -->
+            <div class="grid grid-cols-2 sm:flex items-center gap-1.5 w-full sm:w-auto justify-end">
+              <button onclick="openManageTeamModal('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border-2 border-[#A499A7] touch-btn shadow-sm text-center">
+                <span>Kader</span>
+              </button>
+              <button onclick="deleteTeamPrompt('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-[#DE4341] border-2 border-[#DE4341] touch-btn text-xs font-bold shadow-sm text-center">
+                <span>Löschen</span>
+              </button>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function updateCounters() {
+      document.getElementById('countCenters').textContent = appState.centers.length;
+      document.getElementById('countPlayers').textContent = appState.players.length;
+    }
+
+    function selectActiveTeam(teamId, seasonId) {
+      localStorage.setItem('paderbowler_active_team', teamId);
+      if (seasonId) localStorage.setItem('paderbowler_active_season', seasonId);
+    }
+
+    // 3. SAISON VERWALTUNG
+    function changeSeason(seasonId) {
+      appState.currentSeasonId = seasonId;
+      saveState();
+      render();
+    }
+
+    function saveNewSeason() {
+      const name = document.getElementById('newSeasonName').value.trim();
+      if (!name) {
+        alert("Bitte Saison-Namen eingeben.");
+        return;
+      }
+
+      const newId = `season_${name.replace(/\//g, '_')}_${Date.now()}`;
+      appState.seasons.forEach(s => s.isCurrent = false);
+      appState.seasons.push({ id: newId, name, isCurrent: true });
+      appState.currentSeasonId = newId;
+
+      // Optional: Teams übernehmen
+      if (document.getElementById('copyTeamsToNewSeason').checked) {
+        const prevSeasonTeams = appState.teams.filter(t => t.seasonId === "season_2026_2027");
+        prevSeasonTeams.forEach(pt => {
+          appState.teams.push({
+            id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            seasonId: newId,
+            name: pt.name,
+            league: pt.league,
+            playerIds: [...(pt.playerIds || [])],
+            opponents: [...(pt.opponents || [])],
+            matchdaysCount: 0,
+            totalPins: 0,
+            points: "0 : 0",
+            average: 0.0
+          });
+        });
+      }
+
+      saveState();
+      closeModal('modalNewSeason');
+      render();
+    }
+
+    // 4. MANNSCHAFT VERWALTUNG (KADER PER EINGABE & GEGNER)
+    let newTeamAssignedPlayers = []; // [{ id, name }]
+    let newTeamOpponentsList = []; // string[]
+
+    function resetNewTeamModal() {
+      const nameInput = document.getElementById('newTeamName');
+      if (nameInput) nameInput.value = '';
+      const leagueInput = document.getElementById('newTeamLeague');
+      if (leagueInput) leagueInput.value = '';
+      const plInput = document.getElementById('newTeamPlayerInput');
+      if (plInput) plInput.value = '';
+      const oppInput = document.getElementById('newTeamOpponentInput');
+      if (oppInput) oppInput.value = '';
+
+      newTeamAssignedPlayers = [];
+      newTeamOpponentsList = [];
+      renderNewTeamSquadChips();
+      renderNewTeamOpponentsChips();
+      renderNewTeamClubPlayersList();
+    }
+
+    function renderNewTeamSquadChips() {
+      const container = document.getElementById('newTeamSquadChips');
+      const countBadge = document.getElementById('newTeamSquadCountBadge');
+      if (countBadge) countBadge.innerText = `${newTeamAssignedPlayers.length} Spieler`;
+
+      if (!container) return;
+      if (newTeamAssignedPlayers.length === 0) {
+        container.innerHTML = '<span class="text-[11px] text-slate-500 italic">Noch keine Spieler hinzugefügt.</span>';
+        return;
+      }
+
+      container.innerHTML = newTeamAssignedPlayers.map(p => {
+        const cleanName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border-2 border-[#23548F] text-[#23548F] font-black text-xs shadow-sm">
+            <span>${cleanName}</span>
+            <button type="button" onclick="removeNewTeamPlayer('${p.id}')" class="text-slate-400 hover:text-[#DE4341] font-black text-sm leading-none">&times;</button>
+          </span>
+        `;
+      }).join('');
+    }
+
+    function renderNewTeamOpponentsChips() {
+      const container = document.getElementById('newTeamOpponentsChips');
+      if (!container) return;
+      if (newTeamOpponentsList.length === 0) {
+        container.innerHTML = '<span class="text-[11px] text-slate-500 italic">Noch keine Gegner hinzugefügt.</span>';
+        return;
+      }
+
+      container.innerHTML = newTeamOpponentsList.map((opp, idx) => {
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border-2 border-[#3E8370] text-[#3E8370] font-black text-xs shadow-sm">
+            <span>${opp}</span>
+            <button type="button" onclick="removeNewTeamOpponent(${idx})" class="text-slate-400 hover:text-[#DE4341] font-black text-sm leading-none">&times;</button>
+          </span>
+        `;
+      }).join('');
+    }
+
+    function renderNewTeamClubPlayersList() {
+      const listContainer = document.getElementById('newTeamPlayersList');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+
+      if (!appState.players || appState.players.length === 0) {
+        listContainer.innerHTML = '<span class="text-[11px] text-slate-500">Keine bestehenden Vereinsspieler vorhanden.</span>';
+        return;
+      }
+
+      appState.players.forEach(p => {
+        const cleanName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        const isChecked = newTeamAssignedPlayers.some(ap => ap.id === p.id);
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between hover:bg-slate-50 px-2 py-1 rounded-lg";
+        div.innerHTML = `
+          <label class="flex items-center gap-2 cursor-pointer flex-1">
+            <input type="checkbox" id="new_pl_${p.id}" value="${p.id}" ${isChecked ? 'checked' : ''} onchange="toggleNewTeamClubPlayer('${p.id}', this.checked)" class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+            <span class="text-xs font-bold text-slate-800">${cleanName}</span>
+          </label>
+          <span class="text-[10px] text-slate-500">${p.email || ''}</span>
+        `;
+        listContainer.appendChild(div);
+      });
+    }
+
+    function toggleNewTeamClubPlayer(playerId, isChecked) {
+      const player = appState.players.find(p => p.id === playerId);
+      if (!player) return;
+
+      if (isChecked) {
+        if (!newTeamAssignedPlayers.some(p => p.id === playerId)) {
+          newTeamAssignedPlayers.push({ id: player.id, name: player.name });
+        }
+      } else {
+        newTeamAssignedPlayers = newTeamAssignedPlayers.filter(p => p.id !== playerId);
+      }
+      renderNewTeamSquadChips();
+    }
+
+    function addNewTeamPlayerFromInput() {
+      const input = document.getElementById('newTeamPlayerInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const names = val.split(',').map(n => n.trim()).filter(Boolean);
+      names.forEach(rawName => {
+        let existing = appState.players.find(p => p.name.toLowerCase() === rawName.toLowerCase());
+        if (!existing) {
+          existing = {
+            id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            name: rawName,
+            email: ""
+          };
+          appState.players.push(existing);
+          saveState();
+        }
+        if (!newTeamAssignedPlayers.some(p => p.id === existing.id)) {
+          newTeamAssignedPlayers.push({ id: existing.id, name: existing.name });
+        }
+      });
+
+      input.value = '';
+      renderNewTeamSquadChips();
+      renderNewTeamClubPlayersList();
+      updateCounters();
+    }
+
+    function removeNewTeamPlayer(playerId) {
+      newTeamAssignedPlayers = newTeamAssignedPlayers.filter(p => p.id !== playerId);
+      const chk = document.getElementById(`new_pl_${playerId}`);
+      if (chk) chk.checked = false;
+      renderNewTeamSquadChips();
+    }
+
+    function addNewTeamOpponentFromInput() {
+      const input = document.getElementById('newTeamOpponentInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const names = val.split(',').map(n => n.trim()).filter(Boolean);
+      names.forEach(oppName => {
+        if (!newTeamOpponentsList.includes(oppName)) {
+          newTeamOpponentsList.push(oppName);
+        }
+      });
+
+      input.value = '';
+      renderNewTeamOpponentsChips();
+    }
+
+    function removeNewTeamOpponent(idx) {
+      newTeamOpponentsList.splice(idx, 1);
+      renderNewTeamOpponentsChips();
+    }
+
+    function saveNewTeam() {
+      const name = document.getElementById('newTeamName').value.trim();
+      const league = document.getElementById('newTeamLeague').value.trim();
+      if (!name || !league) {
+        alert("Bitte Mannschaftsname und Liga eingeben.");
+        return;
+      }
+
+      if (newTeamAssignedPlayers.length === 0) {
+        alert("Bitte füge mindestens einen Spieler per Eingabe zum Kader hinzu oder wähle bestehende Spieler aus.");
+        return;
+      }
+
+      const newTeam = {
+        id: `team_${Date.now()}`,
+        seasonId: appState.currentSeasonId,
+        name,
+        league,
+        playerIds: newTeamAssignedPlayers.map(p => p.id),
+        opponents: [...newTeamOpponentsList],
+        matchdaysCount: 0,
+        totalPins: 0,
+        points: "0 : 0",
+        average: 0.0
+      };
+
+      appState.teams.push(newTeam);
+      saveState();
+      closeModal('modalNewTeam');
+      render();
+    }
+
+    let managedTeamId = null;
+
+    function openManageTeamModal(teamId) {
+      managedTeamId = teamId;
+      const team = appState.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      document.getElementById('manageTeamHeading').textContent = `${team.name} verwalten`;
+      document.getElementById('manageTeamName').value = team.name;
+      document.getElementById('manageTeamLeague').value = team.league;
+      const newPlInput = document.getElementById('manageNewPlayerInput');
+      if (newPlInput) newPlInput.value = '';
+      const newOppInput = document.getElementById('manageNewOpponentInput');
+      if (newOppInput) newOppInput.value = '';
+
+      renderManagedTeamPlayers(team);
+      renderManagedTeamOpponents(team);
+
+      openModal('modalManageTeam');
+    }
+
+    function renderManagedTeamPlayers(team) {
+      const plContainer = document.getElementById('manageTeamPlayersList');
+      if (!plContainer) return;
+      plContainer.innerHTML = '';
+      appState.players.forEach(p => {
+        const isChecked = (team.playerIds || []).includes(p.id);
+        const div = document.createElement('div');
+        div.className = "flex items-center gap-2";
+        const cleanName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        div.innerHTML = `
+          <input type="checkbox" id="manage_pl_${p.id}" value="${p.id}" ${isChecked ? 'checked' : ''} class="manage-pl-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+          <label for="manage_pl_${p.id}" class="text-xs text-slate-800 font-bold cursor-pointer">${cleanName}</label>
+        `;
+        plContainer.appendChild(div);
+      });
+    }
+
+    function addNewPlayerToManagedTeam() {
+      const input = document.getElementById('manageNewPlayerInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (!team) return;
+
+      const names = val.split(',').map(n => n.trim()).filter(Boolean);
+      names.forEach(rawName => {
+        let existing = appState.players.find(p => p.name.toLowerCase() === rawName.toLowerCase());
+        if (!existing) {
+          existing = {
+            id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            name: rawName,
+            email: ""
+          };
+          appState.players.push(existing);
+        }
+        if (!team.playerIds) team.playerIds = [];
+        if (!team.playerIds.includes(existing.id)) {
+          team.playerIds.push(existing.id);
+        }
+      });
+
+      input.value = '';
+      saveState();
+      renderManagedTeamPlayers(team);
+      updateCounters();
+    }
+
+    function renderManagedTeamOpponents(team) {
+      const oppContainer = document.getElementById('manageTeamOpponentsList');
+      oppContainer.innerHTML = '';
+      (team.opponents || []).forEach((opp, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border border-[#A499A7]";
+        div.innerHTML = `
+          <span class="text-xs font-semibold text-slate-800">${opp}</span>
+          <button onclick="removeOpponentFromManagedTeam(${idx})" class="text-slate-500 hover:text-[#DE4341] text-xs font-bold">&times;</button>
+        `;
+        oppContainer.appendChild(div);
+      });
+    }
+
+    function addOpponentToManagedTeam() {
+      const input = document.getElementById('manageNewOpponentInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (team) {
+        if (!team.opponents) team.opponents = [];
+        team.opponents.push(val);
+        input.value = '';
+        renderManagedTeamOpponents(team);
+      }
+    }
+
+    function removeOpponentFromManagedTeam(idx) {
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (team && team.opponents) {
+        team.opponents.splice(idx, 1);
+        renderManagedTeamOpponents(team);
+      }
+    }
+
+    function saveManagedTeam() {
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (!team) return;
+
+      team.name = document.getElementById('manageTeamName').value.trim() || team.name;
+      team.league = document.getElementById('manageTeamLeague').value.trim() || team.league;
+
+      const selected = [];
+      document.querySelectorAll('.manage-pl-chk:checked').forEach(c => selected.push(c.value));
+      team.playerIds = selected;
+
+      saveState();
+      closeModal('modalManageTeam');
+      render();
+    }
+
+    let teamIdToDelete = null;
+
+    function deleteManagedTeam() {
+      if (managedTeamId) deleteTeamPrompt(managedTeamId);
+    }
+
+    function deleteTeamPrompt(teamId) {
+      const team = appState.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      teamIdToDelete = teamId;
+      document.getElementById('deleteTeamTargetName').textContent = `"${team.name}"`;
+      document.getElementById('deleteTeamPasswordInput').value = '';
+      document.getElementById('deleteTeamError').classList.add('hidden');
+      openModal('modalDeleteTeamPassword');
+      setTimeout(() => document.getElementById('deleteTeamPasswordInput').focus(), 150);
+    }
+
+    function confirmDeleteTeamWithPassword() {
+      if (!teamIdToDelete) return;
+      const input = document.getElementById('deleteTeamPasswordInput').value.trim();
+      const errorSpan = document.getElementById('deleteTeamError');
+
+      if (input === '12345') {
+        const team = appState.teams.find(t => t.id === teamIdToDelete);
+        const teamName = team ? team.name : 'Mannschaft';
+
+        // 1. Aus appState entfernen
+        appState.teams = appState.teams.filter(t => t.id !== teamIdToDelete);
+
+        // 2. Spieltage dieser Mannschaft aus localStorage löschen
+        localStorage.removeItem(`paderbowler_matchdays_${teamIdToDelete}`);
+
+        saveState();
+        closeModal('modalDeleteTeamPassword');
+        closeModal('modalManageTeam');
+        teamIdToDelete = null;
+        render();
+
+        // Kurze Erfolgsmeldung
+        alert(`Die Mannschaft "${teamName}" wurde sicher gelöscht.`);
+      } else {
+        errorSpan.classList.remove('hidden');
+        document.getElementById('deleteTeamPasswordInput').classList.add('border-red-500');
+        document.getElementById('deleteTeamPasswordInput').focus();
+      }
+    }
+
+    // 5. STAMMDATEN KATALOGE (CENTER & SPIELER)
+    function renderCatalogLists() {
+      // Center
+      const cList = document.getElementById('catalogCentersList');
+      cList.innerHTML = '';
+      appState.centers.forEach(c => {
+        const div = document.createElement('div');
+        div.className = "p-2 bg-white border border-[#A499A7] rounded-lg flex items-center justify-between";
+        div.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-900 block">${c.name}</span>
+            <span class="text-slate-600 text-[11px]">${c.city}</span>
+          </div>
+          <button onclick="deleteCatalogCenter('${c.id}')" class="text-slate-500 hover:text-[#DE4341] font-bold text-xs px-2 py-1 border border-slate-300 rounded hover:border-[#DE4341]">Löschen</button>
+        `;
+        cList.appendChild(div);
+      });
+
+      // Spieler
+      const pList = document.getElementById('catalogPlayersList');
+      pList.innerHTML = '';
+      appState.players.forEach(p => {
+        const cleanName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        const div = document.createElement('div');
+        div.className = "p-2 bg-white border border-[#A499A7] rounded-lg flex items-center justify-between";
+        div.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-900 block">${cleanName}</span>
+            <span class="text-slate-600 text-[11px]">${p.email || 'Keine Mail'}</span>
+          </div>
+          <button onclick="deleteCatalogPlayer('${p.id}')" class="text-slate-500 hover:text-[#DE4341] font-bold text-xs px-2 py-1 border border-slate-300 rounded hover:border-[#DE4341]">Löschen</button>
+        `;
+        pList.appendChild(div);
+      });
+
+      // Spielerliste für "Neue Mannschaft"-Modal
+      renderNewTeamClubPlayersList();
+    }
+
+    function saveCatalogCenter() {
+      const name = document.getElementById('catCenterName').value.trim();
+      const city = document.getElementById('catCenterCity').value.trim();
+      if (!name || !city) return;
+
+      appState.centers.push({ id: `center_${Date.now()}`, name, city });
+      document.getElementById('catCenterName').value = '';
+      document.getElementById('catCenterCity').value = '';
+      saveState();
+      renderCatalogLists();
+      updateCounters();
+    }
+
+    function deleteCatalogCenter(id) {
+      appState.centers = appState.centers.filter(c => c.id !== id);
+      saveState();
+      renderCatalogLists();
+      updateCounters();
+    }
+
+    function saveCatalogPlayer() {
+      const first = document.getElementById('catPlayerFirst').value.trim();
+      const last = document.getElementById('catPlayerLast').value.trim();
+      const email = document.getElementById('catPlayerEmail').value.trim();
+      if (!first || !last) return;
+
+      const name = `${first} ${last}`;
+      appState.players.push({ id: `player_${Date.now()}`, name, email });
+      document.getElementById('catPlayerFirst').value = '';
+      document.getElementById('catPlayerLast').value = '';
+      document.getElementById('catPlayerNick').value = '';
+      document.getElementById('catPlayerEmail').value = '';
+      saveState();
+      renderCatalogLists();
+      updateCounters();
+    }
+
+    function deleteCatalogPlayer(id) {
+      appState.players = appState.players.filter(p => p.id !== id);
+      newTeamAssignedPlayers = newTeamAssignedPlayers.filter(p => p.id !== id);
+      saveState();
+      renderCatalogLists();
+      renderNewTeamSquadChips();
+      updateCounters();
+    }
+
+    // 6. MODAL UTILS
+    function openModal(id) {
+      if (id === 'modalNewTeam') {
+        resetNewTeamModal();
+      }
+      renderCatalogLists();
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // INIT & PWA REGISTRATION
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      render();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#E4D7CF] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paderbowler Stats 2 - Offizieller PDF- & Druck-Report</title>
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#23548F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Shared Stats Engine -->
+  <script src="shared-stats.js"></script>
+  <!-- html2pdf.js for direct PDF file generation & download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* A4 Druck- und PDF-Spezifikationen */
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm 10mm 12mm;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .a4-page {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        page-break-after: always;
+        break-after: page;
+      }
+      .a4-page:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      /* Erzwinge Hintergrundfarben beim Drucken */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+
+    /* Bildschirm-Vorschau für A4: Auf dem Handy immer innerhalb des Fensters */
+    @media screen {
+      .a4-page {
+        width: 100%;
+        max-width: 210mm;
+        min-height: auto;
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        margin: 0 auto 1.5rem auto;
+        padding: 1rem;
+        box-sizing: border-box;
+        position: relative;
+        overflow-x: auto;
+      }
+      @media (min-width: 640px) {
+        .a4-page {
+          padding: 14mm 15mm;
+        }
+      }
+    }
+
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .touch-btn:active { transform: scale(0.96); }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- ==================== CONTROL TOOLBAR (NO-PRINT) ==================== -->
+  <header class="no-print bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
+      
+      <!-- Logo & Info -->
+      <div class="flex items-center space-x-2.5 sm:space-x-3">
+        <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#23548F]">
+        <div>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+            PDF-Bericht
+            <span id="teamHeaderBadge" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold">Pader-Bowler-06 2</span>
+          </h1>
+          <p id="teamHeaderSubtitle" class="text-[11px] sm:text-xs text-slate-800">A4 Layout &bull; PDF-Download &bull; Drucken</p>
+        </div>
+
+        <!-- Schneller Team-Wechsler -->
+        <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
+          <span class="text-xs text-slate-700 mr-2 font-bold">Team:</span>
+          <select id="teamHeaderSelect" onchange="switchTeam(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+            <!-- Dynamisch per JS befüllt -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Controls: Report-Typ & Spieltag-Auswahl (Umbruch-sicher für jedes Handy) -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
+        
+        <!-- Ansichts-Modus -->
+        <select id="report-type-select" onchange="changeReportType(this.value)" class="bg-white border-2 border-[#8e8292] text-xs rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 font-bold text-slate-900 focus:outline-none focus:border-[#23548F]">
+          <option value="both">Kombi-Bericht</option>
+          <option value="matchday">Spieltagsbericht</option>
+          <option value="season">Saisonbericht & Awards</option>
+        </select>
+
+        <!-- Spieltag-Auswahl -->
+        <select id="matchday-select" onchange="changeMatchday(this.value)" class="bg-white border-2 border-[#8e8292] text-xs rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 font-bold text-slate-900 focus:outline-none focus:border-[#23548F]">
+          <option value="5" selected>Spieltag 5 - 08.11. Detmold</option>
+          <option value="4">Spieltag 4 - 25.10. Münster</option>
+          <option value="3">Spieltag 3 - 18.10. Bielefeld</option>
+          <option value="2">Spieltag 2 - 04.10. Hamm</option>
+          <option value="1">Spieltag 1 - 20.09. Bielefeld</option>
+        </select>
+
+        <!-- PDF Download Button -->
+        <button onclick="downloadPdfDirect()" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-black text-xs border-2 border-[#23548F] shadow-md touch-btn">
+          <span>PDF herunterladen</span>
+        </button>
+
+        <!-- Drucken Button -->
+        <button onclick="window.print()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border-2 border-[#A499A7] shadow-sm touch-btn">
+          <span>Drucken</span>
+        </button>
+
+        <!-- Navigation zu anderen Modulen -->
+        <div class="flex flex-wrap items-center gap-1.5 pl-0 sm:pl-2 border-t sm:border-t-0 sm:border-l border-[#8e8292] pt-1.5 sm:pt-0 w-full sm:w-auto">
+          <a href="index.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs text-slate-800 font-bold border-2 border-[#A499A7] touch-btn shadow-sm">
+            <span>Teams</span>
+          </a>
+          <a id="navLinkInput" href="matchday-input.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs text-white font-black border-2 border-[#23548F] touch-btn shadow-md">
+            <span>Erfassung</span>
+          </a>
+          <a id="navLinkCharts" href="dashboard-charts.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs text-[#23548F] font-bold border-2 border-[#23548F] touch-btn shadow-sm">
+            <span>Diagramme</span>
+          </a>
+          <a id="navLinkAwards" href="awards-rankings.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-xs text-slate-950 font-bold border-2 border-[#cfae2e] touch-btn shadow-sm">
+            <span>Awards</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== DOKUMENT-CONTAINER ==================== -->
+  <main id="report-main-container" class="flex-1 py-8 px-2 sm:px-4">
+
+    <!-- ========================================================================= -->
+    <!-- SEITE 1: OFFIZIELLER SPIELTAGSBERICHT                                      -->
+    <!-- ========================================================================= -->
+    <div id="page-matchday" class="a4-page flex flex-col justify-between text-slate-900 border border-slate-300">
+      
+      <div>
+        <!-- 1. Offizieller Vereins-Header -->
+        <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+          <div class="flex items-center space-x-3">
+            <img src="app-logo.png" alt="Paderbowler Logo" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-900">
+            <div>
+              <h1 id="md-header-teamname" class="text-lg font-black tracking-tight text-slate-950 uppercase">
+                Pader-Bowler-06 e.V. &bull; 2. Mannschaft
+              </h1>
+              <p id="md-header-league-season" class="text-xs font-bold text-slate-600">
+                Landesliga 1 (WBU) &bull; Westdeutsche Bowling Union &bull; Saison 2026/2027
+              </p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block px-3 py-1 rounded-md bg-slate-900 text-white font-extrabold text-xs tracking-wider uppercase">
+              Spieltagsbericht
+            </span>
+            <p class="text-[10px] text-slate-500 font-medium mt-1">Dokument-ID: <span id="doc-id">PB2-2026-ST05</span></p>
+          </div>
+        </div>
+
+        <!-- 2. Stammdaten-Leiste des Spieltags -->
+        <div class="grid grid-cols-4 gap-2 py-3 border-b border-slate-200 text-xs bg-slate-50/80 -mx-[15mm] px-[15mm]">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Spieltag:</span>
+            <span id="md-title" class="font-extrabold text-slate-900 text-sm">Spieltag 5</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Datum:</span>
+            <span id="md-date" class="font-bold text-slate-800">08.11.2026</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Austragungsort (Center):</span>
+            <span id="md-center" class="font-bold text-slate-800">Skyline Bowling, Detmold</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Probewürfe Start:</span>
+            <span id="md-time" class="font-bold text-slate-800">09:30 Uhr</span>
+          </div>
+        </div>
+
+        <!-- 3. Spieltags-Bilanzbox (KPIs) -->
+        <div class="my-3.5 grid grid-cols-4 gap-2.5 text-center">
+          <div class="bg-slate-100 rounded-lg p-2.5 border border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Gesamt-Pins</span>
+            <span id="kpi-pins" class="text-xl font-black text-slate-950">3.881</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2.5 border border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Spieltagsschnitt</span>
+            <span id="kpi-average" class="text-xl font-black text-blue-700">194,05</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2.5 border border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Punktebilanz</span>
+            <span id="kpi-points" class="text-xl font-black text-emerald-700">10 : 0</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2.5 border border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-500 block">Gegner-Pins</span>
+            <span id="kpi-opp-pins" class="text-xl font-black text-slate-800">3.332</span>
+          </div>
+        </div>
+
+        <!-- 4. Detaillierte Spiele 1 bis 5 (Mannschafts- & Einzelergebnisse) -->
+        <div class="space-y-1.5 my-3">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              1. Spielergebnisse gegen die Liga (5 Spiele je 4 Spieler)
+            </h2>
+            <span class="text-[10px] font-semibold text-slate-500">Sieg = 2 Pkt. &bull; Unentschieden = 1 Pkt.</span>
+          </div>
+
+          <table class="w-full text-left text-xs border border-slate-200 divide-y divide-slate-200">
+            <thead class="bg-slate-100 font-bold text-slate-700 text-[11px]">
+              <tr>
+                <th class="py-1.5 px-2 w-16">Spiel</th>
+                <th class="py-1.5 px-2">Gegner</th>
+                <th class="py-1.5 px-2 text-right">Team Pins</th>
+                <th class="py-1.5 px-2 text-right">Gegner</th>
+                <th class="py-1.5 px-2 text-center w-16">Pkt</th>
+                <th class="py-1.5 px-2">Aktive 4 Spieler (Einzelergebnisse in Pins)</th>
+              </tr>
+            </thead>
+            <tbody id="games-tbody" class="divide-y divide-slate-200 text-[11px]">
+              <!-- Dynamisch gefüllt per JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. Offizielle Strichliste des Spieltags -->
+        <div class="space-y-1.5 my-3.5">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              2. Strichlisten-Erfassung & Schwellenwerte dieses Spieltags
+            </h2>
+            <span class="text-[10px] font-semibold text-slate-500">Manuelle & automatische Spieltags-Metriken</span>
+          </div>
+
+          <table class="w-full text-left text-xs border border-slate-200 divide-y divide-slate-200">
+            <thead class="bg-slate-100 font-bold text-slate-700 text-[10px] uppercase">
+              <tr>
+                <th class="py-1.5 px-2">Spieler</th>
+                <th class="py-1.5 px-1.5 text-center">Spiele</th>
+                <th class="py-1.5 px-1.5 text-right font-black text-slate-900">Pins</th>
+                <th class="py-1.5 px-1.5 text-right font-black text-blue-700">Schnitt</th>
+                <th class="py-1.5 px-1.5 text-center text-amber-700 font-bold">Bier</th>
+                <th class="py-1.5 px-1.5 text-center text-red-700 font-bold">Räumf.</th>
+                <th class="py-1.5 px-1.5 text-center text-purple-700 font-bold">Gutter</th>
+                <th class="py-1.5 px-1.5 text-center text-emerald-700 font-bold">Turkey</th>
+                <th class="py-1.5 px-1.5 text-center text-slate-700">Split ≤50%</th>
+                <th class="py-1.5 px-1.5 text-center text-slate-700">9. Offen</th>
+                <th class="py-1.5 px-1.5 text-center text-slate-700">&gt;210 / &lt;170</th>
+              </tr>
+            </thead>
+            <tbody id="tallies-tbody" class="divide-y divide-slate-200 text-[11px]">
+              <!-- Dynamisch gefüllt per JS -->
+            </tbody>
+            <tfoot id="tallies-tfoot" class="bg-slate-100 font-bold text-[11px] border-t-2 border-slate-300">
+              <!-- Summenzeile per JS -->
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- 6. Spieltags-Kuriositäten & Highlights -->
+        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1">
+          <span class="font-extrabold uppercase tracking-wide text-slate-700 text-[10px] block">Besondere Vorkommnisse & Rekorde an diesem Spieltag:</span>
+          <div id="md-notes" class="text-slate-800 text-[11px] leading-relaxed">
+            <!-- Dynamisch generiert per JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Dokument-Footer & Freigabe / Unterschriften -->
+      <div class="pt-3 border-t border-slate-300 flex items-end justify-between text-[10px] text-slate-500">
+        <div>
+          <p>Erstellt mit Paderbowler Stats 2.0</p>
+          <p>Offizieller Nachweis für WBU Liga & Team-Statistik</p>
+        </div>
+        <div class="text-center w-48 border-t border-slate-400 pt-1">
+          <span class="block font-bold text-slate-700">Unterschrift Mannschaftsführer</span>
+          <span id="md-signature-teamname" class="text-[9px] text-slate-500 font-bold">Pader-Bowler-06 2</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- SEITE 2: KUMULIERTER SAISONBERICHT & AWARDS                               -->
+    <!-- ========================================================================= -->
+    <div id="page-season" class="a4-page flex flex-col justify-between text-slate-900 border border-slate-300">
+      
+      <div>
+        <!-- 1. Header Seite 2 -->
+        <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+          <div class="flex items-center space-x-3">
+            <img src="app-logo.png" alt="Paderbowler Logo" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-[#23548F]">
+            <div>
+              <h1 class="text-lg font-black tracking-tight text-slate-950 uppercase">
+                Kumulierter Saisonbericht & Awards
+              </h1>
+              <p id="season-report-subtitle" class="text-xs font-bold text-slate-600">
+                Pader-Bowler-06 2 &bull; Saison 2026/2027 &bull; Zwischenstand nach 5 Spieltagen
+              </p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block px-3 py-1 rounded-md bg-amber-500 text-slate-950 font-extrabold text-xs tracking-wider uppercase">
+              Saison-Gesamtwertung
+            </span>
+            <p class="text-[10px] text-slate-500 font-medium mt-1">Offizieller Bericht</p>
+          </div>
+        </div>
+
+        <!-- 2. Team-Bilanzkacheln (Gesamtsaison) -->
+        <div class="my-3.5 grid grid-cols-5 gap-2 text-center text-xs">
+          <div class="bg-slate-100 rounded-lg p-2 border border-slate-200">
+            <span id="season-kpi-avg-title" class="text-[9px] uppercase font-bold text-slate-500 block">Schnitt</span>
+            <span id="season-kpi-avg" class="text-base font-black text-blue-700">180,54</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2 border border-slate-200">
+            <span class="text-[9px] uppercase font-bold text-slate-500 block">Punkte</span>
+            <span id="season-kpi-points" class="text-base font-black text-emerald-700">38 : 12</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2 border border-slate-200">
+            <span class="text-[9px] uppercase font-bold text-slate-500 block">Gesamt-Pins</span>
+            <span id="season-kpi-pins" class="text-base font-black text-slate-900">18.054</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2 border border-slate-200">
+            <span class="text-[9px] uppercase font-bold text-slate-500 block">Bierframes Ges.</span>
+            <span id="season-kpi-bier" class="text-base font-black text-amber-600">50</span>
+          </div>
+          <div class="bg-slate-100 rounded-lg p-2 border border-slate-200">
+            <span class="text-[9px] uppercase font-bold text-slate-500 block">Rekord Einzel</span>
+            <span id="season-kpi-high" class="text-base font-black text-amber-600">256 Pins</span>
+          </div>
+        </div>
+
+        <!-- 3. Gesamttabelle der Spieler (Schnitt-Rangliste) -->
+        <div class="space-y-1.5 my-3">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              1. Spieler-Rangliste & Leistungsdaten (Kumuliert über alle Spieltage)
+            </h2>
+            <span class="text-[10px] font-semibold text-slate-500">Mind. 1 Spiel absolviert</span>
+          </div>
+
+          <table class="w-full text-left text-xs border border-slate-200 divide-y divide-slate-200">
+            <thead class="bg-slate-100 font-bold text-slate-700 text-[10px] uppercase">
+              <tr>
+                <th class="py-1.5 px-2 text-center w-8">Pl.</th>
+                <th class="py-1.5 px-2">Spieler</th>
+                <th class="py-1.5 px-2 text-center">Spiele</th>
+                <th class="py-1.5 px-2 text-right">Pins</th>
+                <th class="py-1.5 px-2 text-right font-black text-blue-700">Schnitt</th>
+                <th class="py-1.5 px-2 text-center text-emerald-700">High</th>
+                <th class="py-1.5 px-2 text-center text-slate-400">Low</th>
+                <th class="py-1.5 px-2 text-center text-amber-700">Bier</th>
+                <th class="py-1.5 px-2 text-center text-red-700">Fehl.</th>
+                <th class="py-1.5 px-2 text-center text-purple-700">Gut.</th>
+                <th class="py-1.5 px-2 text-center text-emerald-700">Turk.</th>
+                <th class="py-1.5 px-2 text-center">&gt;210</th>
+              </tr>
+            </thead>
+            <tbody id="season-table-body" class="divide-y divide-slate-200 text-[11px]">
+              <!-- Dynamisch gefüllt per JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 4. Bowling-Center Standort-Vergleich -->
+        <div class="space-y-1.5 my-3">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              2. Bowlingcenter Performance & Ölbild-Bilanz
+            </h2>
+            <span class="text-[10px] font-semibold text-slate-500">Heim- & Auswärtsvergleich</span>
+          </div>
+
+          <table class="w-full text-left text-xs border border-slate-200 divide-y divide-slate-200">
+            <thead class="bg-slate-100 font-bold text-slate-700 text-[10px] uppercase">
+              <tr>
+                <th class="py-1.5 px-2">Bowlingcenter / Austragungsort</th>
+                <th class="py-1.5 px-2 text-center">Spieltage</th>
+                <th class="py-1.5 px-2 text-right">Pins Ges.</th>
+                <th class="py-1.5 px-2 text-right font-black text-blue-700">Center-Schnitt</th>
+                <th class="py-1.5 px-2 text-center font-bold text-emerald-700">Punkte</th>
+                <th class="py-1.5 px-2 text-right">Sieg-Quote</th>
+              </tr>
+            </thead>
+            <tbody id="season-centers-tbody" class="divide-y divide-slate-200 text-[11px]">
+              <tr>
+                <td class="py-1.5 px-2 font-bold text-slate-900">Skyline Bowling, Detmold</td>
+                <td class="py-1.5 px-2 text-center">1 (ST 5)</td>
+                <td class="py-1.5 px-2 text-right font-medium">3.881</td>
+                <td class="py-1.5 px-2 text-right font-black text-blue-700">194,05</td>
+                <td class="py-1.5 px-2 text-center font-bold text-emerald-700">10 : 0</td>
+                <td class="py-1.5 px-2 text-right font-semibold text-slate-700">100 %</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 px-2 font-bold text-slate-900">Maxi Strike, Hamm</td>
+                <td class="py-1.5 px-2 text-center">1 (ST 2)</td>
+                <td class="py-1.5 px-2 text-right font-medium">3.766</td>
+                <td class="py-1.5 px-2 text-right font-black text-blue-700">188,30</td>
+                <td class="py-1.5 px-2 text-center font-bold text-emerald-700">10 : 0</td>
+                <td class="py-1.5 px-2 text-right font-semibold text-slate-700">100 %</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 px-2 font-bold text-slate-900">Elite Bowling Center, Bielefeld</td>
+                <td class="py-1.5 px-2 text-center">2 (ST 1 &amp; 3)</td>
+                <td class="py-1.5 px-2 text-right font-medium">7.123</td>
+                <td class="py-1.5 px-2 text-right font-black text-blue-700">178,08</td>
+                <td class="py-1.5 px-2 text-center font-bold text-emerald-700">12 : 8</td>
+                <td class="py-1.5 px-2 text-right font-semibold text-slate-700">60 %</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 px-2 font-bold text-slate-900">Bowltreff Münster, Münster</td>
+                <td class="py-1.5 px-2 text-center">1 (ST 4)</td>
+                <td class="py-1.5 px-2 text-right font-medium">3.284</td>
+                <td class="py-1.5 px-2 text-right font-black text-blue-700">164,20</td>
+                <td class="py-1.5 px-2 text-center font-bold text-slate-700">6 : 4</td>
+                <td class="py-1.5 px-2 text-right font-semibold text-slate-700">60 %</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. Offizielle Saison-Awards & Titel (2-Spalten-Raster) -->
+        <div class="space-y-1.5 my-3">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-1">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              3. Offizielle Saison-Awards & Ehrentitel (Aktuelle Führung)
+            </h2>
+            <span class="text-[10px] font-semibold text-slate-500">Vereins- & Gaudi-Auszeichnungen</span>
+          </div>
+
+          <div id="pdf-awards-grid" class="grid grid-cols-2 gap-2 text-[10px]">
+            <!-- Dynamisch gefüllt per JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Footer Seite 2 -->
+      <div class="pt-3 border-t border-slate-300 flex items-end justify-between text-[10px] text-slate-500">
+        <div>
+          <p>Pader-Bowler-06 e.V. &bull; Gegründet 2006 &bull; Vereinsregister Paderborn</p>
+          <p>Offizieller Saisonabschluss- & Halbzeitbericht 2026/2027</p>
+        </div>
+        <div class="text-right">
+          <span class="font-bold text-slate-700">Seite 2 von 2 (Saisonbericht)</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL: E-MAIL VERSAND ==================== -->
+  <div id="email-modal" class="no-print fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-900">
+      <!-- Header -->
+      <div class="px-5 py-4 border-b border-[#A499A7]/50 flex items-center justify-between bg-[#E4D7CF]/40">
+        <div>
+          <h3 class="font-extrabold text-slate-900 text-sm">Bericht per E-Mail versenden</h3>
+          <p id="email-modal-subtitle" class="text-xs text-slate-600">Spieltag 5 (Skyline Bowling, Detmold)</p>
+        </div>
+        <button onclick="closeEmailModal()" class="text-slate-500 hover:text-slate-900 text-lg font-bold">
+          &times;
+        </button>
+      </div>
+
+      <!-- Body: Minimaler Text, übersichtliche Liste mit Checkboxen -->
+      <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        
+        <!-- Schnell-Auswahl -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700">Empfänger</span>
+          <div class="flex items-center gap-2 text-xs">
+            <button onclick="toggleAllRecipients(true)" class="text-[#23548F] hover:underline font-bold">Alle</button>
+            <span class="text-slate-400">&bull;</span>
+            <button onclick="toggleAllRecipients(false)" class="text-slate-600 hover:underline">Keine</button>
+          </div>
+        </div>
+
+        <!-- Spieler Liste mit Checkbox & E-Mail Input -->
+        <div id="recipients-list" class="space-y-2">
+          <!-- Dynamisch gerendert -->
+        </div>
+
+        <!-- Betreff (editierbar) -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700 block">Betreff</label>
+          <input type="text" id="email-subject-input" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+        </div>
+
+        <!-- Anhang Info mit Download-Aktion -->
+        <div class="p-3 rounded-xl bg-white border-2 border-[#A499A7] flex items-center justify-between text-xs text-slate-900 font-bold shadow-sm">
+          <div>
+            <span class="text-[10px] uppercase font-black text-slate-500 block">PDF-Bericht:</span>
+            <span id="email-attachment-name" class="font-extrabold text-[#23548F] text-xs">Spieltagsbericht_ST05.pdf</span>
+          </div>
+          <button type="button" onclick="downloadPdfDirect()" class="px-3 py-1.5 rounded-lg bg-[#3E8370] hover:bg-[#326a5b] text-white font-bold text-xs shadow-sm touch-btn">
+            PDF herunterladen
+          </button>
+        </div>
+
+        <!-- Wichtiger Hinweis zum PDF-Anhang in Webmail / Gmail -->
+        <div class="p-3 rounded-xl bg-amber-50 border-2 border-[#E8C543] text-xs text-amber-950 space-y-1">
+          <span class="font-black text-amber-900 block text-xs">PDF an die E-Mail anhängen:</span>
+          <p class="text-[11px] leading-relaxed text-amber-900">
+            Internet-Browser blockieren aus Datenschutzgründen das heimliche automatische Anhängen lokaler Dateien an Webseiten.
+          </p>
+          <p class="text-[11px] leading-relaxed font-semibold text-amber-950">
+            Klicke auf <strong>„In Gmail öffnen“</strong>: Die PDF wird automatisch heruntergeladen und Gmail geöffnet. Ziehe die Datei danach einfach per Drag & Drop in dein Gmail-Fenster.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer Action -->
+      <div class="p-4 border-t border-[#A499A7]/50 bg-[#E4D7CF]/40 flex flex-wrap items-center justify-between gap-2.5">
+        <button onclick="closeEmailModal()" class="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-[#A499A7] text-xs font-bold text-slate-700">
+          Abbrechen
+        </button>
+        <div class="flex flex-wrap items-center gap-2 flex-1 justify-end">
+          <button type="button" onclick="copyEmailContent()" class="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-[#A499A7] font-bold text-xs touch-btn shadow-sm">
+            <span id="copyBtnText">Text kopieren</span>
+          </button>
+          <button id="mailto-email-btn" onclick="openMailtoClient()" class="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-[#23548F] font-bold text-xs border-2 border-[#23548F] shadow-sm touch-btn">
+            <span>E-Mail-App</span>
+          </button>
+          <button id="gmail-email-btn" onclick="openGmailWebClient()" class="py-2.5 px-4 rounded-xl bg-[#DE4341] hover:bg-[#c23634] text-white font-black text-xs border-2 border-[#DE4341] shadow-md touch-btn flex items-center gap-1.5">
+            <span>In Gmail öffnen</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST: STATUS-BANNER -->
+  <div id="email-toast" class="no-print fixed bottom-6 right-6 z-50 bg-white border-2 border-[#70C04D] text-slate-900 px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 hidden transition-all duration-300">
+    <div class="w-8 h-8 rounded-full bg-[#70C04D]/20 text-[#2E4D11] flex items-center justify-center text-lg font-black">
+      ✓
+    </div>
+    <div>
+      <h4 id="toast-title" class="font-bold text-xs text-slate-900">Erfolgreich vorbereitet!</h4>
+      <p id="toast-details" class="text-[11px] text-slate-600">6 E-Mails mit Bericht vorbereitet.</p>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT: DATEN & LOGIK ==================== -->
+  <script>
+    let appState = null;
+    let currentTeam = null;
+    let currentSeason = null;
+    let activeTeamId = 'team_pb2';
+    let activeSeasonId = 'season_2026_2027';
+
+    let matchdaysData = {};
+    let currentMatchdayNum = 1;
+    let recipients = [];
+
+    function initReport() {
+      appState = getAppState();
+
+      const params = new URLSearchParams(window.location.search);
+      activeTeamId = params.get('team') || localStorage.getItem('paderbowler_active_team') || appState.teams[0]?.id || 'team_pb2';
+      activeSeasonId = params.get('season') || localStorage.getItem('paderbowler_active_season') || appState.currentSeasonId;
+
+      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || appState.seasons[0];
+      currentTeam = appState.teams.find(t => t.id === activeTeamId) || appState.teams[0];
+      if (!currentTeam) {
+        currentTeam = {
+          id: activeTeamId,
+          name: "Mannschaft",
+          league: "Landesliga",
+          playerIds: [],
+          opponents: []
+        };
+      }
+      activeTeamId = currentTeam.id;
+
+      localStorage.setItem('paderbowler_active_team', activeTeamId);
+      localStorage.setItem('paderbowler_active_season', activeSeasonId);
+
+      // 1. Header Toolbar & Navigation aktualisieren
+      updateToolbarAndNav();
+
+      // 2. Dokument-Köpfe auf Seite 1 & 2 aktualisieren
+      updateReportHeaders();
+
+      // 3. Spieltage dieser Mannschaft parsen
+      parseTeamMatchdays();
+
+      // 4. Spieltags-Dropdown befüllen
+      populateMatchdayDropdown();
+
+      // 5. Seite 1 rendern
+      renderMatchdayReport(currentMatchdayNum);
+
+      // 6. Seite 2 rendern
+      renderSeasonReport();
+
+      // 7. E-Mail Empfänger aufbereiten
+      setupRecipients();
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateToolbarAndNav() {
+      document.getElementById('teamHeaderBadge').innerText = currentTeam.name;
+      document.getElementById('teamHeaderSubtitle').innerText = `Saison ${currentSeason?.name || '2026/2027'} • ${currentTeam.league} • Druckoptimiertes DIN A4 Layout`;
+
+      const select = document.getElementById('teamHeaderSelect');
+      if (select) {
+        select.innerHTML = appState.teams
+          .filter(t => t.seasonId === activeSeasonId)
+          .map(t => `<option value="${t.id}" ${t.id === currentTeam.id ? 'selected' : ''}>${t.name} (${t.league})</option>`)
+          .join('');
+      }
+
+      const linkInput = document.getElementById('navLinkInput');
+      if (linkInput) linkInput.href = `matchday-input.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+      const linkCharts = document.getElementById('navLinkCharts');
+      if (linkCharts) linkCharts.href = `dashboard-charts.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+      const linkAwards = document.getElementById('navLinkAwards');
+      if (linkAwards) linkAwards.href = `awards-rankings.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+    }
+
+    function updateReportHeaders() {
+      // Seite 1 Header & Signatur
+      const mdTeam = document.getElementById('md-header-teamname');
+      if (mdTeam) mdTeam.innerHTML = `Pader-Bowler-06 e.V. &bull; ${currentTeam.name}`;
+      const mdSub = document.getElementById('md-header-league-season');
+      if (mdSub) mdSub.innerHTML = `${currentTeam.league} (WBU) &bull; Westdeutsche Bowling Union &bull; Saison ${currentSeason?.name || '2026/2027'}`;
+      const mdSig = document.getElementById('md-signature-teamname');
+      if (mdSig) mdSig.textContent = currentTeam.name;
+
+      // Seite 2 Header & Footer
+      const seasonSub = document.getElementById('season-report-subtitle');
+      if (seasonSub) seasonSub.innerHTML = `${currentTeam.name} &bull; Saison ${currentSeason?.name || '2026/2027'} &bull; Offizielle Auswertung`;
+    }
+
+    function parseTeamMatchdays() {
+      matchdaysData = {};
+      const rawMatchdays = getTeamMatchdays(currentTeam.id);
+      let maxMdWithData = 1;
+
+      for (let num = 1; num <= 9; num++) {
+        const md = rawMatchdays[num] || { number: num, date: '', centerId: '' };
+
+        const centerObj = appState.centers.find(c => c.id === md.centerId);
+        const centerName = centerObj ? `${centerObj.name}, ${centerObj.city}` : "Bowlingcenter";
+        let dateStr = md.date;
+        if (dateStr && dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          dateStr = `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        let ourTotalPins = 0;
+        let oppTotalPins = 0;
+        let wins = 0;
+        let draws = 0;
+        let losses = 0;
+        const gamesList = [];
+        const playerStats = {};
+
+        for (let g = 1; g <= 5; g++) {
+          const lineup = md.gameLineups?.[g] || [];
+          const oppObj = md.gameOpponents?.[g] || { id: "Gegner", pins: 0 };
+          let ourGamePins = 0;
+          const playerScores = [];
+
+          lineup.forEach(pId => {
+            const pObj = appState.players.find(x => x.id === pId);
+            const pName = pObj ? pObj.name.split(' ')[0] : pId;
+            const pScore = md.gamePlayerPins?.[g]?.[pId] || 0;
+            if (pScore > 0) {
+              ourGamePins += pScore;
+              playerScores.push(`${pName} (${pScore})`);
+
+              if (!playerStats[pId]) {
+                playerStats[pId] = {
+                  id: pId,
+                  name: pObj ? pObj.name : pId,
+                  games: 0,
+                  pins: 0,
+                  bier: 0, miss: 0, gutter: 0, turkey: 0, split: 0, open9: 0,
+                  over210: 0, under170: 0, schnaps: 0
+                };
+              }
+              playerStats[pId].games++;
+              playerStats[pId].pins += pScore;
+              if (pScore > 210) playerStats[pId].over210++;
+              if (pScore < 170) playerStats[pId].under170++;
+              if (checkSchnapszahl(pScore)) playerStats[pId].schnaps++;
+            }
+          });
+
+          const oppPins = oppObj.pins || 0;
+          if (ourGamePins > 0) {
+            ourTotalPins += ourGamePins;
+            oppTotalPins += oppPins;
+            let pts = 0;
+            if (oppPins > 0) {
+              if (ourGamePins > oppPins) { pts = 2; wins++; }
+              else if (ourGamePins === oppPins) { pts = 1; draws++; }
+              else { pts = 0; losses++; }
+            }
+            gamesList.push({
+              game: g,
+              opp: oppObj.id || `Gegner ${g}`,
+              our: ourGamePins,
+              oppP: oppPins,
+              pts: pts,
+              lineup: playerScores
+            });
+          }
+        }
+
+        // Add tallies
+        Object.keys(playerStats).forEach(pId => {
+          const tallies = md.matchdayTallies?.[pId];
+          if (tallies) {
+            playerStats[pId].bier = tallies.bier || 0;
+            playerStats[pId].miss = tallies.miss || 0;
+            playerStats[pId].gutter = tallies.gutter || 0;
+            playerStats[pId].turkey = tallies.turkey || 0;
+            playerStats[pId].split = tallies.split || 0;
+            playerStats[pId].open9 = tallies.open9 || 0;
+          }
+        });
+
+        const talliesArray = Object.values(playerStats).map(p => ({
+          ...p,
+          avg: p.games > 0 ? parseFloat((p.pins / p.games).toFixed(2)) : 0
+        })).sort((a, b) => b.avg - a.avg);
+
+        let totalGamesCount = 0;
+        talliesArray.forEach(t => totalGamesCount += t.games);
+
+        if (ourTotalPins > 0) maxMdWithData = num;
+
+        matchdaysData[num] = {
+          number: num,
+          date: dateStr || `Spieltag ${num}`,
+          center: centerName,
+          time: "09:30 Uhr",
+          ourTotalPins: ourTotalPins,
+          opponentsTotalPins: oppTotalPins,
+          totalPoints: wins * 2 + draws,
+          teamAverage: totalGamesCount > 0 ? parseFloat((ourTotalPins / totalGamesCount).toFixed(2)) : 0,
+          games: gamesList,
+          tallies: talliesArray,
+          notes: ourTotalPins > 0
+            ? `Spieltagsbericht für ${currentTeam.name} am Spieltag ${num} in ${centerName}. Punkte: ${wins * 2 + draws} : ${losses * 2 + draws}, Gesamtpins: ${ourTotalPins.toLocaleString('de-DE')}.`
+            : `Für Spieltag ${num} wurden noch keine Spiele erfasst.`
+        };
+      }
+
+      currentMatchdayNum = maxMdWithData;
+    }
+
+    function populateMatchdayDropdown() {
+      const mdSelect = document.getElementById('matchday-select');
+      if (!mdSelect) return;
+
+      const options = [];
+      for (let n = 1; n <= 9; n++) {
+        const md = matchdaysData[n];
+        if (md) {
+          const hasData = md.ourTotalPins > 0;
+          options.push(`<option value="${n}">Spieltag ${n} (${md.date} - ${md.center.split(',')[0]})${hasData ? '' : ' [noch offen]'}</option>`);
+        }
+      }
+      mdSelect.innerHTML = options.join('');
+      mdSelect.value = currentMatchdayNum;
+    }
+
+    // 4. RENDERN DES SPIELTAGSBERICHTS (SEITE 1)
+    function renderMatchdayReport(mdNum) {
+      currentMatchdayNum = parseInt(mdNum);
+      const data = matchdaysData[currentMatchdayNum];
+      if (!data) return;
+
+      const teamShort = currentTeam ? currentTeam.name.replace(/[^A-Za-z0-9]/g, '').toUpperCase() : 'PB';
+      document.getElementById('doc-id').textContent = `${teamShort}-2026-ST0${data.number}`;
+      document.getElementById('md-title').textContent = `Spieltag ${data.number}`;
+      document.getElementById('md-date').textContent = data.date;
+      document.getElementById('md-center').textContent = data.center;
+      document.getElementById('md-time').textContent = data.time || "09:30 Uhr";
+
+      document.getElementById('kpi-pins').textContent = data.ourTotalPins.toLocaleString('de-DE');
+      document.getElementById('kpi-average').textContent = data.teamAverage.toFixed(2).replace('.', ',');
+      document.getElementById('kpi-points').textContent = `${data.totalPoints} : ${10 - data.totalPoints}`;
+      document.getElementById('kpi-opp-pins').textContent = data.opponentsTotalPins.toLocaleString('de-DE');
+
+      // 1. Spiele 1-5 Tabelle
+      const gamesTbody = document.getElementById('games-tbody');
+      gamesTbody.innerHTML = '';
+      if (data.games.length === 0) {
+        gamesTbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-6 text-center text-slate-500 font-bold bg-slate-50">
+              Noch keine Spielergebnisse für Spieltag ${data.number} in ${currentTeam.name} erfasst.
+            </td>
+          </tr>
+        `;
+      } else {
+        data.games.forEach(g => {
+          const tr = document.createElement('tr');
+          tr.className = g.pts === 2 ? 'bg-emerald-50/50' : g.pts === 1 ? 'bg-slate-50' : 'bg-red-50/40';
+          tr.innerHTML = `
+            <td class="py-1.5 px-2 font-bold text-slate-800">Spiel ${g.game}</td>
+            <td class="py-1.5 px-2 font-semibold text-slate-900">${g.opp}</td>
+            <td class="py-1.5 px-2 text-right font-black text-slate-900">${g.our}</td>
+            <td class="py-1.5 px-2 text-right font-semibold text-slate-600">${g.oppP}</td>
+            <td class="py-1.5 px-2 text-center font-black ${g.pts === 2 ? 'text-emerald-700' : g.pts === 1 ? 'text-amber-700' : 'text-red-700'}">
+              ${g.pts} : ${2 - g.pts}
+            </td>
+            <td class="py-1.5 px-2 text-[10px] text-slate-700 font-medium">
+              ${g.lineup.join(' &bull; ')}
+            </td>
+          `;
+          gamesTbody.appendChild(tr);
+        });
+      }
+
+      // 2. Strichliste Tabelle
+      const talliesTbody = document.getElementById('tallies-tbody');
+      talliesTbody.innerHTML = '';
+      const talliesTfoot = document.getElementById('tallies-tfoot');
+
+      if (data.tallies.length === 0) {
+        talliesTbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="py-4 text-center text-slate-500 bg-slate-50">
+              Keine Strichlisten-Einträge für diesen Spieltag vorhanden.
+            </td>
+          </tr>
+        `;
+        if (talliesTfoot) talliesTfoot.innerHTML = '';
+      } else {
+        let sumGames = 0, sumPins = 0, sumBier = 0, sumMiss = 0, sumGutter = 0, sumTurkey = 0, sumSplit = 0, sumOpen9 = 0, sumOver210 = 0, sumUnder170 = 0;
+
+        data.tallies.forEach(t => {
+          sumGames += t.games;
+          sumPins += t.pins;
+          sumBier += t.bier;
+          sumMiss += t.miss;
+          sumGutter += t.gutter;
+          sumTurkey += t.turkey;
+          sumSplit += t.split;
+          sumOpen9 += t.open9;
+          sumOver210 += t.over210;
+          sumUnder170 += t.under170;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="py-1.5 px-2 font-bold text-slate-900">${t.name}</td>
+            <td class="py-1.5 px-1.5 text-center text-slate-700">${t.games}</td>
+            <td class="py-1.5 px-1.5 text-right font-black text-slate-900">${t.pins}</td>
+            <td class="py-1.5 px-1.5 text-right font-black text-blue-700">${t.avg.toFixed(2).replace('.', ',')}</td>
+            <td class="py-1.5 px-1.5 text-center font-bold text-amber-700">${t.bier}</td>
+            <td class="py-1.5 px-1.5 text-center font-bold text-red-700">${t.miss}</td>
+            <td class="py-1.5 px-1.5 text-center font-bold text-purple-700">${t.gutter}</td>
+            <td class="py-1.5 px-1.5 text-center font-bold text-emerald-700">${t.turkey}</td>
+            <td class="py-1.5 px-1.5 text-center text-slate-700">${t.split}</td>
+            <td class="py-1.5 px-1.5 text-center text-slate-700">${t.open9}</td>
+            <td class="py-1.5 px-1.5 text-center font-medium text-slate-700">${t.over210}x / ${t.under170}x</td>
+          `;
+          talliesTbody.appendChild(tr);
+        });
+
+        const teamAvg = sumGames > 0 ? (sumPins / sumGames).toFixed(2).replace('.', ',') : '0,00';
+        if (talliesTfoot) {
+          talliesTfoot.innerHTML = `
+            <tr>
+              <td class="py-2 px-2 uppercase tracking-wider text-slate-900">Mannschaft Summe:</td>
+              <td class="py-2 px-1.5 text-center">${sumGames}</td>
+              <td class="py-2 px-1.5 text-right text-slate-950">${sumPins}</td>
+              <td class="py-2 px-1.5 text-right text-blue-800">${teamAvg}</td>
+              <td class="py-2 px-1.5 text-center text-amber-800">${sumBier}</td>
+              <td class="py-2 px-1.5 text-center text-red-800">${sumMiss}</td>
+              <td class="py-2 px-1.5 text-center text-purple-800">${sumGutter}</td>
+              <td class="py-2 px-1.5 text-center text-emerald-800">${sumTurkey}</td>
+              <td class="py-2 px-1.5 text-center text-slate-900">${sumSplit}</td>
+              <td class="py-2 px-1.5 text-center text-slate-900">${sumOpen9}</td>
+              <td class="py-2 px-1.5 text-center text-slate-900">${sumOver210}x / ${sumUnder170}x</td>
+            </tr>
+          `;
+        }
+      }
+
+      // Notizen
+      document.getElementById('md-notes').textContent = data.notes;
+    }
+
+    // 5. RENDERN DER SAISONÜBERSICHT (SEITE 2)
+    function renderSeasonReport() {
+      const stats = calculatePlayerStatsForTeam(currentTeam.id, appState);
+      const tbody = document.getElementById('season-table-body');
+      tbody.innerHTML = '';
+
+      const activePlayers = stats.filter(p => p.gamesPlayed > 0).sort((a, b) => {
+        if (b.average !== a.average) return b.average - a.average;
+        return b.totalPins - a.totalPins;
+      });
+
+      const displayList = activePlayers.length > 0 ? activePlayers : stats;
+
+      if (displayList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="py-6 text-center text-slate-500 font-bold">Noch keine Spieler im Kader dieser Mannschaft zugewiesen.</td></tr>`;
+      } else {
+        displayList.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = idx < 3 && p.gamesPlayed > 0 ? 'bg-slate-50/80 font-semibold' : '';
+          const rankMedal = `${idx + 1}.`;
+          tr.innerHTML = `
+            <td class="py-1.5 px-2 text-center font-bold ${idx === 0 ? 'text-amber-600' : 'text-slate-500'}">${rankMedal}</td>
+            <td class="py-1.5 px-2 font-bold text-slate-900">${p.displayName || p.name}</td>
+            <td class="py-1.5 px-2 text-center text-slate-700">${p.gamesPlayed}</td>
+            <td class="py-1.5 px-2 text-right font-black text-slate-900">${p.totalPins.toLocaleString('de-DE')}</td>
+            <td class="py-1.5 px-2 text-right font-black text-blue-700">${p.average.toFixed(2).replace('.', ',')}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${p.highGame}</td>
+            <td class="py-1.5 px-2 text-center text-slate-400">${p.lowGame}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-amber-700">${p.totalBierframes}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-red-700">${p.totalRaeumfehler}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-purple-700">${p.totalGutterAnwurf}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${p.totalDrilling}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-blue-700">${p.totalOver210}x</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Team-Bilanzkacheln aktualisieren
+      let totalPins = 0, totalGames = 0, totalBier = 0, highGame = 0;
+      stats.forEach(p => {
+        totalPins += p.totalPins;
+        totalGames += p.gamesPlayed;
+        totalBier += p.totalBierframes;
+        if (p.highGame > highGame) highGame = p.highGame;
+      });
+      const teamAvg = totalGames > 0 ? (totalPins / totalGames).toFixed(2).replace('.', ',') : '0,00';
+
+      const avgTitle = document.getElementById('season-kpi-avg-title');
+      if (avgTitle) avgTitle.textContent = `Schnitt (${totalGames} Sp.)`;
+      const kpiAvg = document.getElementById('season-kpi-avg');
+      if (kpiAvg) kpiAvg.textContent = teamAvg;
+      const kpiPts = document.getElementById('season-kpi-points');
+      if (kpiPts) kpiPts.textContent = currentTeam.points || '0 : 0';
+      const kpiPins = document.getElementById('season-kpi-pins');
+      if (kpiPins) kpiPins.textContent = totalPins.toLocaleString('de-DE');
+      const kpiBier = document.getElementById('season-kpi-bier');
+      if (kpiBier) kpiBier.textContent = totalBier;
+      const kpiHigh = document.getElementById('season-kpi-high');
+      if (kpiHigh) kpiHigh.textContent = `${highGame} Pins`;
+
+      // Center-Statistiken rendern
+      renderSeasonCenters();
+
+      // Awards Grid auf Seite 2 rendern
+      renderSeasonAwards(stats);
+    }
+
+    function renderSeasonCenters() {
+      const tbody = document.getElementById('season-centers-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const centerMap = {};
+      const rawMatchdays = getTeamMatchdays(currentTeam.id);
+
+      Object.values(rawMatchdays).forEach(md => {
+        const centerObj = appState.centers.find(c => c.id === md.centerId);
+        const cName = centerObj ? `${centerObj.name}, ${centerObj.city}` : "Center";
+
+        let mdPins = 0;
+        let mdGames = 0;
+        let mdWins = 0;
+        let mdDraws = 0;
+        let mdLosses = 0;
+        let mdHasData = false;
+
+        for (let g = 1; g <= 5; g++) {
+          const lineup = md.gameLineups?.[g] || [];
+          const opp = md.gameOpponents?.[g] || { pins: 0 };
+          let gamePins = 0;
+          lineup.forEach(pId => {
+            const p = md.gamePlayerPins?.[g]?.[pId] || 0;
+            if (p > 0) {
+              gamePins += p;
+              mdPins += p;
+              mdGames++;
+              mdHasData = true;
+            }
+          });
+          if (gamePins > 0 && opp.pins > 0) {
+            if (gamePins > opp.pins) mdWins++;
+            else if (gamePins === opp.pins) mdDraws++;
+            else mdLosses++;
+          }
+        }
+
+        if (mdHasData) {
+          if (!centerMap[cName]) {
+            centerMap[cName] = { name: cName, matchdaysList: [], pins: 0, games: 0, points: 0, maxPoints: 0, wins: 0, totalMatches: 0 };
+          }
+          centerMap[cName].matchdaysList.push(`ST ${md.number}`);
+          centerMap[cName].pins += mdPins;
+          centerMap[cName].games += mdGames;
+          centerMap[cName].points += (mdWins * 2 + mdDraws);
+          centerMap[cName].maxPoints += 10;
+          centerMap[cName].wins += mdWins;
+          centerMap[cName].totalMatches += (mdWins + mdDraws + mdLosses);
+        }
+      });
+
+      const list = Object.values(centerMap).map(c => ({
+        ...c,
+        avg: c.games > 0 ? parseFloat((c.pins / c.games).toFixed(2)) : 0,
+        winRate: c.totalMatches > 0 ? Math.round((c.wins / c.totalMatches) * 100) : 0
+      })).sort((a, b) => b.avg - a.avg);
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-3 text-center text-slate-500">Noch keine Center-Spiele ausgetragen.</td></tr>`;
+        return;
+      }
+
+      list.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-1.5 px-2 font-bold text-slate-900">${c.name}</td>
+          <td class="py-1.5 px-2 text-center">${c.matchdaysList.length} (${c.matchdaysList.join(', ')})</td>
+          <td class="py-1.5 px-2 text-right font-medium">${c.pins.toLocaleString('de-DE')}</td>
+          <td class="py-1.5 px-2 text-right font-black text-blue-700">${c.avg.toFixed(2).replace('.', ',')}</td>
+          <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${c.points} : ${c.maxPoints - c.points}</td>
+          <td class="py-1.5 px-2 text-right font-semibold text-slate-700">${c.winRate} %</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSeasonAwards(stats) {
+      const awardsGrid = document.getElementById('pdf-awards-grid');
+      if (!awardsGrid) return;
+      awardsGrid.innerHTML = '';
+
+      const defs = [
+        { code: "MVP", title: "Saison-MVP", key: "average", unit: "Schnitt", minGames: 3 },
+        { code: "HG", title: "High-Game-König", key: "highGame", unit: "Pins" },
+        { code: "TR", title: "Strike-Maestro", key: "totalDrilling", unit: "Turkeys" },
+        { code: "PD", title: "Pin-Dominator", key: "totalOver210", unit: "x >210 Pins" },
+        { code: "BF", title: "Der Bierframe-Baron", key: "totalBierframes", unit: "Bierframes" },
+        { code: "GR", title: "Die Goldene Rinne", key: "totalGutterAnwurf", unit: "Pumps" },
+        { code: "RV", title: "Der Räumverweigerer", key: "totalRaeumfehler", unit: "Räumfehler" },
+        { code: "SP", title: "Silberner Split", key: "totalSplitUnder50", unit: "Splits" },
+        { code: "9O", title: "Offener Orden", key: "totalNinthFrameOpen", unit: "x 9. offen" },
+        { code: "SZ", title: "Schnapszahl-Zauberer", key: "totalSchnapszahl", unit: "Schnapszahlen" }
+      ];
+
+      defs.forEach(def => {
+        let sorted = [...stats];
+        if (def.minGames) sorted = sorted.filter(p => p.gamesPlayed >= def.minGames);
+        sorted.sort((a, b) => (b[def.key] || 0) - (a[def.key] || 0));
+
+        const bestScore = sorted.length > 0 ? (sorted[0][def.key] || 0) : 0;
+        let winnerName = "Noch offen";
+        let scoreStr = "-";
+
+        if (bestScore > 0) {
+          const winners = sorted.filter(p => (p[def.key] || 0) === bestScore);
+          winnerName = winners.map(w => (w.displayName || w.name).split(' ')[0]).join(' & ');
+          if (def.key === 'average') {
+            scoreStr = `${bestScore.toFixed(2).replace('.', ',')} ${def.unit}`;
+          } else {
+            scoreStr = `${bestScore} ${def.unit}`;
+          }
+        }
+
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between p-1.5 rounded bg-slate-50 border border-slate-200";
+        card.innerHTML = `
+          <div class="flex items-center space-x-1.5">
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">${def.code}</span>
+            <div>
+              <span class="font-bold text-slate-900 block leading-tight">${def.title}</span>
+              <span class="text-[9px] text-slate-600">${winnerName}</span>
+            </div>
+          </div>
+          <span class="font-extrabold text-slate-800 text-[9px]">${scoreStr}</span>
+        `;
+        awardsGrid.appendChild(card);
+      });
+    }
+
+    // 6. E-MAIL-VERSAND SERVICE (DYNAMISCH FÜR AKTIVES TEAM)
+    function setupRecipients() {
+      recipients = (currentTeam.playerIds || []).map(pId => {
+        const p = appState.players.find(x => x.id === pId);
+        const first = p ? p.name.toLowerCase().split(' ')[0] : 'spieler';
+        const email = p?.email || `${first}@paderbowler.de`;
+        return {
+          name: p ? p.name : pId,
+          email: email,
+          selected: true
+        };
+      });
+    }
+
+    function openEmailModal() {
+      const data = matchdaysData[currentMatchdayNum] || { number: currentMatchdayNum, center: "Bowlingcenter" };
+      document.getElementById('email-modal-subtitle').textContent = `Spieltag ${data.number} (${data.center}) • ${currentTeam.name}`;
+      document.getElementById('email-subject-input').value = `${currentTeam.name}: Spieltagsbericht Spieltag ${data.number} (${data.center})`;
+      document.getElementById('email-attachment-name').textContent = `Spieltagsbericht_${currentTeam.name.replace(/\s+/g, '_')}_ST0${data.number}.pdf`;
+
+      renderRecipientsList();
+      document.getElementById('email-modal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeEmailModal() {
+      document.getElementById('email-modal').classList.add('hidden');
+    }
+
+    function renderRecipientsList() {
+      const container = document.getElementById('recipients-list');
+      container.innerHTML = '';
+
+      if (recipients.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">Keine Spieler im Team-Kader eingetragen.</div>`;
+        updateSendButtonText();
+        return;
+      }
+
+      recipients.forEach((r, idx) => {
+        const cleanName = r.name.replace(/\s*\([^)]*\)/g, '').trim();
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white border border-[#A499A7] hover:border-[#23548F] transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-2.5 flex-1 min-w-0">
+            <input type="checkbox" id="recip-chk-${idx}" ${r.selected ? 'checked' : ''} onchange="toggleRecipient(${idx})" class="w-4 h-4 rounded text-[#23548F] border-[#A499A7] focus:ring-0 cursor-pointer">
+            <label for="recip-chk-${idx}" class="text-xs font-bold text-slate-900 truncate cursor-pointer">${cleanName}</label>
+          </div>
+          <input type="email" value="${r.email}" onchange="updateRecipientEmail(${idx}, this.value)" placeholder="E-Mail eingeben" class="bg-[#E4D7CF]/20 border border-[#A499A7] rounded-lg px-2.5 py-1 text-xs text-slate-900 font-medium w-44 sm:w-52 focus:outline-none focus:border-[#23548F]">
+        `;
+        container.appendChild(div);
+      });
+
+      updateSendButtonText();
+    }
+
+    function toggleRecipient(index) {
+      recipients[index].selected = !recipients[index].selected;
+      updateSendButtonText();
+    }
+
+    function toggleAllRecipients(state) {
+      recipients.forEach(r => r.selected = state);
+      renderRecipientsList();
+    }
+
+    function updateRecipientEmail(index, val) {
+      recipients[index].email = val.trim();
+    }
+
+    function updateSendButtonText() {
+      const count = recipients.filter(r => r.selected).length;
+      const gmailBtn = document.getElementById('gmail-email-btn');
+      if (gmailBtn) {
+        gmailBtn.disabled = (count === 0);
+        gmailBtn.classList.toggle('opacity-50', count === 0);
+      }
+      const mailtoBtn = document.getElementById('mailto-email-btn');
+      if (mailtoBtn) {
+        mailtoBtn.disabled = (count === 0);
+        mailtoBtn.classList.toggle('opacity-50', count === 0);
+      }
+    }
+
+    function buildEmailPayload() {
+      const selected = recipients.filter(r => r.selected);
+      const validEmails = selected.map(r => r.email).filter(e => e && e.includes('@'));
+      const data = matchdaysData[currentMatchdayNum] || { number: currentMatchdayNum, center: "Bowlingcenter", totalPoints: 0, ourTotalPins: 0, teamAverage: 0, date: "" };
+      const subject = document.getElementById('email-subject-input').value || `${currentTeam.name}: Spieltagsbericht Spieltag ${data.number} (${data.center})`;
+      const bodyText = `Hallo zusammen,\n\nhier ist der offizielle Spieltagsbericht für ${currentTeam.name}:\n\n` +
+        `• Spieltag: ${data.number}\n` +
+        `• Austragungsort: ${data.center}\n` +
+        `• Datum: ${data.date}\n` +
+        `• Punkte: ${data.totalPoints} : ${10 - data.totalPoints}\n` +
+        `• Mannschafts-Pins: ${data.ourTotalPins}\n` +
+        `• Spieltagsschnitt: ${data.teamAverage.toFixed(2)} Pins\n\n` +
+        `Der vollständige Spieltags- und Saisonbericht als PDF liegt bei bzw. wurde über Paderbowler Stats 2 erstellt.\n\n` +
+        `Gut Holz!\n${currentTeam.name}`;
+
+      return { validEmails, subject, bodyText, data };
+    }
+
+    // PDF-Datei direkt herunterladen
+    function downloadPdfDirect() {
+      const element = document.getElementById('report-main-container') || document.querySelector('main');
+      const filename = `Spieltagsbericht_${(currentTeam?.name || 'Paderbowler').replace(/\s+/g, '_')}_ST0${currentMatchdayNum || 1}.pdf`;
+
+      const toast = document.getElementById('email-toast');
+      if (toast) {
+        document.getElementById('toast-title').textContent = "PDF-Download";
+        document.getElementById('toast-details').textContent = `Datei "${filename}" wird heruntergeladen...`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 5000);
+      }
+
+      if (window.html2pdf && element) {
+        const opt = {
+          margin: [8, 8, 8, 8],
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+      } else {
+        window.print();
+      }
+    }
+
+    // 1. Direkt im Web-Gmail öffnen (im neuen Browser-Tab)
+    function openGmailWebClient() {
+      const { validEmails, subject, bodyText } = buildEmailPayload();
+      if (validEmails.length === 0) {
+        alert("Bitte mindestens einen Spieler mit gültiger E-Mail-Adresse auswählen.");
+        return;
+      }
+
+      // Automatisch die PDF-Datei in Downloads speichern, damit sie sofort angehängt werden kann
+      downloadPdfDirect();
+
+      // In Gmail müssen Empfänger mit Komma getrennt sein
+      const toList = validEmails.join(',');
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(toList)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+
+      const newWin = window.open(gmailUrl, '_blank');
+      if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+        window.location.href = gmailUrl;
+      }
+
+      closeEmailModal();
+
+      const toast = document.getElementById('email-toast');
+      document.getElementById('toast-title').textContent = "Gmail & PDF geöffnet";
+      document.getElementById('toast-details').textContent = `PDF heruntergeladen! Ziehe die Datei einfach per Drag & Drop in dein Gmail-Fenster.`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 7000);
+    }
+
+    // 2. Lokales E-Mail-Programm (Outlook, Apple Mail, Thunderbird)
+    function openMailtoClient() {
+      const { validEmails, subject, bodyText } = buildEmailPayload();
+      if (validEmails.length === 0) {
+        alert("Bitte mindestens einen Spieler mit gültiger E-Mail-Adresse auswählen.");
+        return;
+      }
+
+      const toList = validEmails.join(',');
+      const mailtoUrl = `mailto:${encodeURIComponent(toList)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+
+      window.location.href = mailtoUrl;
+      closeEmailModal();
+
+      const toast = document.getElementById('email-toast');
+      document.getElementById('toast-title').textContent = "E-Mail-App aufgerufen";
+      document.getElementById('toast-details').textContent = `E-Mail-Entwurf für ${validEmails.length} Empfänger an deine Standard-Mail-App übergeben.`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 5000);
+    }
+
+    // 3. Text & Empfänger in die Zwischenablage kopieren
+    function copyEmailContent() {
+      const { validEmails, subject, bodyText } = buildEmailPayload();
+      const toList = validEmails.join(', ');
+      const text = `An: ${toList}\nBetreff: ${subject}\n\n${bodyText}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtnText');
+        if (btn) btn.textContent = "Kopiert!";
+        setTimeout(() => { if (btn) btn.textContent = "Text kopieren"; }, 2500);
+      }).catch(() => {
+        prompt("E-Mail-Text zum Kopieren:", text);
+      });
+    }
+
+    function executeEmailSend() {
+      const selected = recipients.filter(r => r.selected);
+      if (selected.length === 0) return;
+
+      const btn = document.getElementById('send-email-btn');
+      const originalText = document.getElementById('send-btn-text').textContent;
+      document.getElementById('send-btn-text').textContent = "Wird simuliert...";
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        document.getElementById('send-btn-text').textContent = originalText;
+        closeEmailModal();
+
+        const toast = document.getElementById('email-toast');
+        document.getElementById('toast-title').textContent = "Browser-Test erfolgreich";
+        document.getElementById('toast-details').textContent = `Test-Validierung für ${selected.length} Spieler erfolgreich. Klicke auf 'In E-Mail-Programm öffnen', um die Mail echt über Outlook/Mail abzusenden.`;
+        toast.classList.remove('hidden');
+
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 6000);
+      }, 500);
+    }
+
+    // 7. STEUERUNG
+    function changeMatchday(val) {
+      renderMatchdayReport(val);
+    }
+
+    function changeReportType(type) {
+      const pageMatchday = document.getElementById('page-matchday');
+      const pageSeason = document.getElementById('page-season');
+
+      if (type === 'both') {
+        pageMatchday.classList.remove('hidden');
+        pageSeason.classList.remove('hidden');
+      } else if (type === 'matchday') {
+        pageMatchday.classList.remove('hidden');
+        pageSeason.classList.add('hidden');
+      } else if (type === 'season') {
+        pageMatchday.classList.add('hidden');
+        pageSeason.classList.remove('hidden');
+      }
+    }
+
+    function switchTeam(teamId) {
+      activeTeamId = teamId;
+      localStorage.setItem('paderbowler_active_team', teamId);
+      initReport();
+      if (window.history.pushState) {
+        const newUrl = `pdf-report.html?team=${teamId}&season=${activeSeasonId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', initReport);
+  </script>
+</body>
+</html>

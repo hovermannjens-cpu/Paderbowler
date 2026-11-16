@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#E4D7CF] text-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paderbowler Stats 2 - Saison-Awards & Ranglisten</title>
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <meta name="theme-color" content="#23548F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Paderbowler">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Shared Stats & Data Engine -->
+  <script src="shared-stats.js"></script>
+  <style>
+    .touch-btn:active { transform: scale(0.96); }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(232, 197, 67, 0.2); }
+      50% { box-shadow: 0 0 30px rgba(232, 197, 67, 0.45); }
+    }
+    .gold-glow { animation: pulse-glow 3s infinite; }
+    @media print {
+      body * { visibility: hidden; }
+      #certificate-modal, #certificate-modal * { visibility: visible; }
+      #certificate-modal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; }
+    }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased pb-24 bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- Header -->
+  <header class="bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md flex flex-wrap items-center justify-between gap-2.5">
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#23548F]">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+          Awards & Ranglisten
+          <span id="teamHeaderBadge" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold">Pader-Bowler-06 2</span>
+        </h1>
+        <p id="teamHeaderSubtitle" class="text-[11px] sm:text-xs text-slate-800">Saison 2026/2027 &bull; Landesliga 1 &bull; 5 Spieltage</p>
+      </div>
+
+      <!-- Schneller Team- & Vereins-Wechsler -->
+      <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
+        <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
+        <select id="teamHeaderSelect" onchange="switchTeamScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+          <option value="all">Vereinsstatistik</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Navigation / Switcher: Passt zu jeder Zeit ins Fenster -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <a href="index.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
+        <span>Teams</span>
+      </a>
+      <a id="navLinkInput" href="matchday-input.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-md">
+        <span>Erfassung</span>
+      </a>
+      <a id="navLinkCharts" href="dashboard-charts.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-[#23548F] border-2 border-[#23548F] touch-btn shadow-sm">
+        <span>Diagramme</span>
+      </a>
+      <a id="navLinkPdf" href="pdf-report.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
+        <span>PDF</span>
+      </a>
+      <button onclick="startCeremony()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 text-xs font-black border-2 border-[#cfae2e] touch-btn shadow-md">
+        <span>Zeremonie</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Modus-Umschalter: Mannschaft vs. Vereinsstatistik -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 shadow-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="scope-team-btn" onclick="setScope('team')" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm">
+          <span id="scope-team-label">Mannschaft</span>
+        </button>
+        <button id="scope-club-btn" onclick="setScope('all')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white">
+          <span>Vereinsstatistik</span>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-600 font-medium" id="scopeDescriptionText">
+        Statistiken und Awards ausschließlich für dieses Team.
+      </div>
+    </div>
+
+    <!-- TAB-NAVIGATION (Awards vs. Tabelle) -->
+    <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3 flex-wrap gap-3">
+      <div class="flex items-center space-x-2 bg-white p-1 rounded-xl border-2 border-[#A499A7]">
+        <button id="tab-awards-btn" onclick="switchView('awards')" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-[#E8C543] text-slate-950 border border-[#cfae2e] shadow-sm">
+          <span>Awards</span>
+        </button>
+        <button id="tab-table-btn" onclick="switchView('table')" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900 transition">
+          <span>Rangliste</span>
+        </button>
+      </div>
+
+      <!-- Filter für Awards -->
+      <div id="award-filters" class="flex items-center space-x-1.5 text-xs">
+        <button onclick="filterAwards('all')" class="award-filter-btn px-3 py-1.5 rounded-lg font-bold bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm" data-cat="all">Alle</button>
+        <button onclick="filterAwards('gaudi')" class="award-filter-btn px-3 py-1.5 rounded-lg font-bold bg-white text-slate-700 border border-[#A499A7] hover:bg-slate-50" data-cat="gaudi">Gaudi</button>
+        <button onclick="filterAwards('sport')" class="award-filter-btn px-3 py-1.5 rounded-lg font-bold bg-white text-slate-700 border border-[#A499A7] hover:bg-slate-50" data-cat="sport">Leistung</button>
+      </div>
+    </div>
+
+    <!-- ANSICHT 1: HALL OF FAME / AWARDS GRID -->
+    <div id="view-awards" class="space-y-6">
+
+      <!-- Teaser Banner -->
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="space-y-1 text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#E8C543]/20 text-slate-900 text-xs font-bold border border-[#E8C543]/50">
+            <span>Vereins- & Gaudi-Ehrungen</span>
+          </div>
+          <h2 class="text-lg font-extrabold text-slate-900">Auszeichnungen</h2>
+          <p class="text-xs text-slate-600 max-w-xl">
+            Klicke auf eine Karte, um die Urkunde aufzurufen und auszudrucken.
+          </p>
+        </div>
+        <button onclick="startCeremony()" class="px-5 py-3 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs border-2 border-[#cfae2e] shadow-md touch-btn shrink-0">
+          <span>Siegerehrung abspielen</span>
+        </button>
+      </div>
+
+      <!-- AWARDS GRID -->
+      <div id="awards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamisch gerendert per JS -->
+      </div>
+    </div>
+
+    <!-- ANSICHT 2: SPIELER-RANGLISTE & TABELLE -->
+    <div id="view-table" class="space-y-4 hidden">
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">
+              <span>Kader-Rangliste</span>
+            </h3>
+            <p class="text-xs text-slate-600">Sortierung nach gewünschter Kategorie auswählen:</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-700 font-bold">Sortieren:</span>
+            <select id="table-sort-select" onchange="renderLeaderboard(this.value)" class="bg-white border-2 border-[#A499A7] text-xs rounded-xl px-3 py-1.5 font-bold text-slate-900 focus:outline-none focus:border-[#23548F]">
+              <option value="average">Schnitt</option>
+              <option value="totalPins">Gesamtpins</option>
+              <option value="highGame">Höchstes Einzelspiel</option>
+              <option value="gamesPlayed">Einsätze</option>
+              <option value="totalBierframes">Bierframes</option>
+              <option value="totalRaeumfehler">Räumfehler</option>
+              <option value="totalDrilling">Drillinge</option>
+              <option value="totalGutterAnwurf">Gutter</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Responsive Table Container -->
+        <div class="overflow-x-auto rounded-xl border border-[#A499A7]">
+          <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-[#E4D7CF]/60 text-slate-700 font-bold uppercase tracking-wider border-b border-[#A499A7]">
+              <tr>
+                <th class="py-3 px-3 text-center">Platz</th>
+                <th class="py-3 px-3">Spieler</th>
+                <th class="py-3 px-3">Team</th>
+                <th class="py-3 px-3 text-right">Spiele</th>
+                <th class="py-3 px-3 text-right">Pins</th>
+                <th class="py-3 px-3 text-right text-[#23548F]">Schnitt</th>
+                <th class="py-3 px-3 text-right text-[#70C04D]">High</th>
+                <th class="py-3 px-3 text-right">Low</th>
+                <th class="py-3 px-3 text-right text-[#E8C543]">Bier</th>
+                <th class="py-3 px-3 text-right text-[#DE4341]">Fehler</th>
+                <th class="py-3 px-3 text-right text-[#A62F8B]">Gutter</th>
+                <th class="py-3 px-3 text-right text-[#70C04D]">Turkey</th>
+                <th class="py-3 px-3 text-right text-[#23548F]">&gt;210</th>
+                <th class="py-3 px-3 text-right text-[#DE9090]">&lt;170</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="divide-y divide-[#A499A7]/40 font-medium">
+              <!-- Dynamisch gerendert per JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: URKUNDEN-VORSCHAU / PRINT -->
+  <div id="certificate-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <!-- Modal Header -->
+      <div class="px-5 py-3.5 border-b border-[#A499A7]/50 flex items-center justify-between bg-[#E4D7CF]/40">
+        <h3 class="font-bold text-slate-900 text-sm">Urkunde</h3>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-[#23548F] hover:bg-[#1a4270] text-white font-bold text-xs border border-[#23548F] shadow-sm touch-btn">
+            <span>Drucken / PDF</span>
+          </button>
+          <button onclick="closeCertificate()" class="px-3 py-1.5 rounded-lg bg-white border border-[#A499A7] text-slate-700 hover:text-slate-900 font-bold text-xs">
+            <span>Schließen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Urkunden-Inhalt (Printable A4 Format Styling) -->
+      <div class="p-6 overflow-y-auto bg-slate-100 text-slate-900 flex justify-center">
+        <div id="certificate-paper" class="bg-amber-50 border-8 border-double border-amber-900/60 rounded-xl p-8 max-w-lg w-full text-center space-y-5 shadow-xl relative">
+          <!-- Wappen/Kopf -->
+          <div class="space-y-1">
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-700 text-white flex items-center justify-center text-3xl shadow-inner font-black">
+              PB
+            </div>
+            <h4 class="text-xs font-black uppercase tracking-widest text-amber-900/70 pt-2">Pader-Bowler-06 e.V.</h4>
+            <h2 class="text-2xl font-serif font-black text-amber-950">EHRENURKUNDE</h2>
+            <p class="text-xs italic text-amber-800">Saison 2026 / 2027 &bull; Landesliga 1</p>
+          </div>
+
+          <!-- Divider -->
+          <div class="w-32 h-0.5 bg-amber-700/40 mx-auto"></div>
+
+          <!-- Text -->
+          <div class="space-y-3">
+            <p class="text-xs uppercase tracking-wider text-amber-900 font-bold">In feierlicher Anerkennung verliehen an:</p>
+            <div id="cert-winner" class="text-2xl font-black text-amber-950 font-serif border-b border-amber-900/30 pb-2">
+              Andre Klipenstein
+            </div>
+            <p class="text-xs uppercase tracking-wider text-amber-900 font-bold">der ehrenvolle Titel:</p>
+            <div id="cert-title" class="text-xl font-black text-amber-800 uppercase tracking-wide">
+              Der Bierframe-Baron
+            </div>
+            <p id="cert-subtitle" class="text-xs font-semibold text-amber-900 italic">
+              "Bierframe-König"
+            </p>
+            <p id="cert-desc" class="text-xs text-amber-900/90 leading-relaxed px-4">
+              Für überragenden Durstlöscher-Einsatz mit insgesamt 13 gesicherten Bierframes im bisherigen Saisonverlauf.
+            </p>
+          </div>
+
+          <!-- Siegel & Unterschriften -->
+          <div class="pt-6 flex items-center justify-between text-left text-[11px] text-amber-950 font-semibold border-t border-amber-900/30">
+            <div>
+              <p>Paderborn, 15. November 2026</p>
+              <p class="text-[9px] text-amber-800 italic">Datum & Ort der Verleihung</p>
+            </div>
+            <div class="w-12 h-12 rounded-full border-2 border-dashed border-amber-700 flex items-center justify-center text-sm font-bold text-amber-900">
+              PB06
+            </div>
+            <div class="text-right">
+              <p class="font-serif italic text-xs" id="certTeamName">Pader-Bowler 2</p>
+              <p class="text-[9px] text-amber-800 italic" id="certTeamSubtitle">Mannschaftsrat</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GALA-ZEREMONIE (ANIMIERT) -->
+  <div id="ceremony-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="max-w-xl w-full text-center space-y-6 relative">
+      <button onclick="closeCeremony()" class="absolute -top-12 right-0 p-2 text-slate-300 hover:text-white text-xs font-bold border border-slate-600 rounded-lg">
+        <span>Schließen</span>
+      </button>
+
+      <!-- Stage Light Effect -->
+      <div class="w-48 h-48 mx-auto rounded-full bg-amber-500/10 blur-3xl absolute inset-0 -top-12"></div>
+
+      <div class="relative space-y-2">
+        <span class="text-xs uppercase tracking-widest text-[#E8C543] font-extrabold flex items-center justify-center gap-1.5">
+          <span id="ceremonyGalaSubtitle">Saison-Siegerehrung</span>
+        </span>
+        <h2 id="ceremony-step-award" class="text-2xl sm:text-3xl font-black text-white">
+          Der Bierframe-Baron
+        </h2>
+        <p id="ceremony-step-subtitle" class="text-xs sm:text-sm text-slate-400 italic">
+          Bierframe-König
+        </p>
+      </div>
+
+      <!-- Center Trophy & Winner Card -->
+      <div id="ceremony-card" class="bg-slate-900 border-2 border-[#E8C543] rounded-3xl p-8 shadow-2xl relative space-y-4 gold-glow">
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Award geht an:</span>
+          <div id="ceremony-winner" class="text-2xl sm:text-3xl font-black text-[#E8C543]">
+            Andre Klipenstein
+          </div>
+          <div id="ceremony-score" class="text-sm font-bold text-slate-300">
+            Mit 13 Bierframes!
+          </div>
+        </div>
+
+        <p id="ceremony-desc" class="text-xs text-slate-400 max-w-md mx-auto pt-2 border-t border-slate-800">
+          Der spendabelste Getränkespender, der die meisten Bierframes gesichert hat.
+        </p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-3">
+        <button id="ceremony-prev-btn" onclick="prevCeremonyStep()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white touch-btn border border-slate-700">
+          <span>Vorheriger</span>
+        </button>
+        <span id="ceremony-progress" class="text-xs text-slate-400 font-bold px-2">
+          1 von 12
+        </span>
+        <button id="ceremony-next-btn" onclick="nextCeremonyStep()" class="px-5 py-2.5 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 text-xs font-black touch-btn shadow-lg border-2 border-[#cfae2e]">
+          <span>Nächster Award</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT: DATA & INTERACTIVITY -->
+  <script>
+    let appState = null;
+    let currentTeam = null;
+    let currentSeason = null;
+    let activeTeamId = "team_pb2";
+    let activeSeasonId = "season_2026_2027";
+    let isClubWide = false;
+    let playersData = [];
+
+    function loadAwardsData() {
+      appState = getAppState();
+
+      const params = new URLSearchParams(window.location.search);
+      const paramTeam = params.get('team');
+      const paramSeason = params.get('season');
+
+      if (paramSeason && appState.seasons.some(s => s.id === paramSeason)) {
+        activeSeasonId = paramSeason;
+      } else {
+        activeSeasonId = appState.currentSeasonId || appState.seasons[0].id;
+      }
+      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || { id: activeSeasonId, name: "2026/2027" };
+
+      if (paramTeam === 'all') {
+        isClubWide = true;
+        activeTeamId = 'all';
+      } else if (paramTeam && appState.teams.some(t => t.id === paramTeam)) {
+        isClubWide = false;
+        activeTeamId = paramTeam;
+        currentTeam = appState.teams.find(t => t.id === activeTeamId);
+      } else {
+        const saved = localStorage.getItem('paderbowler_active_team');
+        if (saved === 'all') {
+          isClubWide = true;
+          activeTeamId = 'all';
+        } else if (saved && appState.teams.some(t => t.id === saved)) {
+          isClubWide = false;
+          activeTeamId = saved;
+          currentTeam = appState.teams.find(t => t.id === saved);
+        } else {
+          isClubWide = false;
+          activeTeamId = appState.teams[0]?.id || 'team_pb2';
+          currentTeam = appState.teams[0];
+        }
+      }
+
+      if (isClubWide) {
+        playersData = calculateClubWidePlayerStats(activeSeasonId, appState);
+      } else {
+        playersData = calculatePlayerStatsForTeam(activeTeamId, appState);
+      }
+
+      // Nicknames entfernen
+      playersData = playersData.map(p => ({
+        ...p,
+        displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim()
+      }));
+
+      updateHeaderUI();
+    }
+
+    function updateHeaderUI() {
+      const badge = document.getElementById('teamHeaderBadge');
+      const subtitle = document.getElementById('teamHeaderSubtitle');
+      const scopeTeamBtn = document.getElementById('scope-team-btn');
+      const scopeClubBtn = document.getElementById('scope-club-btn');
+      const scopeDesc = document.getElementById('scopeDescriptionText');
+      const select = document.getElementById('teamHeaderSelect');
+
+      if (select) {
+        select.innerHTML = `
+          <option value="all" ${isClubWide ? 'selected' : ''}>Vereinsstatistik</option>
+          <optgroup label="Einzelne Mannschaften">
+            ${appState.teams.filter(t => t.seasonId === activeSeasonId).map(t => `
+              <option value="${t.id}" ${(!isClubWide && t.id === activeTeamId) ? 'selected' : ''}>${t.name} (${t.league})</option>
+            `).join('')}
+          </optgroup>
+        `;
+      }
+
+      if (isClubWide) {
+        badge.innerText = "Vereinsstatistik";
+        badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-[#43447D] text-white font-bold border border-[#43447D]";
+        subtitle.innerText = `Saison ${currentSeason.name} • Gesamte Vereins-Rangliste aller ${playersData.length} Spieler • Alle Mannschaften`;
+        if (scopeDesc) scopeDesc.innerText = "Zeigt alle Einsätze, Pins und Strichlisten jedes Spielers über alle Mannschaften des Vereins hinweg.";
+
+        if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#43447D] text-white border-2 border-[#43447D] shadow";
+        if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
+      } else {
+        badge.innerText = currentTeam ? currentTeam.name : "Pader-Bowler-06 2";
+        badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold";
+        subtitle.innerText = `Saison ${currentSeason.name} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Wertung (${currentTeam?.matchdaysCount || 5} Spieltage)`;
+        if (scopeDesc) scopeDesc.innerText = `Statistiken und Awards ausschließlich für ${currentTeam?.name || ''}.`;
+
+        if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow";
+        if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
+      }
+
+      const targetTeamParam = isClubWide ? 'all' : activeTeamId;
+      const linkInput = document.getElementById('navLinkInput');
+      if (linkInput) linkInput.href = `matchday-input.html?team=${isClubWide ? (appState.teams[0]?.id || 'team_pb2') : activeTeamId}&season=${activeSeasonId}`;
+      const linkCharts = document.getElementById('navLinkCharts');
+      if (linkCharts) linkCharts.href = `dashboard-charts.html?team=${targetTeamParam}&season=${activeSeasonId}`;
+      const linkPdf = document.getElementById('navLinkPdf');
+      if (linkPdf) linkPdf.href = `pdf-report.html?team=${isClubWide ? (appState.teams[0]?.id || 'team_pb2') : activeTeamId}&season=${activeSeasonId}`;
+    }
+
+    function switchTeamScope(newVal) {
+      if (newVal === 'all') {
+        isClubWide = true;
+        activeTeamId = 'all';
+        localStorage.setItem('paderbowler_active_team', 'all');
+      } else {
+        isClubWide = false;
+        activeTeamId = newVal;
+        currentTeam = appState.teams.find(t => t.id === newVal);
+        localStorage.setItem('paderbowler_active_team', newVal);
+      }
+
+      if (isClubWide) {
+        playersData = calculateClubWidePlayerStats(activeSeasonId, appState);
+      } else {
+        playersData = calculatePlayerStatsForTeam(activeTeamId, appState);
+      }
+
+      playersData = playersData.map(p => ({
+        ...p,
+        displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim()
+      }));
+
+      updateHeaderUI();
+      renderAwards();
+      renderLeaderboard();
+      if (window.history.pushState) {
+        const newUrl = `awards-rankings.html?team=${activeTeamId}&season=${activeSeasonId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+
+    function setScope(scope) {
+      if (scope === 'all') {
+        switchTeamScope('all');
+      } else {
+        const fallbackId = (currentTeam && currentTeam.id !== 'all') ? currentTeam.id : (appState.teams[0]?.id || 'team_pb2');
+        switchTeamScope(fallbackId);
+      }
+    }
+
+    // Award-Katalog (12 Titel)
+    const awardsConfig = [
+      {
+        id: "award_saison_mvp",
+        title: "Saison-MVP",
+        subtitle: "Bester Saisonschnitt",
+        category: "sport",
+        metricKey: "average",
+        unit: "Schnitt",
+        desc: "Höchster Gesamtschnitt der Saison bei mindestens 5 absolvierten Einsätzen."
+      },
+      {
+        id: "award_high_game",
+        title: "High-Game-König",
+        subtitle: "Höchstes Einzelspiel",
+        category: "sport",
+        metricKey: "highGame",
+        unit: "Pins",
+        desc: "Die höchste erzielte Einzelspiel-Punktzahl."
+      },
+      {
+        id: "award_strike_maestro",
+        title: "Strike-Maestro",
+        subtitle: "Turkey-König",
+        category: "sport",
+        metricKey: "totalDrilling",
+        unit: "Drillinge",
+        desc: "Meiste Drillinge (3 Strikes in Folge) der Saison."
+      },
+      {
+        id: "award_pin_dominator",
+        title: "Pin-Dominator",
+        subtitle: "Spiele über 210 Pins",
+        category: "sport",
+        metricKey: "totalOver210",
+        unit: "Spiele >210",
+        desc: "Meiste Einzelspiele mit über 210 Pins."
+      },
+      {
+        id: "award_dauerbrenner",
+        title: "Der Dauerbrenner",
+        subtitle: "Einsatz-König",
+        category: "sport",
+        metricKey: "gamesPlayed",
+        unit: "Spiele",
+        desc: "Meiste absolvierte Spiele."
+      },
+      {
+        id: "award_bierframe_baron",
+        title: "Der Bierframe-Baron",
+        subtitle: "Bierframe-König",
+        category: "gaudi",
+        metricKey: "totalBierframes",
+        unit: "Bierframes",
+        desc: "Meiste gesicherte Bierframes im Saisonverlauf."
+      },
+      {
+        id: "award_goldene_rinne",
+        title: "Die Goldene Rinne",
+        subtitle: "Herr der Rinne",
+        category: "gaudi",
+        metricKey: "totalGutterAnwurf",
+        unit: "Pumps (1. Wurf)",
+        desc: "Meiste Gutter-Anwürfe beim ersten Wurf."
+      },
+      {
+        id: "award_raeumverweigerer",
+        title: "Der Räumverweigerer",
+        subtitle: "Räumfehler-König",
+        category: "gaudi",
+        metricKey: "totalRaeumfehler",
+        unit: "Räumfehler",
+        desc: "Meiste verfehlte einfache Räumbilder."
+      },
+      {
+        id: "award_silberner_split",
+        title: "Silberner Split",
+        subtitle: "Split-König",
+        category: "gaudi",
+        metricKey: "totalSplitUnder50",
+        unit: "Splits ungeräumt",
+        desc: "Meiste nicht geräumte Splits unter 50 %."
+      },
+      {
+        id: "award_offener_orden",
+        title: "Offener Orden",
+        subtitle: "9. Frame offen",
+        category: "gaudi",
+        metricKey: "totalNinthFrameOpen",
+        unit: "9. Frame offen",
+        desc: "Meiste offene Frames im 9. Frame."
+      },
+      {
+        id: "award_bahn_baendiger",
+        title: "Bahn-Bändiger",
+        subtitle: "Spiele unter 170 Pins",
+        category: "gaudi",
+        metricKey: "totalUnder170",
+        unit: "Spiele <170",
+        desc: "Meiste Spiele unter 170 Pins."
+      },
+      {
+        id: "award_schnapszahl_zauberer",
+        title: "Schnapszahl-Zauberer",
+        subtitle: "Magie der Ziffern",
+        category: "gaudi",
+        metricKey: "totalSchnapszahl",
+        unit: "Schnapszahlen",
+        desc: "Trifft magische Schnapszahlen wie 222 oder 111 Pins."
+      }
+    ];
+
+    function getAwardStandings(award) {
+      if (!playersData || playersData.length === 0) {
+        return {
+          ...award,
+          score: 0,
+          isTie: false,
+          winners: [],
+          winnerNames: "Noch kein Wert",
+          podium: []
+        };
+      }
+      const sorted = [...playersData].sort((a, b) => (b[award.metricKey] || 0) - (a[award.metricKey] || 0));
+      const topScore = sorted.length > 0 ? (sorted[0][award.metricKey] || 0) : 0;
+      const winners = sorted.filter(p => (p[award.metricKey] || 0) === topScore && topScore > 0);
+      const isTie = winners.length > 1;
+
+      return {
+        ...award,
+        score: topScore,
+        isTie,
+        winners: winners.length > 0 ? winners : [sorted[0]],
+        winnerNames: topScore === 0 
+          ? "Noch kein Ergebnis" 
+          : (isTie ? winners.map(w => w.displayName).join(' & ') : winners[0].displayName),
+        podium: sorted.slice(0, 3).map((p, idx) => ({
+          rank: idx + 1,
+          name: p.displayName,
+          score: p[award.metricKey] || 0
+        }))
+      };
+    }
+
+    let calculatedAwards = [];
+    let currentFilter = 'all';
+
+    function renderAwards() {
+      calculatedAwards = awardsConfig.map(getAwardStandings);
+      const container = document.getElementById('awards-grid');
+      container.innerHTML = '';
+
+      const filtered = calculatedAwards.filter(a => {
+        if (currentFilter === 'all') return true;
+        return a.category === currentFilter;
+      });
+
+      filtered.forEach(award => {
+        const card = document.createElement('div');
+        card.className = "bg-white border-2 border-[#A499A7] hover:border-[#23548F] rounded-2xl p-5 shadow-sm transition flex flex-col justify-between gap-4 cursor-pointer group";
+        card.onclick = () => openCertificate(award);
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <!-- Badge -->
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">
+                ${award.title}
+              </span>
+              <div class="flex flex-col items-end">
+                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                  award.category === 'sport' ? 'bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/40' : 'bg-[#E8C543]/20 text-slate-900 border border-[#E8C543]/50'
+                }">
+                  ${award.category === 'sport' ? 'Leistung' : 'Gaudi'}
+                </span>
+                ${award.isTie ? '<span class="text-[10px] text-[#23548F] font-bold mt-1">Geteilter 1. Platz</span>' : ''}
+              </div>
+            </div>
+
+            <!-- Subtitle -->
+            <div>
+              <p class="text-xs text-slate-600 italic">
+                ${award.subtitle}
+              </p>
+            </div>
+
+            <!-- Führender / Gewinner Box -->
+            <div class="bg-[#E4D7CF]/40 border border-[#A499A7]/60 rounded-xl p-3 space-y-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
+                ${award.isTie ? 'Aktuelle Spitzenreiter:' : 'Aktuell in Führung:'}
+              </span>
+              <div class="text-sm font-black text-slate-900">
+                ${award.winnerNames}
+              </div>
+              <div class="text-xs font-bold text-slate-700 flex items-center justify-between pt-0.5">
+                <span>Bestwert:</span>
+                <span class="text-[#23548F] font-extrabold">${award.score} ${award.unit}</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">
+              ${award.desc}
+            </p>
+          </div>
+
+          <!-- Bottom Action / Podium Teaser -->
+          <div class="pt-3 border-t border-[#A499A7]/50 flex items-center justify-between text-xs text-slate-600">
+            <span class="font-bold text-[#23548F] group-hover:underline">
+              Urkunde anzeigen
+            </span>
+            <span class="text-[10px] text-slate-500 font-medium">
+              Top 3: ${award.podium.map(p => p.name.split(' ')[0] + ' (' + p.score + ')').join(', ')}
+            </span>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function filterAwards(category) {
+      currentFilter = category;
+      document.querySelectorAll('.award-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === category) {
+          btn.className = "award-filter-btn px-3 py-1.5 rounded-lg font-bold bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm";
+        } else {
+          btn.className = "award-filter-btn px-3 py-1.5 rounded-lg font-bold bg-white text-slate-700 border border-[#A499A7] hover:bg-slate-50";
+        }
+      });
+      renderAwards();
+    }
+
+    function switchView(view) {
+      const awardsView = document.getElementById('view-awards');
+      const tableView = document.getElementById('view-table');
+      const awardsBtn = document.getElementById('tab-awards-btn');
+      const tableBtn = document.getElementById('tab-table-btn');
+      const awardFilters = document.getElementById('award-filters');
+
+      if (view === 'awards') {
+        awardsView.classList.remove('hidden');
+        tableView.classList.add('hidden');
+        awardFilters.classList.remove('hidden');
+
+        awardsBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition bg-[#E8C543] text-slate-950 border border-[#cfae2e] shadow-sm";
+        tableBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900 transition";
+      } else {
+        awardsView.classList.add('hidden');
+        tableView.classList.remove('hidden');
+        awardFilters.classList.add('hidden');
+
+        tableBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition bg-[#E8C543] text-slate-950 border border-[#cfae2e] shadow-sm";
+        awardsBtn.className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900 transition";
+
+        renderLeaderboard('average');
+      }
+    }
+
+    function renderLeaderboard(sortBy = 'average') {
+      const tbody = document.getElementById('leaderboard-body');
+      tbody.innerHTML = '';
+
+      if (!playersData || playersData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="14" class="py-8 text-center text-slate-600 font-bold">Keine Spielerdaten vorhanden.</td></tr>`;
+        return;
+      }
+
+      const sorted = [...playersData].sort((a, b) => {
+        if ((b[sortBy] || 0) !== (a[sortBy] || 0)) return (b[sortBy] || 0) - (a[sortBy] || 0);
+        return (b.totalPins || 0) - (a.totalPins || 0);
+      });
+
+      sorted.forEach((p, idx) => {
+        const medal = idx === 0 ? '1.' : idx === 1 ? '2.' : idx === 2 ? '3.' : `${idx + 1}.`;
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-[#E4D7CF]/30 transition ${idx < 3 ? 'bg-[#E4D7CF]/20' : ''}`;
+
+        const teamsHtml = (p.teamsPlayed && p.teamsPlayed.length > 0)
+          ? p.teamsPlayed.map(t => `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-800 border border-[#A499A7]">${t}</span>`).join(' ')
+          : '<span class="text-slate-500 text-[10px]">-</span>';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center font-bold text-sm ${idx === 0 ? 'text-[#23548F]' : 'text-slate-600'}">${medal}</td>
+          <td class="py-3 px-3 font-bold text-slate-900 flex items-center gap-2">
+            <span>${p.displayName}</span>
+            ${idx === 0 && p.totalPins > 0 ? '<span class="text-[9px] bg-[#E8C543]/30 text-slate-950 px-1.5 py-0.5 rounded font-black border border-[#cfae2e]">MVP</span>' : ''}
+          </td>
+          <td class="py-3 px-3">${teamsHtml}</td>
+          <td class="py-3 px-3 text-right font-medium text-slate-700">${p.gamesPlayed}</td>
+          <td class="py-3 px-3 text-right font-bold text-slate-900">${p.totalPins.toLocaleString('de-DE')}</td>
+          <td class="py-3 px-3 text-right font-black text-[#23548F] text-sm">${p.average.toFixed(2)}</td>
+          <td class="py-3 px-3 text-right font-extrabold text-[#70C04D]">${p.highGame}</td>
+          <td class="py-3 px-3 text-right text-slate-600">${p.lowGame}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#E8C543]">${p.totalBierframes}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#DE4341]">${p.totalRaeumfehler}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#A62F8B]">${p.totalGutterAnwurf}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#70C04D]">${p.totalDrilling}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#23548F]">${p.totalOver210}</td>
+          <td class="py-3 px-3 text-right font-bold text-[#DE9090]">${p.totalUnder170}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openCertificate(award) {
+      document.getElementById('cert-winner').textContent = award.winnerNames;
+      document.getElementById('cert-title').textContent = award.title;
+      document.getElementById('cert-subtitle').textContent = `"${award.subtitle}"`;
+      document.getElementById('cert-desc').textContent = `${award.desc} Aktueller Bestwert: ${award.score} ${award.unit}.`;
+
+      const teamEl = document.getElementById('certTeamName');
+      if (teamEl) teamEl.innerText = isClubWide ? "Pader-Bowler-06 e.V. (Gesamtverein)" : (currentTeam?.name || "Pader-Bowler-06 2");
+
+      document.getElementById('certificate-modal').classList.remove('hidden');
+    }
+
+    function closeCertificate() {
+      document.getElementById('certificate-modal').classList.add('hidden');
+    }
+
+    let ceremonyStep = 0;
+
+    function startCeremony() {
+      ceremonyStep = 0;
+      calculatedAwards = awardsConfig.map(getAwardStandings);
+      const sub = document.getElementById('ceremonyGalaSubtitle');
+      if (sub) {
+        sub.innerText = isClubWide 
+          ? "Vereins-Ehrung Pader-Bowler-06 e.V." 
+          : `Ehrung ${currentTeam?.name || 'Pader-Bowler 2'}`;
+      }
+      document.getElementById('ceremony-modal').classList.remove('hidden');
+      updateCeremonyStep();
+      triggerConfetti();
+    }
+
+    function closeCeremony() {
+      document.getElementById('ceremony-modal').classList.add('hidden');
+    }
+
+    function updateCeremonyStep() {
+      const award = calculatedAwards[ceremonyStep];
+      document.getElementById('ceremony-step-award').textContent = award.title;
+      document.getElementById('ceremony-step-subtitle').textContent = award.subtitle;
+      document.getElementById('ceremony-winner').textContent = award.winnerNames;
+      document.getElementById('ceremony-score').textContent = `Mit ${award.score} ${award.unit}!`;
+      document.getElementById('ceremony-desc').textContent = award.desc;
+      document.getElementById('ceremony-progress').textContent = `${ceremonyStep + 1} von ${calculatedAwards.length}`;
+
+      document.getElementById('ceremony-prev-btn').disabled = (ceremonyStep === 0);
+      document.getElementById('ceremony-prev-btn').classList.toggle('opacity-40', ceremonyStep === 0);
+
+      const nextBtn = document.getElementById('ceremony-next-btn');
+      if (ceremonyStep === calculatedAwards.length - 1) {
+        nextBtn.innerHTML = '<span>Abschließen</span>';
+      } else {
+        nextBtn.innerHTML = '<span>Nächster Award</span>';
+      }
+    }
+
+    function nextCeremonyStep() {
+      if (ceremonyStep < calculatedAwards.length - 1) {
+        ceremonyStep++;
+        updateCeremonyStep();
+        triggerConfetti();
+      } else {
+        closeCeremony();
+        triggerFullSeasonCelebration();
+      }
+    }
+
+    function prevCeremonyStep() {
+      if (ceremonyStep > 0) {
+        ceremonyStep--;
+        updateCeremonyStep();
+      }
+    }
+
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+
+    function triggerFullSeasonCelebration() {
+      if (typeof confetti === 'function') {
+        const duration = 2.5 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+          confetti({
+            particleCount: 4,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+          });
+          confetti({
+            particleCount: 4,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        }());
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAwardsData();
+      renderAwards();
+      renderLeaderboard('average');
+    });
+  </script>
+</body>
+</html>

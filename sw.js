@@ -1,5 +1,5 @@
 // Paderbowler Stats 2.0 - Service Worker für PWA Offline & Installation
-const CACHE_NAME = 'paderbowler-stats-v2';
+const CACHE_NAME = 'paderbowler-stats-v3';
 const ASSETS = [
   './index.html',
   './matchday-input.html',
@@ -35,10 +35,22 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Network-First Strategie: Immer die neueste Version von GitHub laden wenn online, Fallback auf Cache wenn offline
 self.addEventListener('fetch', event => {
+  // Externe Requests (Firebase, Google Fonts, CDNs) nicht abfangen
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).catch(() => cached);
-    })
+    fetch(event.request)
+      .then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

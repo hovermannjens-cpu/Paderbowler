@@ -429,7 +429,7 @@
   <!-- ==================== JAVASCRIPT: DATA & INTERACTIVITY ==================== -->
   <script>
     // 1. INITIALE STAMMDATEN (MULTI-TEAM & MULTI-SAISON)
-    const STORAGE_KEY = 'paderbowler_stats_hub_v1';
+    var STORAGE_KEY = window.STORAGE_KEY || 'paderbowler_stats_hub_v1';
 
     let appState = {
       currentSeasonId: "season_2026_2027",
@@ -483,11 +483,46 @@
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         try {
-          appState = JSON.parse(stored);
+          const parsed = JSON.parse(stored);
+          if (parsed && Array.isArray(parsed.teams) && parsed.teams.length > 0) {
+            appState = parsed;
+            // Falls aus einer früheren Version team_pb1 noch fehlt, ergänzen:
+            if (!appState.teams.some(t => t.id === 'team_pb1')) {
+              appState.teams.push({
+                id: "team_pb1",
+                seasonId: appState.currentSeasonId || "season_2026_2027",
+                name: "Pader-Bowler-06 1",
+                league: "Oberliga 1",
+                playerIds: ["player_hatzig", "player_baumeister"],
+                opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+                matchdaysCount: 0,
+                totalPins: 0,
+                points: "0 : 0",
+                average: 0.0
+              });
+            }
+            // Sicherstellen, dass team_pb2 die korrekten Anfangswerte hat falls leer
+            const pb2 = appState.teams.find(t => t.id === 'team_pb2');
+            if (pb2 && pb2.totalPins === 0) {
+              const pb2Matchdays = localStorage.getItem('paderbowler_matchdays_team_pb2');
+              if (!pb2Matchdays || pb2Matchdays === '{}') {
+                localStorage.setItem('paderbowler_matchdays_team_pb2', JSON.stringify(initialPb2Matchdays));
+                pb2.matchdaysCount = 5;
+                pb2.totalPins = 18054;
+                pb2.points = "38 : 12";
+                pb2.average = 180.54;
+              }
+            }
+            saveState();
+            return;
+          }
         } catch (e) {
           console.error("Fehler beim Laden von State", e);
         }
       }
+      // Falls noch nichts im Speicher liegt: Standard-Zustand (PB2 + PB1) sichern
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      localStorage.setItem('paderbowler_matchdays_team_pb2', JSON.stringify(initialPb2Matchdays));
     }
 
     function saveState() {

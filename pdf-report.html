@@ -1382,7 +1382,12 @@
     }
 
     // INIT
-    document.addEventListener('DOMContentLoaded', initReport);
+    document.addEventListener('DOMContentLoaded', () => {
+      initReport();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    });
   </script>
 </body>
 </html>

@@ -397,7 +397,7 @@
     ];
 
     // Initialer Datenbestand für Pader-Bowler-06 2
-    const initialPb2Matchdays = {
+    var initialPb2Matchdays = window.initialPb2Matchdays || {
       1: {
         number: 1, date: "2026-09-06", centerId: "center_elite",
         gameOpponents: {
@@ -593,7 +593,7 @@
     };
 
     // 3. Multi-Team & Multi-Saison State Management
-    const STORAGE_KEY = 'paderbowler_stats_hub_v1';
+    var STORAGE_KEY = window.STORAGE_KEY || 'paderbowler_stats_hub_v1';
 
     let appState = null;
     let currentTeam = null;
@@ -602,13 +602,14 @@
     let activeSeasonId = "season_2026_2027";
 
     let matchdaysData = {};
-    let currentMatchday = 6;
+    let currentMatchday = 5;
     let currentGame = 1;
 
     function loadAppStateAndTeam() {
       const urlParams = new URLSearchParams(window.location.search);
       const paramTeam = urlParams.get('team');
       const paramSeason = urlParams.get('season');
+      const paramMatchday = parseInt(urlParams.get('matchday'));
 
       const storedHub = localStorage.getItem(STORAGE_KEY);
       if (storedHub) {
@@ -619,24 +620,56 @@
         }
       }
 
+      if (appState && Array.isArray(appState.teams)) {
+        if (!appState.teams.some(t => t.id === 'team_pb1')) {
+          appState.teams.push({
+            id: "team_pb1",
+            seasonId: appState.currentSeasonId || "season_2026_2027",
+            name: "Pader-Bowler-06 1",
+            league: "Oberliga 1",
+            playerIds: ["player_hatzig", "player_baumeister"],
+            opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+            matchdaysCount: 0,
+            totalPins: 0,
+            points: "0 : 0",
+            average: 0.0
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+        }
+      }
+
       if (!appState || !appState.teams || appState.teams.length === 0) {
         appState = {
           currentSeasonId: "season_2026_2027",
           seasons: [{ id: "season_2026_2027", name: "2026/2027", isCurrent: true }],
           centers: bowlingCenters,
           players: allPlayers,
-          teams: [{
-            id: "team_pb2",
-            seasonId: "season_2026_2027",
-            name: "Pader-Bowler-06 2",
-            league: "Landesliga 1",
-            playerIds: allPlayers.map(p => p.id),
-            opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
-            matchdaysCount: 5,
-            totalPins: 18054,
-            points: "38 : 12",
-            average: 180.54
-          }]
+          teams: [
+            {
+              id: "team_pb2",
+              seasonId: "season_2026_2027",
+              name: "Pader-Bowler-06 2",
+              league: "Landesliga 1",
+              playerIds: allPlayers.map(p => p.id),
+              opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
+              matchdaysCount: 5,
+              totalPins: 18054,
+              points: "38 : 12",
+              average: 180.54
+            },
+            {
+              id: "team_pb1",
+              seasonId: "season_2026_2027",
+              name: "Pader-Bowler-06 1",
+              league: "Oberliga 1",
+              playerIds: ["player_hatzig", "player_baumeister"],
+              opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+              matchdaysCount: 0,
+              totalPins: 0,
+              points: "0 : 0",
+              average: 0.0
+            }
+          ]
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
       }
@@ -696,17 +729,19 @@
         if (currentTeam.id === 'team_pb2') {
           matchdaysData = JSON.parse(JSON.stringify(initialPb2Matchdays));
           localStorage.setItem(teamDataKey, JSON.stringify(matchdaysData));
-          currentMatchday = 6;
+          currentMatchday = 5;
         } else {
           matchdaysData = {};
           currentMatchday = null;
         }
       } else {
         const keys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
-        if (currentMatchday && keys.includes(currentMatchday)) {
+        if (paramMatchday && keys.includes(paramMatchday)) {
+          currentMatchday = paramMatchday;
+        } else if (currentMatchday && keys.includes(currentMatchday)) {
           // bleibt
         } else {
-          currentMatchday = keys.length > 0 ? keys[0] : null;
+          currentMatchday = keys.length > 0 ? (keys.includes(5) ? 5 : keys[0]) : null;
         }
       }
     }
@@ -951,7 +986,12 @@
           matchdayTallies: {}
         };
       }
-      return matchdaysData[currentMatchday];
+      const md = matchdaysData[currentMatchday];
+      if (!md.gameOpponents) md.gameOpponents = {};
+      if (!md.gameLineups) md.gameLineups = {};
+      if (!md.gamePlayerPins) md.gamePlayerPins = {};
+      if (!md.matchdayTallies) md.matchdayTallies = {};
+      return md;
     }
 
     function checkSchnapszahl(pins) {

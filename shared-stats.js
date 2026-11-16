@@ -3,10 +3,11 @@
  * Berechnet Mannschafts-Statistiken, Vereins-Gesamtstatistiken und Awards
  */
 
-const STORAGE_KEY = 'paderbowler_stats_hub_v1';
+var STORAGE_KEY = window.STORAGE_KEY || 'paderbowler_stats_hub_v1';
+window.STORAGE_KEY = STORAGE_KEY;
 
 // 1. Initialer Spieltags-Datenbestand (Pader-Bowler-06 2, Landesliga 1, Saison 2026/2027)
-const initialPb2Matchdays = {
+var initialPb2Matchdays = window.initialPb2Matchdays || {
   1: {
     number: 1, date: "2026-09-06", centerId: "center_elite",
     gameOpponents: {
@@ -205,7 +206,7 @@ const initialPb2Matchdays = {
 };
 
 // 2. Standard-Ausgangszustand für den Hub
-const defaultInitialAppState = {
+var defaultInitialAppState = window.defaultInitialAppState || {
   currentSeasonId: "season_2026_2027",
   seasons: [
     { id: "season_2026_2027", name: "2026/2027", isCurrent: true }
@@ -276,7 +277,27 @@ function formatDate(isoStr) {
 function getAppState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.teams) && parsed.teams.length > 0) {
+        if (!parsed.teams.some(t => t.id === 'team_pb1')) {
+          parsed.teams.push({
+            id: "team_pb1",
+            seasonId: parsed.currentSeasonId || "season_2026_2027",
+            name: "Pader-Bowler-06 1",
+            league: "Oberliga 1",
+            playerIds: ["player_hatzig", "player_baumeister"],
+            opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+            matchdaysCount: 0,
+            totalPins: 0,
+            points: "0 : 0",
+            average: 0.0
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+        return parsed;
+      }
+    }
   } catch (e) {
     console.error("Fehler beim Laden von appState", e);
   }
@@ -299,16 +320,18 @@ function getTeamMatchdays(teamId) {
   const teamKey = `paderbowler_matchdays_${teamId}`;
   try {
     const raw = localStorage.getItem(teamKey);
+    if (teamId === 'team_pb2') {
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Object.keys(parsed).length > 0) return parsed;
+      }
+      const cloned = JSON.parse(JSON.stringify(initialPb2Matchdays));
+      localStorage.setItem(teamKey, JSON.stringify(cloned));
+      return cloned;
+    }
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error(`Fehler beim Laden von Spieltagen für ${teamId}`, e);
-  }
-
-  // Fallback für team_pb2 (erste 5 Spieltage)
-  if (teamId === 'team_pb2') {
-    const cloned = JSON.parse(JSON.stringify(initialPb2Matchdays));
-    localStorage.setItem(teamKey, JSON.stringify(cloned));
-    return cloned;
   }
   return {};
 }
@@ -564,7 +587,7 @@ function calculateClubWidePlayerStats(seasonId = null, appState = null) {
 // =========================================================================
 // 5. FIREBASE FIRESTORE ECHTZEIT-CLOUD-SYNCHRONISATION
 // =========================================================================
-const FIREBASE_CONFIG = {
+var FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
   apiKey: "AIzaSyDDKNBi3mfDMDja8dpqg4Vdhb18EmDPzWY",
   authDomain: "paderbowler.firebaseapp.com",
   projectId: "paderbowler",
@@ -641,12 +664,14 @@ function applyIncomingCloudData(data) {
   isApplyingCloudUpdate = true;
 
   try {
-    if (data.hub) {
+    if (data.hub && Array.isArray(data.hub.teams) && data.hub.teams.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data.hub));
     }
-    if (data.matchdays && typeof data.matchdays === 'object') {
+    if (data.matchdays && typeof data.matchdays === 'object' && Object.keys(data.matchdays).length > 0) {
       Object.keys(data.matchdays).forEach(teamId => {
-        localStorage.setItem(`paderbowler_matchdays_${teamId}`, JSON.stringify(data.matchdays[teamId]));
+        if (data.matchdays[teamId] && Object.keys(data.matchdays[teamId]).length > 0) {
+          localStorage.setItem(`paderbowler_matchdays_${teamId}`, JSON.stringify(data.matchdays[teamId]));
+        }
       });
     }
     // Event an alle offenen Fenster senden

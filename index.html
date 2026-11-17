@@ -62,8 +62,12 @@
         <span>Vereinsstatistik</span>
       </a>
 
-      <button onclick="openModal('modalNewSeason')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-900 border-2 border-[#A499A7] touch-btn shadow-sm">
+      <button onclick="openSuperAdminSeasonModal()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-900 border-2 border-[#A499A7] touch-btn shadow-sm">
         <span>+ Saison</span>
+      </button>
+
+      <button onclick="openDeleteSeasonModal()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-red-50 text-xs font-bold text-[#DE4341] border-2 border-[#DE4341]/40 hover:border-[#DE4341] touch-btn shadow-sm" title="Aktuell ausgewählte Saison löschen">
+        <span>Saison löschen</span>
       </button>
 
       <button onclick="openModal('modalNewTeam')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-md">
@@ -102,6 +106,9 @@
         <button onclick="openModal('modalInstallApp')" class="px-3.5 py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-sm">
           <span>App auf Handy</span>
         </button>
+        <button onclick="openDeleteSeasonModal()" class="px-3 py-2 rounded-xl bg-white hover:bg-red-50 text-xs font-bold text-[#DE4341] border-2 border-[#DE4341]/40 hover:border-[#DE4341] touch-btn shadow-sm" title="Aktuell ausgewählte Saison löschen">
+          <span>🗑️ Saison löschen</span>
+        </button>
       </div>
     </div>
 
@@ -122,37 +129,179 @@
   </main>
 
   <!-- ======================================================= -->
+  <!-- MODAL: SUPER-ADMIN FREIGABE FÜR NEUE SAISON            -->
+  <!-- ======================================================= -->
+  <div id="modalSuperAdminSeason" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#23548F] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#23548F]/30 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">👑</span>
+          <h3 class="font-bold text-base text-[#23548F]">Super-Admin Freigabe</h3>
+        </div>
+        <button onclick="closeModal('modalSuperAdminSeason')" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Schritt A: Beschreibung & Aufforderung -->
+      <div id="superAdminIntroStep" class="space-y-4 text-xs">
+        <div class="bg-[#E4D7CF]/30 border-2 border-[#A499A7] rounded-xl p-4 text-center space-y-2">
+          <span class="text-3xl block">⭐</span>
+          <h4 class="font-black text-sm text-slate-900">Marius Käune &ndash; Super-Admin</h4>
+          <p class="text-xs text-slate-700 leading-relaxed font-medium">
+            Nur unser Super-Marius kann eine neue Saison anlegen. Bist du Marius, dann klicke auf Passwort eingeben, um eine neue Saison anzulegen
+          </p>
+        </div>
+        <button type="button" onclick="showSuperAdminPasswordPrompt()" class="w-full py-3 px-4 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md border-2 border-[#23548F] touch-btn flex items-center justify-center gap-2">
+          <span>🔑</span>
+          <span>Passwort eingeben</span>
+        </button>
+      </div>
+
+      <!-- Schritt B: Passworteingabe -->
+      <div id="superAdminInputStep" class="space-y-3.5 text-xs hidden">
+        <p class="text-slate-700 text-center font-medium">
+          Bitte das Super-Admin-Passwort für <strong>Marius Käune</strong> eingeben:
+        </p>
+        <div class="bg-[#E4D7CF]/30 p-3 rounded-xl border border-[#A499A7] space-y-1.5">
+          <label class="block text-slate-700 font-bold text-xs uppercase tracking-wider text-center">Super-Admin Passwort:</label>
+          <input type="password" id="superAdminPasswordInput" placeholder="Passwort" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold tracking-widest text-center focus:ring-2 focus:ring-[#23548F] focus:outline-none" onkeydown="if(event.key==='Enter') confirmSuperAdminPassword()">
+          <span id="superAdminPasswordError" class="text-[#DE4341] text-xs font-bold block text-center hidden">Falsches Passwort! Nur unser Super-Marius kann eine neue Saison anlegen.</span>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+          <button type="button" onclick="closeModal('modalSuperAdminSeason')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+          <button type="button" onclick="confirmSuperAdminPassword()" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs border-2 border-[#23548F] shadow-sm">Freischalten & Saison anlegen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: SAISON LÖSCHEN (SUPER-ADMIN: SUPERMARIUS)       -->
+  <!-- ======================================================= -->
+  <div id="modalDeleteSeason" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#DE4341] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#DE4341]/30 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">👑</span>
+          <h3 class="font-bold text-base text-[#DE4341]">Saison löschen &ndash; Super-Admin</h3>
+        </div>
+        <button onclick="closeModal('modalDeleteSeason')" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Schritt A: Beschreibung & Aufforderung -->
+      <div id="deleteSeasonIntroStep" class="space-y-4 text-xs">
+        <div class="bg-red-50 border-2 border-[#DE4341]/40 rounded-xl p-4 text-center space-y-2">
+          <span class="text-3xl block">⚠️</span>
+          <h4 class="font-black text-sm text-[#DE4341]">Marius Käune &ndash; Super-Admin</h4>
+          <p class="text-xs text-slate-700 leading-relaxed font-medium">
+            Nur unser Super-Marius kann eine Saison löschen. Bist du Marius, dann klicke auf Passwort eingeben, um die Saison <span id="deleteSeasonTargetNameIntro" class="font-black text-slate-900"></span> unwiderruflich zu löschen
+          </p>
+        </div>
+        <button type="button" onclick="showDeleteSeasonPasswordPrompt()" class="w-full py-3 px-4 rounded-xl bg-[#DE4341] hover:bg-[#c23634] text-white font-extrabold text-xs shadow-md border-2 border-[#DE4341] touch-btn flex items-center justify-center gap-2">
+          <span>🔑</span>
+          <span>Passwort eingeben</span>
+        </button>
+      </div>
+
+      <!-- Schritt B: Passworteingabe -->
+      <div id="deleteSeasonInputStep" class="space-y-3.5 text-xs hidden">
+        <p class="text-slate-700 text-center font-medium">
+          Möchtest du die Saison <strong id="deleteSeasonTargetName" class="text-slate-900"></strong> wirklich löschen? Alle Mannschaften, Spieltage und Statistiken dieser Saison werden entfernt.
+        </p>
+        <div class="bg-red-50 p-3 rounded-xl border border-[#DE4341]/40 space-y-1.5">
+          <label class="block text-slate-700 font-bold text-xs uppercase tracking-wider text-center">Super-Admin Passwort:</label>
+          <input type="password" id="deleteSeasonPasswordInput" placeholder="Passwort" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold tracking-widest text-center focus:ring-2 focus:ring-[#DE4341] focus:outline-none" onkeydown="if(event.key==='Enter') confirmDeleteSeasonWithPassword()">
+          <span id="deleteSeasonError" class="text-[#DE4341] text-xs font-bold block text-center hidden">Falsches Passwort! Nur unser Super-Marius kann eine Saison löschen.</span>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+          <button type="button" onclick="closeModal('modalDeleteSeason')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+          <button type="button" onclick="confirmDeleteSeasonWithPassword()" class="px-5 py-2.5 rounded-xl bg-[#DE4341] hover:bg-[#c23634] font-black text-xs text-white border-2 border-[#DE4341] shadow-md">Saison endgültig löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
   <!-- MODAL: NEUE SAISON ANLEGEN                              -->
   <!-- ======================================================= -->
   <div id="modalNewSeason" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900">
       <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
-        <h3 class="font-bold text-base text-slate-900">Saison anlegen</h3>
-        <button onclick="closeModal('modalNewSeason')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📅</span>
+          <div>
+            <h3 class="font-bold text-base text-slate-900 leading-tight">Neue Saison anlegen</h3>
+            <p class="text-[11px] text-slate-600">Saisonbezeichnung wählen & Startmodus festlegen</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalNewSeason')" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
       </div>
 
-      <div class="space-y-3 text-xs">
+      <div class="space-y-4 text-xs">
         <div>
-          <label class="block text-slate-700 mb-1 font-bold">Saison-Bezeichnung</label>
-          <input type="text" id="newSeasonName" placeholder="2027/2028" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          <label class="block text-slate-700 mb-1 font-bold">Saison-Bezeichnung (automatisch fortlaufend)</label>
+          <input type="text" id="newSeasonName" placeholder="2027/2028" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-black text-sm tracking-wide focus:outline-none focus:border-[#23548F]">
+          <span class="text-[11px] text-slate-500 block mt-1">Wird fortlaufend vorgeschlagen und kann beliebig angepasst werden.</span>
         </div>
 
-        <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3 space-y-2">
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Optionen:</span>
-          <label class="flex items-center gap-2 text-slate-800 cursor-pointer">
-            <input type="checkbox" id="copyTeamsToNewSeason" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
-            <span>Bestehende Mannschaften übernehmen</span>
-          </label>
-          <label class="flex items-center gap-2 text-slate-800 cursor-pointer">
-            <input type="checkbox" id="copyPlayersToNewSeason" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
-            <span>Spieler-Zuweisungen übernehmen</span>
-          </label>
+        <div class="space-y-2.5 pt-1">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Wähle, wie die Saison starten soll:</span>
+
+          <!-- Option 1: Saison ohne Mannschaften starten -->
+          <button type="button" onclick="startSeasonWithoutTeams()" class="w-full text-left p-3.5 rounded-xl border-2 border-[#A499A7] hover:border-[#23548F] bg-[#E4D7CF]/20 hover:bg-[#E4D7CF]/40 transition group touch-btn flex items-start gap-3">
+            <span class="text-2xl mt-0.5 group-hover:scale-110 transition shrink-0">⚪</span>
+            <div class="flex-1">
+              <span class="font-black text-xs text-slate-900 block group-hover:text-[#23548F]">Saison ohne Mannschaften starten</span>
+              <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                Startet eine komplett leere Saison. Keine Mannschaften und keine Spieler werden übernommen. Mannschaften können anschließend einzeln angelegt werden.
+              </p>
+            </div>
+          </button>
+
+          <!-- Option 2: Mannschaften übernehmen und bearbeiten -->
+          <button type="button" onclick="startSeasonWizard()" class="w-full text-left p-3.5 rounded-xl border-2 border-[#23548F] bg-[#23548F] hover:bg-[#1a4270] text-white transition touch-btn flex items-start gap-3 shadow-md">
+            <span class="text-2xl mt-0.5 shrink-0">🏆</span>
+            <div class="flex-1">
+              <span class="font-black text-xs text-white block">Mannschaften übernehmen und bearbeiten</span>
+              <p class="text-[11px] text-white/90 mt-0.5 leading-snug">
+                Übernimmt die 4 Vereinsmannschaften. Führt dich Schritt für Schritt durch die Liga-Festlegung und die Zuweisung der Spieler aus dem Verein.
+              </p>
+            </div>
+            <span class="text-lg font-bold self-center text-white/80">➔</span>
+          </button>
         </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
         <button onclick="closeModal('modalNewSeason')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
-        <button onclick="saveNewSeason()" class="px-4 py-2 rounded-lg bg-[#E8C543] hover:bg-[#d8b535] font-black text-xs text-slate-950 border-2 border-[#cfae2e] shadow-sm">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: SAISON-ASSISTENT (MANNSCHAFTEN & KADER)         -->
+  <!-- ======================================================= -->
+  <div id="modalSeasonWizard" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900 max-h-[90vh] flex flex-col">
+      <!-- Wizard Header: dynamic title and step indicator -->
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3 shrink-0">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="wizardStepBadge" class="text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#23548F] text-white font-black">Schritt 1 von 5</span>
+            <span id="wizardSeasonNameBadge" class="text-xs font-extrabold text-[#23548F]">Saison 2027/2028</span>
+          </div>
+          <h3 id="wizardStepTitle" class="font-black text-base text-slate-900 mt-1">Ligen der Mannschaften festlegen</h3>
+        </div>
+        <button onclick="cancelSeasonWizard()" class="text-slate-500 hover:text-slate-900 text-xl font-bold p-1 leading-none">&times;</button>
+      </div>
+
+      <!-- Wizard Step Content Container (Scrollable) -->
+      <div id="wizardStepContent" class="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
+        <!-- Dynamisch gerendert per renderWizardStep(step) -->
+      </div>
+
+      <!-- Wizard Footer / Navigation -->
+      <div id="wizardFooter" class="flex justify-between items-center gap-2 pt-3 border-t border-[#A499A7]/50 shrink-0">
+        <!-- Dynamisch gerendert per renderWizardStep(step) -->
       </div>
     </div>
   </div>
@@ -258,9 +407,10 @@
           <div id="manageTeamPlayersList" class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-2.5 max-h-36 overflow-y-auto space-y-1.5">
             <!-- Dynamisch gerendert per JS -->
           </div>
-          <div class="flex gap-2 mt-2">
-            <input type="text" id="manageNewPlayerInput" placeholder="Spieler per Name hinzufügen..." onkeydown="if(event.key==='Enter'){event.preventDefault();addNewPlayerToManagedTeam();}" class="flex-1 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
-            <button type="button" onclick="addNewPlayerToManagedTeam()" class="px-3 py-1.5 bg-[#23548F] hover:bg-[#1a4270] text-white border border-[#23548F] rounded-lg text-xs font-bold shadow-sm whitespace-nowrap touch-btn">+ Spieler</button>
+          <div class="grid grid-cols-5 gap-1.5 mt-2">
+            <input type="text" id="manageNewPlayerFirst" placeholder="Vorname" class="col-span-2 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <input type="text" id="manageNewPlayerLast" placeholder="Nachname" onkeydown="if(event.key==='Enter'){event.preventDefault();addNewPlayerToManagedTeam();}" class="col-span-2 bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg px-2.5 py-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <button type="button" onclick="addNewPlayerToManagedTeam()" class="col-span-1 px-2 py-1.5 bg-[#23548F] hover:bg-[#1a4270] text-white border border-[#23548F] rounded-lg text-xs font-bold shadow-sm whitespace-nowrap touch-btn">+ Spieler</button>
           </div>
         </div>
 
@@ -275,6 +425,37 @@
             <button onclick="addOpponentToManagedTeam()" class="px-3 py-1.5 bg-[#3E8370] hover:bg-[#326a5b] text-white border border-[#3E8370] rounded-lg text-xs font-bold shadow-sm whitespace-nowrap touch-btn">+ Hinzufügen</button>
           </div>
         </div>
+
+        <!-- Mannschafts-Passwort (für Spieltags-Entsperrung & Schutz) -->
+        <div class="bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <span>🔒 Mannschafts-Passwort</span>
+            </span>
+            <span class="text-[10px] bg-white px-2 py-0.5 rounded text-slate-600 border border-slate-300 font-semibold">Standard: paderbowler1 bis paderbowler4</span>
+          </div>
+          <p class="text-[11px] text-slate-600">Dieses Passwort schützt die Spieltage dieser Mannschaft vor unbefugter Bearbeitung.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <label class="block text-slate-700 text-[10px] font-bold mb-0.5">Altes Passwort</label>
+              <input type="password" id="manageOldPassword" placeholder="Altes PW..." class="w-full bg-white border border-[#A499A7] rounded-lg p-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+            <div>
+              <label class="block text-slate-700 text-[10px] font-bold mb-0.5">Neues Passwort</label>
+              <input type="password" id="manageNewPassword" placeholder="Neues PW..." class="w-full bg-white border border-[#A499A7] rounded-lg p-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+            <div>
+              <label class="block text-slate-700 text-[10px] font-bold mb-0.5">Wiederholen</label>
+              <input type="password" id="manageNewPasswordConfirm" placeholder="Wiederholen..." class="w-full bg-white border border-[#A499A7] rounded-lg p-1.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <span id="managePasswordMsg" class="text-[11px] font-bold hidden"></span>
+            <button type="button" onclick="changeManagedTeamPassword()" class="ml-auto px-3 py-1.5 bg-[#43447D] hover:bg-[#343564] text-white font-bold text-xs rounded-lg shadow-sm touch-btn">
+              Passwort ändern
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="flex items-center justify-between pt-2 border-t border-[#A499A7]/50">
@@ -285,6 +466,85 @@
           <button onclick="closeModal('modalManageTeam')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Schließen</button>
           <button onclick="saveManagedTeam()" class="px-4 py-2 rounded-lg bg-[#23548F] hover:bg-[#1a4270] font-bold text-xs text-white border-2 border-[#23548F] shadow-sm">Speichern</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: HINWEIS - NOCH KEINE SPIELER IM KADER            -->
+  <!-- ======================================================= -->
+  <div id="modalNoSquad" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-[#E8C543]/20 border border-[#E8C543] flex items-center justify-center text-base">
+            ⚠️
+          </div>
+          <h3 class="font-extrabold text-sm text-slate-900">Noch keine Spieler im Kader</h3>
+        </div>
+        <button onclick="closeModal('modalNoSquad')" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Für <strong id="noSquadTeamName" class="text-slate-900">diese Mannschaft</strong> wurden noch keine Spieler im Kader hinterlegt. Möchtest du jetzt den Kader festlegen?
+      </p>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button type="button" onclick="closeModal('modalNoSquad')" class="px-4 py-2 rounded-xl bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50 touch-btn">
+          Abbrechen
+        </button>
+        <button type="button" onclick="startAssignSquadFromPrompt()" class="px-4 py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] font-black text-xs text-white border-2 border-[#23548F] shadow-sm touch-btn">
+          Kader festlegen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: KADER ZUWEISEN MIT VEREINSSPIELERN              -->
+  <!-- ======================================================= -->
+  <div id="modalAssignSquad" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <h3 id="assignSquadHeading" class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+            <span>👥 Kader festlegen</span>
+          </h3>
+          <span id="assignSquadSubtitle" class="text-xs text-[#23548F] font-bold">Mannschaft</span>
+        </div>
+        <button onclick="closeModal('modalAssignSquad')" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <p class="text-slate-600 text-xs">
+            Hake alle Spieler des Vereins an, die zum Kader dieser Mannschaft gehören:
+          </p>
+          <div class="flex gap-2">
+            <button type="button" onclick="toggleAllSquadCheckboxes(true)" class="text-[11px] font-bold text-[#23548F] hover:underline">Alle an</button>
+            <span class="text-slate-300">|</span>
+            <button type="button" onclick="toggleAllSquadCheckboxes(false)" class="text-[11px] font-bold text-slate-500 hover:underline">Keine</button>
+          </div>
+        </div>
+
+        <!-- Spielerliste mit Checkboxen -->
+        <div id="assignSquadPlayersList" class="bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl p-3 max-h-72 overflow-y-auto space-y-2">
+          <!-- Dynamisch per JS befüllt -->
+        </div>
+
+        <div id="assignSquadError" class="hidden text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 p-2 rounded-lg">
+          Bitte wähle mindestens einen Spieler für den Kader aus.
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-[#A499A7]/50">
+        <button type="button" onclick="closeModal('modalAssignSquad')" class="px-4 py-2.5 rounded-xl bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50 touch-btn">
+          Abbrechen
+        </button>
+        <button type="button" onclick="saveAssignedSquad()" class="px-5 py-2.5 rounded-xl bg-[#70C04D] hover:bg-[#5ea83e] font-black text-xs text-white border-2 border-[#5ea83e] shadow-md touch-btn flex items-center gap-1.5">
+          <span>💾</span>
+          <span>Kader speichern</span>
+        </button>
       </div>
     </div>
   </div>
@@ -431,98 +691,66 @@
     // 1. INITIALE STAMMDATEN (MULTI-TEAM & MULTI-SAISON)
     var STORAGE_KEY = window.STORAGE_KEY || 'paderbowler_stats_hub_v1';
 
-    let appState = {
-      currentSeasonId: "season_2026_2027",
-      seasons: [
-        { id: "season_2026_2027", name: "2026/2027", isCurrent: true }
-      ],
-      centers: [
-        { id: "center_elite", name: "Elite Bowling Center", city: "Bielefeld" },
-        { id: "center_muenster", name: "Bowltreff Münster", city: "Münster" },
-        { id: "center_detmold", name: "Skyline Bowling", city: "Detmold" },
-        { id: "center_hamm", name: "Maxi Strike", city: "Hamm" },
-        { id: "center_paderborn", name: "Pader Bowling", city: "Paderborn" }
-      ],
-      players: [
-        { id: "player_hatzig", name: "Pascal Hatzig", email: "kalle@paderbowler.de" },
-        { id: "player_baumeister", name: "Gerrit Baumeister", email: "gerrit@paderbowler.de" },
-        { id: "player_klipenstein", name: "Andre Klipenstein", email: "olaf@paderbowler.de" },
-        { id: "player_gerdhenrich", name: "Gary Gerdhenrich", email: "gary@paderbowler.de" },
-        { id: "player_hoppe", name: "Joachim Hoppe", email: "jo@paderbowler.de" },
-        { id: "player_stoewer", name: "Marvin Stöwer", email: "marvin@paderbowler.de" }
-      ],
-      teams: [
-        {
-          id: "team_pb2",
-          seasonId: "season_2026_2027",
-          name: "Pader-Bowler-06 2",
-          league: "Landesliga 1",
-          playerIds: ["player_hatzig", "player_baumeister", "player_klipenstein", "player_gerdhenrich", "player_hoppe", "player_stoewer"],
-          opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
-          matchdaysCount: 5,
-          totalPins: 18054,
-          points: "38 : 12",
-          average: 180.54
-        },
-        {
+    let appState = (typeof defaultInitialAppState !== 'undefined')
+      ? JSON.parse(JSON.stringify(defaultInitialAppState))
+      : {
+          currentSeasonId: "season_2026_2027",
+          seasons: [{ id: "season_2026_2027", name: "2026/2027", isCurrent: true }],
+          centers: [],
+          players: [],
+          teams: []
+        };
+
+    function loadState() {
+      appState = getAppState();
+
+      // 1. PaderBowler 1 Garantie: Sicherstellen, dass PB1 immer in appState.teams vorhanden ist
+      const currentSeason = appState.currentSeasonId || "season_2026_2027";
+      let pb1 = appState.teams.find(t => t.id === 'team_pb1');
+      if (!pb1) {
+        const pb1Init = (window.INITIAL_TEAMS && window.INITIAL_TEAMS.find(t => t.id === 'team_pb1')) || {
           id: "team_pb1",
           seasonId: "season_2026_2027",
-          name: "Pader-Bowler-06 1",
-          league: "Oberliga 1",
-          playerIds: ["player_hatzig", "player_baumeister"],
-          opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
+          name: "PaderBowler 1",
+          league: "Verbandsliga 1",
+          password: "paderbowler1",
+          playerIds: [],
+          opponents: ["VfL Holsen 3", "BV Brackwede 3", "MaxiStrike Hamm 2", "BV Detmold 2", "Bowlingfreunde Bielefeld 3"],
           matchdaysCount: 0,
           totalPins: 0,
           points: "0 : 0",
           average: 0.0
+        };
+        pb1 = JSON.parse(JSON.stringify(pb1Init));
+        pb1.seasonId = currentSeason;
+        appState.teams.unshift(pb1);
+        saveState();
+      } else {
+        let changedPb1 = false;
+        if (!pb1.seasonId) {
+          pb1.seasonId = "season_2026_2027";
+          changedPb1 = true;
         }
-      ]
-    };
+        if (pb1.league !== "Verbandsliga 1") {
+          pb1.league = "Verbandsliga 1";
+          changedPb1 = true;
+        }
+        if (changedPb1) saveState();
+      }
 
-    function loadState() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (parsed && Array.isArray(parsed.teams) && parsed.teams.length > 0) {
-            appState = parsed;
-            // Falls aus einer früheren Version team_pb1 noch fehlt, ergänzen:
-            if (!appState.teams.some(t => t.id === 'team_pb1')) {
-              appState.teams.push({
-                id: "team_pb1",
-                seasonId: appState.currentSeasonId || "season_2026_2027",
-                name: "Pader-Bowler-06 1",
-                league: "Oberliga 1",
-                playerIds: ["player_hatzig", "player_baumeister"],
-                opponents: ["1. BC Duisburg", "BV Düsseldorf 1", "BC Tropics Köln", "Assindia Essen 1"],
-                matchdaysCount: 0,
-                totalPins: 0,
-                points: "0 : 0",
-                average: 0.0
-              });
-            }
-            // Sicherstellen, dass team_pb2 die korrekten Anfangswerte hat falls leer
-            const pb2 = appState.teams.find(t => t.id === 'team_pb2');
-            if (pb2 && pb2.totalPins === 0) {
-              const pb2Matchdays = localStorage.getItem('paderbowler_matchdays_team_pb2');
-              if (!pb2Matchdays || pb2Matchdays === '{}') {
-                localStorage.setItem('paderbowler_matchdays_team_pb2', JSON.stringify(initialPb2Matchdays));
-                pb2.matchdaysCount = 5;
-                pb2.totalPins = 18054;
-                pb2.points = "38 : 12";
-                pb2.average = 180.54;
-              }
-            }
-            saveState();
-            return;
-          }
-        } catch (e) {
-          console.error("Fehler beim Laden von State", e);
+      // Sicherstellen, dass team_pb2 die korrekten Anfangswerte hat falls leer
+      const pb2 = appState.teams.find(t => t.id === 'team_pb2');
+      if (pb2 && pb2.totalPins === 0) {
+        const pb2Matchdays = localStorage.getItem('paderbowler_matchdays_team_pb2');
+        if (!pb2Matchdays || pb2Matchdays === '{}') {
+          localStorage.setItem('paderbowler_matchdays_team_pb2', JSON.stringify(initialPb2Matchdays));
+          pb2.matchdaysCount = 5;
+          pb2.totalPins = 18054;
+          pb2.points = "38 : 12";
+          pb2.average = 180.54;
+          saveState();
         }
       }
-      // Falls noch nichts im Speicher liegt: Standard-Zustand (PB2 + PB1) sichern
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-      localStorage.setItem('paderbowler_matchdays_team_pb2', JSON.stringify(initialPb2Matchdays));
     }
 
     function saveState() {
@@ -573,7 +801,10 @@
       const container = document.getElementById('teamsGrid');
       container.innerHTML = '';
 
-      const currentTeams = appState.teams.filter(t => t.seasonId === appState.currentSeasonId);
+      let currentTeams = appState.teams.filter(t => t.seasonId === appState.currentSeasonId);
+      // Sortiere Mannschaften numerisch: PaderBowler 1, PaderBowler 2, PaderBowler 3, PaderBowler 4
+      currentTeams.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true }));
+
       document.getElementById('countTeams').textContent = currentTeams.length;
 
       if (currentTeams.length === 0) {
@@ -642,9 +873,9 @@
           <!-- Aktionsleiste: Passt immer komplett ins Display ohne seitliches Scrollen -->
           <div class="pt-3 border-t border-[#A499A7]/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 w-full">
             <div class="grid grid-cols-4 gap-1.5 flex-1 w-full sm:w-auto">
-              <a href="matchday-input.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs flex items-center justify-center border-2 border-[#23548F] touch-btn shadow-md">
+              <button type="button" onclick="handleErfassenClick('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs flex items-center justify-center border-2 border-[#23548F] touch-btn shadow-md">
                 <span>Erfassen</span>
-              </a>
+              </button>
               <a href="dashboard-charts.html?team=${team.id}&season=${team.seasonId}" onclick="selectActiveTeam('${team.id}', '${team.seasonId}')" class="py-2 px-1 text-center rounded-xl bg-white hover:bg-slate-50 text-[#23548F] text-xs font-bold border-2 border-[#23548F] touch-btn shadow-sm flex items-center justify-center">
                 <span>Diagramme</span>
               </a>
@@ -658,10 +889,10 @@
 
             <!-- Verwaltung & Löschen -->
             <div class="grid grid-cols-2 sm:flex items-center gap-1.5 w-full sm:w-auto justify-end">
-              <button onclick="openManageTeamModal('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border-2 border-[#A499A7] touch-btn shadow-sm text-center">
+              <button type="button" onclick="openAssignSquadModal('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold border-2 border-[#A499A7] touch-btn shadow-sm text-center">
                 <span>Kader</span>
               </button>
-              <button onclick="deleteTeamPrompt('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-[#DE4341] border-2 border-[#DE4341] touch-btn text-xs font-bold shadow-sm text-center">
+              <button type="button" onclick="deleteTeamPrompt('${team.id}')" class="py-2 px-2.5 rounded-xl bg-white hover:bg-rose-50 text-[#DE4341] border-2 border-[#DE4341] touch-btn text-xs font-bold shadow-sm text-center">
                 <span>Löschen</span>
               </button>
             </div>
@@ -682,6 +913,110 @@
       if (seasonId) localStorage.setItem('paderbowler_active_season', seasonId);
     }
 
+    let squadTargetTeamId = null;
+
+    function handleErfassenClick(teamId, seasonId) {
+      selectActiveTeam(teamId, seasonId);
+      const team = appState.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      const squad = team.playerIds || [];
+      if (squad.length === 0) {
+        squadTargetTeamId = teamId;
+        const nameEl = document.getElementById('noSquadTeamName');
+        if (nameEl) nameEl.textContent = team.name;
+        openModal('modalNoSquad');
+      } else {
+        window.location.href = `matchday-input.html?team=${team.id}&season=${team.seasonId || appState.currentSeasonId}`;
+      }
+    }
+
+    function startAssignSquadFromPrompt() {
+      closeModal('modalNoSquad');
+      if (squadTargetTeamId) {
+        openAssignSquadModal(squadTargetTeamId);
+      }
+    }
+
+    function openAssignSquadModal(teamId) {
+      squadTargetTeamId = teamId;
+      const team = appState.teams.find(t => t.id === teamId);
+      if (!team) return;
+
+      const heading = document.getElementById('assignSquadHeading');
+      if (heading) heading.innerHTML = `<span>👥 Kader festlegen: ${team.name}</span>`;
+      const sub = document.getElementById('assignSquadSubtitle');
+      if (sub) sub.textContent = `Liga: ${team.league}`;
+      const errEl = document.getElementById('assignSquadError');
+      if (errEl) errEl.classList.add('hidden');
+
+      const container = document.getElementById('assignSquadPlayersList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const currentSquad = team.playerIds || [];
+
+      // Sortiere Spieler alphabetisch nach Nachname
+      const sortedPlayers = [...appState.players].sort((a, b) => {
+        const nameA = (a.name || '').trim().split(' ').slice(-1)[0];
+        const nameB = (b.name || '').trim().split(' ').slice(-1)[0];
+        return nameA.localeCompare(nameB);
+      });
+
+      sortedPlayers.forEach(p => {
+        const isChecked = currentSquad.includes(p.id);
+        const div = document.createElement('label');
+        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#A499A7]/60 hover:bg-[#E4D7CF]/20 cursor-pointer transition select-none shadow-sm";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" value="${p.id}" ${isChecked ? 'checked' : ''} class="assign-squad-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7] focus:ring-0">
+            <div>
+              <span class="font-bold text-slate-900 text-xs block">${p.name}</span>
+              ${p.email ? `<span class="text-[10px] text-slate-500">${p.email}</span>` : ''}
+            </div>
+          </div>
+          ${p.edv ? `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200">EDV: ${p.edv}</span>` : ''}
+        `;
+        container.appendChild(div);
+      });
+
+      openModal('modalAssignSquad');
+    }
+
+    function toggleAllSquadCheckboxes(check) {
+      document.querySelectorAll('.assign-squad-chk').forEach(chk => {
+        chk.checked = !!check;
+      });
+    }
+
+    function saveAssignedSquad() {
+      const team = appState.teams.find(t => t.id === squadTargetTeamId);
+      if (!team) return;
+
+      const checkedIds = [];
+      document.querySelectorAll('.assign-squad-chk:checked').forEach(chk => {
+        checkedIds.push(chk.value);
+      });
+
+      const errEl = document.getElementById('assignSquadError');
+      if (checkedIds.length === 0) {
+        if (errEl) {
+          errEl.textContent = "Bitte mindestens einen Spieler für den Kader auswählen oder Abbrechen wählen.";
+          errEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      team.playerIds = checkedIds;
+      team._customSquadConfigured = true;
+      saveState();
+      closeModal('modalAssignSquad');
+      render();
+
+      // Nach dem Speichern direkt zur Spieltagserfassung wechseln
+      window.location.href = `matchday-input.html?team=${team.id}&season=${team.seasonId || appState.currentSeasonId}`;
+    }
+
     // 3. SAISON VERWALTUNG
     function changeSeason(seasonId) {
       appState.currentSeasonId = seasonId;
@@ -689,40 +1024,612 @@
       render();
     }
 
-    function saveNewSeason() {
-      const name = document.getElementById('newSeasonName').value.trim();
-      if (!name) {
-        alert("Bitte Saison-Namen eingeben.");
+    // -------------------------------------------------------------
+    // SAISON-VERWALTUNG & FORTLAUFENDE SAISON-BERECHNUNG
+    // -------------------------------------------------------------
+    function getNextContinuousSeasonName() {
+      let highestStartYear = 2026;
+      if (appState && Array.isArray(appState.seasons)) {
+        appState.seasons.forEach(s => {
+          if (!s || !s.name) return;
+          const match = s.name.match(/(\d{4})\s*\/\s*(\d{4})/);
+          if (match) {
+            const startYr = parseInt(match[1], 10);
+            if (!isNaN(startYr) && startYr > highestStartYear) {
+              highestStartYear = startYr;
+            }
+          }
+        });
+      }
+      return `${highestStartYear + 1}/${highestStartYear + 2}`;
+    }
+
+    // -------------------------------------------------------------
+    // SUPER-ADMIN FREIGABE FÜR NEUE SAISON (MARIUS KÄUNE)
+    // -------------------------------------------------------------
+    function openSuperAdminSeasonModal() {
+      const intro = document.getElementById('superAdminIntroStep');
+      const inputStep = document.getElementById('superAdminInputStep');
+      if (intro) intro.classList.remove('hidden');
+      if (inputStep) inputStep.classList.add('hidden');
+
+      const input = document.getElementById('superAdminPasswordInput');
+      if (input) {
+        input.value = '';
+        input.classList.remove('border-red-500');
+      }
+      const err = document.getElementById('superAdminPasswordError');
+      if (err) err.classList.add('hidden');
+
+      openModal('modalSuperAdminSeason');
+    }
+
+    function showSuperAdminPasswordPrompt() {
+      const intro = document.getElementById('superAdminIntroStep');
+      const inputStep = document.getElementById('superAdminInputStep');
+      if (intro) intro.classList.add('hidden');
+      if (inputStep) inputStep.classList.remove('hidden');
+
+      const input = document.getElementById('superAdminPasswordInput');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+      }
+    }
+
+    function confirmSuperAdminPassword() {
+      const input = document.getElementById('superAdminPasswordInput');
+      const err = document.getElementById('superAdminPasswordError');
+      const val = input ? input.value.trim() : '';
+
+      if (val === 'SuperMarius') {
+        closeModal('modalSuperAdminSeason');
+        openNewSeasonModal();
+      } else {
+        if (err) err.classList.remove('hidden');
+        if (input) {
+          input.classList.add('border-red-500');
+          input.focus();
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // SAISON LÖSCHEN (SICHERHEITS-PASSWORT: ENDE)
+    // -------------------------------------------------------------
+    function openDeleteSeasonModal() {
+      const currentSeason = appState.seasons.find(s => s.id === appState.currentSeasonId) || appState.seasons[0];
+      const sName = currentSeason ? currentSeason.name : 'Aktuelle Saison';
+      const nameEl = document.getElementById('deleteSeasonTargetName');
+      if (nameEl) {
+        nameEl.textContent = `"${sName}"`;
+      }
+      const nameIntroEl = document.getElementById('deleteSeasonTargetNameIntro');
+      if (nameIntroEl) {
+        nameIntroEl.textContent = `"${sName}"`;
+      }
+
+      const introStep = document.getElementById('deleteSeasonIntroStep');
+      const inputStep = document.getElementById('deleteSeasonInputStep');
+      if (introStep) introStep.classList.remove('hidden');
+      if (inputStep) inputStep.classList.add('hidden');
+
+      const input = document.getElementById('deleteSeasonPasswordInput');
+      if (input) {
+        input.value = '';
+        input.classList.remove('border-red-500');
+      }
+      const err = document.getElementById('deleteSeasonError');
+      if (err) err.classList.add('hidden');
+
+      openModal('modalDeleteSeason');
+    }
+
+    function showDeleteSeasonPasswordPrompt() {
+      const introStep = document.getElementById('deleteSeasonIntroStep');
+      const inputStep = document.getElementById('deleteSeasonInputStep');
+      if (introStep) introStep.classList.add('hidden');
+      if (inputStep) inputStep.classList.remove('hidden');
+
+      const input = document.getElementById('deleteSeasonPasswordInput');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 100);
+      }
+    }
+
+    function confirmDeleteSeasonWithPassword() {
+      const input = document.getElementById('deleteSeasonPasswordInput');
+      const errorSpan = document.getElementById('deleteSeasonError');
+      const val = input ? input.value.trim() : '';
+
+      if (val !== 'SuperMarius') {
+        if (errorSpan) errorSpan.classList.remove('hidden');
+        if (input) {
+          input.classList.add('border-red-500');
+          input.focus();
+        }
         return;
       }
 
-      const newId = `season_${name.replace(/\//g, '_')}_${Date.now()}`;
-      appState.seasons.forEach(s => s.isCurrent = false);
-      appState.seasons.push({ id: newId, name, isCurrent: true });
-      appState.currentSeasonId = newId;
+      const seasonToDeleteId = appState.currentSeasonId;
+      const seasonObj = appState.seasons.find(s => s.id === seasonToDeleteId);
+      const seasonName = seasonObj ? seasonObj.name : 'Saison';
 
-      // Optional: Teams übernehmen
-      if (document.getElementById('copyTeamsToNewSeason').checked) {
-        const prevSeasonTeams = appState.teams.filter(t => t.seasonId === "season_2026_2027");
-        prevSeasonTeams.forEach(pt => {
-          appState.teams.push({
-            id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-            seasonId: newId,
-            name: pt.name,
-            league: pt.league,
-            playerIds: [...(pt.playerIds || [])],
-            opponents: [...(pt.opponents || [])],
-            matchdaysCount: 0,
-            totalPins: 0,
-            points: "0 : 0",
-            average: 0.0
-          });
-        });
+      // 1. Teams dieser Saison entfernen & Spieltage aus localStorage löschen
+      const teamsToDelete = appState.teams.filter(t => t.seasonId === seasonToDeleteId);
+      teamsToDelete.forEach(t => {
+        localStorage.removeItem(`paderbowler_matchdays_${t.id}`);
+      });
+      appState.teams = appState.teams.filter(t => t.seasonId !== seasonToDeleteId);
+
+      // 2. Saison aus appState.seasons entfernen
+      appState.seasons = appState.seasons.filter(s => s.id !== seasonToDeleteId);
+
+      // 3. Neue aktive Saison bestimmen
+      if (appState.seasons.length === 0) {
+        const fallbackSeason = { id: "season_2026_2027", name: "2026/2027", isCurrent: true };
+        appState.seasons.push(fallbackSeason);
+        appState.currentSeasonId = fallbackSeason.id;
+      } else {
+        appState.currentSeasonId = appState.seasons[0].id;
+        if (!appState.seasons.some(s => s.isCurrent)) {
+          appState.seasons[0].isCurrent = true;
+        }
       }
+
+      saveState();
+      closeModal('modalDeleteSeason');
+      render();
+      alert(`Die Saison "${seasonName}" wurde erfolgreich gelöscht.`);
+    }
+
+    function openNewSeasonModal() {
+      const nextSeason = getNextContinuousSeasonName();
+      const nameInput = document.getElementById('newSeasonName');
+      if (nameInput) {
+        nameInput.value = nextSeason;
+      }
+      openModal('modalNewSeason');
+    }
+
+    // OPTION A: Saison ohne Mannschaften starten
+    function startSeasonWithoutTeams() {
+      const nameInput = document.getElementById('newSeasonName');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) {
+        alert("Bitte gib eine Saison-Bezeichnung ein.");
+        return;
+      }
+      if (appState.seasons.some(s => (s.name || '').toLowerCase() === name.toLowerCase())) {
+        if (!confirm(`Eine Saison mit dem Namen "${name}" existiert bereits. Möchtest du trotzdem fortfahren?`)) {
+          return;
+        }
+      }
+
+      const cleanSeason = name.replace(/[^a-zA-Z0-9]/g, '_');
+      const newSeasonId = `season_${cleanSeason}_${Date.now()}`;
+
+      // Vorherige Saisons als inaktiv markieren
+      appState.seasons.forEach(s => s.isCurrent = false);
+      appState.seasons.push({
+        id: newSeasonId,
+        name: name,
+        isCurrent: true
+      });
+      appState.currentSeasonId = newSeasonId;
 
       saveState();
       closeModal('modalNewSeason');
       render();
+      alert(`Die Saison "${name}" wurde ohne Mannschaften erfolgreich angelegt.`);
+    }
+
+    // Fallback für bisherige Aufrufe
+    function saveNewSeason() {
+      startSeasonWithoutTeams();
+    }
+
+    // -------------------------------------------------------------
+    // OPTION B: WIZARD - MANNSCHAFTEN ÜBERNEHMEN & BEARBEITEN
+    // -------------------------------------------------------------
+    let wizardState = {
+      seasonName: '',
+      seasonId: '',
+      currentStep: 1,
+      leagues: {
+        pb1: 'Verbandsliga 1',
+        pb2: 'Landesliga 1',
+        pb3: 'Bezirksliga 2',
+        pb4: 'Bezirksliga 2'
+      },
+      squads: {
+        pb1: [],
+        pb2: [],
+        pb3: [],
+        pb4: []
+      }
+    };
+
+    const WIZARD_STEP_CONFIG = {
+      1: {
+        title: "Ligen der Mannschaften festlegen",
+        badge: "Schritt 1 von 5"
+      },
+      2: {
+        title: "Kader für PaderBowler 1 zuweisen",
+        badge: "Schritt 2 von 5",
+        teamKey: "pb1",
+        teamName: "PaderBowler 1"
+      },
+      3: {
+        title: "Kader für PaderBowler 2 zuweisen",
+        badge: "Schritt 3 von 5",
+        teamKey: "pb2",
+        teamName: "PaderBowler 2"
+      },
+      4: {
+        title: "Kader für PaderBowler 3 zuweisen",
+        badge: "Schritt 4 von 5",
+        teamKey: "pb3",
+        teamName: "PaderBowler 3"
+      },
+      5: {
+        title: "Kader für PaderBowler 4 zuweisen",
+        badge: "Schritt 5 von 5",
+        teamKey: "pb4",
+        teamName: "PaderBowler 4"
+      }
+    };
+
+    function startSeasonWizard() {
+      const nameInput = document.getElementById('newSeasonName');
+      const name = nameInput ? nameInput.value.trim() : '';
+      if (!name) {
+        alert("Bitte gib eine Saison-Bezeichnung ein.");
+        return;
+      }
+      if (appState.seasons.some(s => (s.name || '').toLowerCase() === name.toLowerCase())) {
+        if (!confirm(`Eine Saison mit dem Namen "${name}" existiert bereits. Möchtest du trotzdem fortfahren?`)) {
+          return;
+        }
+      }
+
+      const cleanSeason = name.replace(/[^a-zA-Z0-9]/g, '_');
+      const newSeasonId = `season_${cleanSeason}_${Date.now()}`;
+
+      // Vorbelegung aus aktuellen Mannschaften übernehmen falls vorhanden
+      const currentTeams = appState.teams.filter(t => t.seasonId === appState.currentSeasonId);
+      const findTeam = (key) => currentTeams.find(t => (t.name || '').toLowerCase().includes(key)) || appState.teams.find(t => t.id === `team_${key}`);
+
+      const pb1Team = findTeam('pb1') || currentTeams.find(t => (t.name || '').includes('1'));
+      const pb2Team = findTeam('pb2') || currentTeams.find(t => (t.name || '').includes('2'));
+      const pb3Team = findTeam('pb3') || currentTeams.find(t => (t.name || '').includes('3'));
+      const pb4Team = findTeam('pb4') || currentTeams.find(t => (t.name || '').includes('4'));
+
+      wizardState = {
+        seasonName: name,
+        seasonId: newSeasonId,
+        currentStep: 1,
+        leagues: {
+          pb1: (pb1Team && pb1Team.league) ? pb1Team.league : 'Verbandsliga 1',
+          pb2: (pb2Team && pb2Team.league) ? pb2Team.league : 'Landesliga 1',
+          pb3: (pb3Team && pb3Team.league) ? pb3Team.league : 'Bezirksliga 2',
+          pb4: (pb4Team && pb4Team.league) ? pb4Team.league : 'Bezirksliga 2'
+        },
+        squads: {
+          pb1: (pb1Team && Array.isArray(pb1Team.playerIds)) ? [...pb1Team.playerIds] : [],
+          pb2: (pb2Team && Array.isArray(pb2Team.playerIds) && pb2Team.playerIds.length > 0) ? [...pb2Team.playerIds] : ["player_hatzig", "player_baumeister", "player_klipenstein", "player_gerdhenrich", "player_hoppe", "player_stoewer"],
+          pb3: (pb3Team && Array.isArray(pb3Team.playerIds)) ? [...pb3Team.playerIds] : [],
+          pb4: (pb4Team && Array.isArray(pb4Team.playerIds)) ? [...pb4Team.playerIds] : []
+        }
+      };
+
+      closeModal('modalNewSeason');
+      openModal('modalSeasonWizard');
+      renderWizardStep(1);
+    }
+
+    function cancelSeasonWizard() {
+      if (confirm("Möchtest du den Assistenten wirklich abbrechen? Die neue Saison wird nicht angelegt.")) {
+        closeModal('modalSeasonWizard');
+      }
+    }
+
+    function renderWizardStep(step) {
+      wizardState.currentStep = step;
+      const cfg = WIZARD_STEP_CONFIG[step];
+
+      const stepBadge = document.getElementById('wizardStepBadge');
+      if (stepBadge) stepBadge.textContent = cfg.badge;
+
+      const seasonBadge = document.getElementById('wizardSeasonNameBadge');
+      if (seasonBadge) seasonBadge.textContent = `Saison ${wizardState.seasonName}`;
+
+      const stepTitle = document.getElementById('wizardStepTitle');
+      if (stepTitle) stepTitle.textContent = cfg.title;
+
+      const content = document.getElementById('wizardStepContent');
+      const footer = document.getElementById('wizardFooter');
+
+      if (step === 1) {
+        content.innerHTML = `
+          <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3 text-slate-700 leading-relaxed">
+            In welchen Ligen treten die vier PaderBowler-Mannschaften in der neuen Saison <strong>${wizardState.seasonName}</strong> an? Passe die Ligen bei Bedarf an.
+          </div>
+
+          <div class="space-y-3 bg-white border-2 border-[#A499A7] rounded-xl p-4 shadow-sm">
+            <div>
+              <label class="block text-slate-800 font-bold mb-1">PaderBowler 1 &ndash; Liga</label>
+              <input type="text" id="wiz_league_pb1" value="${wizardState.leagues.pb1}" list="wizardLeagueSuggestions" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+            <div>
+              <label class="block text-slate-800 font-bold mb-1">PaderBowler 2 &ndash; Liga</label>
+              <input type="text" id="wiz_league_pb2" value="${wizardState.leagues.pb2}" list="wizardLeagueSuggestions" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+            <div>
+              <label class="block text-slate-800 font-bold mb-1">PaderBowler 3 &ndash; Liga</label>
+              <input type="text" id="wiz_league_pb3" value="${wizardState.leagues.pb3}" list="wizardLeagueSuggestions" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+            <div>
+              <label class="block text-slate-800 font-bold mb-1">PaderBowler 4 &ndash; Liga</label>
+              <input type="text" id="wiz_league_pb4" value="${wizardState.leagues.pb4}" list="wizardLeagueSuggestions" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            </div>
+
+            <datalist id="wizardLeagueSuggestions">
+              <option value="Verbandsliga 1">
+              <option value="Landesliga 1">
+              <option value="Landesliga 2">
+              <option value="Bezirksliga 1">
+              <option value="Bezirksliga 2">
+              <option value="Oberliga 1">
+              <option value="NRW-Liga">
+            </datalist>
+          </div>
+        `;
+
+        footer.innerHTML = `
+          <button type="button" onclick="cancelSeasonWizard()" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+          <button type="button" onclick="saveWizardStep1AndNext()" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md border-2 border-[#23548F] flex items-center gap-1.5 touch-btn">
+            <span>Weiter zu PaderBowler 1 (Kader)</span>
+            <span>➔</span>
+          </button>
+        `;
+        return;
+      }
+
+      // Schritte 2 bis 5 (Kader-Auswahl für die jeweilige Mannschaft)
+      const teamKey = cfg.teamKey;
+      const teamName = cfg.teamName;
+      const teamLeague = wizardState.leagues[teamKey];
+      const assignedIds = wizardState.squads[teamKey] || [];
+
+      // Sortiere Vereinsmitglieder alphabetisch
+      const allPlayers = [...appState.players].sort((a, b) => a.name.localeCompare(b.name));
+
+      content.innerHTML = `
+        <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <span class="text-sm font-black text-slate-900 block">${teamName}</span>
+            <span class="text-xs text-[#23548F] font-bold">Liga: ${teamLeague}</span>
+          </div>
+          <span id="wizardSquadCount" class="text-xs px-2.5 py-1 rounded-lg bg-white border border-[#A499A7] font-bold text-slate-800">
+            ${assignedIds.length} von ${allPlayers.length} im Kader
+          </span>
+        </div>
+
+        <p class="text-slate-700 leading-snug">
+          Wähle die Vereinsspieler aus, die in dieser Saison für <strong>${teamName}</strong> spielen sollen. (Kader kann auch später jederzeit ergänzt werden.)
+        </p>
+
+        <!-- Schnellaktionen & Suche -->
+        <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
+          <input type="text" id="wizardPlayerSearch" oninput="filterWizardPlayers()" placeholder="Spieler suchen (Name oder EDV)..." class="flex-1 bg-white border-2 border-[#A499A7] rounded-lg p-2 text-slate-900 text-xs focus:outline-none focus:border-[#23548F]">
+          <div class="flex gap-1.5 shrink-0">
+            <button type="button" onclick="toggleWizardCheckboxes(false)" class="px-2.5 py-1.5 rounded-lg bg-white border border-[#A499A7] text-[11px] font-bold text-slate-700 hover:bg-slate-50">Alle abwählen</button>
+            <button type="button" onclick="toggleWizardCheckboxes(true)" class="px-2.5 py-1.5 rounded-lg bg-[#23548F]/10 border border-[#23548F]/30 text-[11px] font-bold text-[#23548F] hover:bg-[#23548F]/20">Alle auswählen</button>
+          </div>
+        </div>
+
+        <!-- Spielerliste mit Checkboxen -->
+        <div id="wizardPlayersList" class="space-y-1.5 max-h-60 overflow-y-auto border-2 border-[#A499A7] rounded-xl p-2.5 bg-white">
+          ${allPlayers.map(p => {
+            const isChecked = assignedIds.includes(p.id);
+            return `
+              <label class="wizard-player-item flex items-center justify-between p-2 rounded-lg hover:bg-[#E4D7CF]/20 cursor-pointer border border-transparent hover:border-[#A499A7]/40 transition" data-name="${p.name.toLowerCase()}" data-edv="${(p.edv || '').toString()}">
+                <div class="flex items-center gap-2.5">
+                  <input type="checkbox" value="${p.id}" class="wizard-player-cb w-4 h-4 rounded text-[#23548F] border-[#A499A7] focus:ring-[#23548F]" ${isChecked ? 'checked' : ''} onchange="updateWizardSquadCount()">
+                  <span class="font-bold text-slate-900 text-xs">${p.name}</span>
+                </div>
+                ${p.edv ? `<span class="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono font-bold border border-slate-200">EDV ${p.edv}</span>` : ''}
+              </label>
+            `;
+          }).join('')}
+        </div>
+      `;
+
+      // Footer Navigation je nach Schritt
+      if (step === 2) {
+        footer.innerHTML = `
+          <button type="button" onclick="saveWizardSquadAndGo(2, 1)" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">⬅ Zurück (Ligen)</button>
+          <button type="button" onclick="saveWizardSquadAndGo(2, 3)" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md border-2 border-[#23548F] flex items-center gap-1.5 touch-btn">
+            <span>Weiter zu PaderBowler 2 (Kader)</span>
+            <span>➔</span>
+          </button>
+        `;
+      } else if (step === 3) {
+        footer.innerHTML = `
+          <button type="button" onclick="saveWizardSquadAndGo(3, 2)" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">⬅ Zurück (PaderBowler 1)</button>
+          <button type="button" onclick="saveWizardSquadAndGo(3, 4)" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md border-2 border-[#23548F] flex items-center gap-1.5 touch-btn">
+            <span>Weiter zu PaderBowler 3 (Kader)</span>
+            <span>➔</span>
+          </button>
+        `;
+      } else if (step === 4) {
+        footer.innerHTML = `
+          <button type="button" onclick="saveWizardSquadAndGo(4, 3)" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">⬅ Zurück (PaderBowler 2)</button>
+          <button type="button" onclick="saveWizardSquadAndGo(4, 5)" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md border-2 border-[#23548F] flex items-center gap-1.5 touch-btn">
+            <span>Weiter zu PaderBowler 4 (Kader)</span>
+            <span>➔</span>
+          </button>
+        `;
+      } else if (step === 5) {
+        footer.innerHTML = `
+          <button type="button" onclick="saveWizardSquadAndGo(5, 4)" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">⬅ Zurück (PaderBowler 3)</button>
+          <button type="button" onclick="finishWizardAndCreateSeason()" class="px-5 py-2.5 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs shadow-md border-2 border-[#cfae2e] flex items-center gap-1.5 touch-btn">
+            <span>Saison & Mannschaften fertigstellen ✓</span>
+          </button>
+        `;
+      }
+    }
+
+    function saveWizardStep1AndNext() {
+      const l1 = (document.getElementById('wiz_league_pb1') ? document.getElementById('wiz_league_pb1').value.trim() : '') || 'Verbandsliga 1';
+      const l2 = (document.getElementById('wiz_league_pb2') ? document.getElementById('wiz_league_pb2').value.trim() : '') || 'Landesliga 1';
+      const l3 = (document.getElementById('wiz_league_pb3') ? document.getElementById('wiz_league_pb3').value.trim() : '') || 'Bezirksliga 2';
+      const l4 = (document.getElementById('wiz_league_pb4') ? document.getElementById('wiz_league_pb4').value.trim() : '') || 'Bezirksliga 2';
+
+      wizardState.leagues.pb1 = l1;
+      wizardState.leagues.pb2 = l2;
+      wizardState.leagues.pb3 = l3;
+      wizardState.leagues.pb4 = l4;
+
+      renderWizardStep(2);
+    }
+
+    function collectCurrentWizardSquad(step) {
+      const cfg = WIZARD_STEP_CONFIG[step];
+      if (!cfg || !cfg.teamKey) return;
+      const checkboxes = document.querySelectorAll('.wizard-player-cb:checked');
+      const selected = Array.from(checkboxes).map(cb => cb.value);
+      wizardState.squads[cfg.teamKey] = selected;
+    }
+
+    function saveWizardSquadAndGo(currentStep, targetStep) {
+      if (currentStep >= 2 && currentStep <= 5) {
+        collectCurrentWizardSquad(currentStep);
+      }
+      renderWizardStep(targetStep);
+    }
+
+    function updateWizardSquadCount() {
+      const checkedCount = document.querySelectorAll('.wizard-player-cb:checked').length;
+      const totalCount = document.querySelectorAll('.wizard-player-cb').length;
+      const countEl = document.getElementById('wizardSquadCount');
+      if (countEl) {
+        countEl.textContent = `${checkedCount} von ${totalCount} im Kader`;
+      }
+    }
+
+    function toggleWizardCheckboxes(check) {
+      const checkboxes = document.querySelectorAll('.wizard-player-cb');
+      checkboxes.forEach(cb => {
+        const item = cb.closest('.wizard-player-item');
+        if (!item || item.style.display !== 'none') {
+          cb.checked = check;
+        }
+      });
+      updateWizardSquadCount();
+    }
+
+    function filterWizardPlayers() {
+      const query = (document.getElementById('wizardPlayerSearch').value || '').toLowerCase().trim();
+      const items = document.querySelectorAll('.wizard-player-item');
+      items.forEach(it => {
+        const name = it.dataset.name || '';
+        const edv = it.dataset.edv || '';
+        if (!query || name.includes(query) || edv.includes(query)) {
+          it.style.display = 'flex';
+        } else {
+          it.style.display = 'none';
+        }
+      });
+    }
+
+    function finishWizardAndCreateSeason() {
+      // Step 5 Kader noch einsammeln
+      collectCurrentWizardSquad(5);
+
+      const newSeason = {
+        id: wizardState.seasonId,
+        name: wizardState.seasonName,
+        isCurrent: true
+      };
+
+      // Vorherige Saisons als inaktiv markieren
+      appState.seasons.forEach(s => s.isCurrent = false);
+      appState.seasons.push(newSeason);
+      appState.currentSeasonId = wizardState.seasonId;
+
+      // 4 Mannschaften für die neue Saison generieren
+      const cleanSeason = wizardState.seasonId.replace('season_', '');
+      const newTeams = [
+        {
+          id: `team_pb1_${cleanSeason}`,
+          seasonId: wizardState.seasonId,
+          name: "PaderBowler 1",
+          league: wizardState.leagues.pb1 || "Verbandsliga 1",
+          password: "paderbowler1",
+          playerIds: [...wizardState.squads.pb1],
+          _customSquadConfigured: true,
+          opponents: ["VfL Holsen 3", "BV Brackwede 3", "MaxiStrike Hamm 2", "BV Detmold 2", "Bowlingfreunde Bielefeld 3"],
+          matchdaysCount: 0,
+          totalPins: 0,
+          points: "0 : 0",
+          average: 0.0
+        },
+        {
+          id: `team_pb2_${cleanSeason}`,
+          seasonId: wizardState.seasonId,
+          name: "PaderBowler 2",
+          league: wizardState.leagues.pb2 || "Landesliga 1",
+          password: "paderbowler2",
+          playerIds: [...wizardState.squads.pb2],
+          _customSquadConfigured: true,
+          opponents: ["MaxiStrike Hamm 2", "BV Detmold 2", "VfL Holsen 3", "Bowlingfreunde Bielefeld 3", "BV Brackwede 3"],
+          matchdaysCount: 0,
+          totalPins: 0,
+          points: "0 : 0",
+          average: 0.0
+        },
+        {
+          id: `team_pb3_${cleanSeason}`,
+          seasonId: wizardState.seasonId,
+          name: "PaderBowler 3",
+          league: wizardState.leagues.pb3 || "Bezirksliga 2",
+          password: "paderbowler3",
+          playerIds: [...wizardState.squads.pb3],
+          _customSquadConfigured: true,
+          opponents: ["BC Lemgo", "BV Detmold 4", "BV Detmold 3", "PaderBowler 4", "BV Brackwede 4"],
+          matchdaysCount: 0,
+          totalPins: 0,
+          points: "0 : 0",
+          average: 0.0
+        },
+        {
+          id: `team_pb4_${cleanSeason}`,
+          seasonId: wizardState.seasonId,
+          name: "PaderBowler 4",
+          league: wizardState.leagues.pb4 || "Bezirksliga 2",
+          password: "paderbowler4",
+          playerIds: [...wizardState.squads.pb4],
+          _customSquadConfigured: true,
+          opponents: ["BC Lemgo", "BV Detmold 4", "BV Detmold 3", "PaderBowler 3", "BV Brackwede 4"],
+          matchdaysCount: 0,
+          totalPins: 0,
+          points: "0 : 0",
+          average: 0.0
+        }
+      ];
+
+      // Zu appState.teams hinzufügen
+      appState.teams.push(...newTeams);
+
+      saveState();
+      closeModal('modalSeasonWizard');
+      render();
+
+      alert(`Die Saison "${wizardState.seasonName}" wurde erfolgreich mit allen 4 Mannschaften angelegt!`);
     }
 
     // 4. MANNSCHAFT VERWALTUNG (KADER PER EINGABE & GEGNER)
@@ -900,6 +1807,7 @@
         seasonId: appState.currentSeasonId,
         name,
         league,
+        password: "paderbowler",
         playerIds: newTeamAssignedPlayers.map(p => p.id),
         opponents: [...newTeamOpponentsList],
         matchdaysCount: 0,
@@ -924,10 +1832,18 @@
       document.getElementById('manageTeamHeading').textContent = `${team.name} verwalten`;
       document.getElementById('manageTeamName').value = team.name;
       document.getElementById('manageTeamLeague').value = team.league;
-      const newPlInput = document.getElementById('manageNewPlayerInput');
-      if (newPlInput) newPlInput.value = '';
+      const firstInput = document.getElementById('manageNewPlayerFirst');
+      if (firstInput) firstInput.value = '';
+      const lastInput = document.getElementById('manageNewPlayerLast');
+      if (lastInput) lastInput.value = '';
       const newOppInput = document.getElementById('manageNewOpponentInput');
       if (newOppInput) newOppInput.value = '';
+
+      document.getElementById('manageOldPassword').value = '';
+      document.getElementById('manageNewPassword').value = '';
+      document.getElementById('manageNewPasswordConfirm').value = '';
+      const msg = document.getElementById('managePasswordMsg');
+      if (msg) msg.classList.add('hidden');
 
       renderManagedTeamPlayers(team);
       renderManagedTeamOpponents(team);
@@ -942,45 +1858,115 @@
       appState.players.forEach(p => {
         const isChecked = (team.playerIds || []).includes(p.id);
         const div = document.createElement('div');
-        div.className = "flex items-center gap-2";
+        div.className = "flex items-center justify-between gap-2 bg-white/70 px-2 py-1 rounded border border-[#A499A7]/50";
         const cleanName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
         div.innerHTML = `
-          <input type="checkbox" id="manage_pl_${p.id}" value="${p.id}" ${isChecked ? 'checked' : ''} class="manage-pl-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
-          <label for="manage_pl_${p.id}" class="text-xs text-slate-800 font-bold cursor-pointer">${cleanName}</label>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="manage_pl_${p.id}" value="${p.id}" ${isChecked ? 'checked' : ''} class="manage-pl-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+            <label for="manage_pl_${p.id}" class="text-xs text-slate-800 font-bold cursor-pointer">${cleanName}</label>
+          </div>
+          <button type="button" onclick="deletePlayerFromManagedTeam('${p.id}')" title="Spieler komplett löschen" class="text-slate-400 hover:text-[#DE4341] font-bold text-xs px-1">&times;</button>
         `;
         plContainer.appendChild(div);
       });
     }
 
-    function addNewPlayerToManagedTeam() {
-      const input = document.getElementById('manageNewPlayerInput');
-      const val = input.value.trim();
-      if (!val) return;
+    function deletePlayerFromManagedTeam(playerId) {
+      const player = appState.players.find(p => p.id === playerId);
+      const pName = player ? player.name : 'Spieler';
+      if (!confirm(`Möchtest du "${pName}" wirklich aus dem System löschen?`)) return;
 
+      appState.players = appState.players.filter(p => p.id !== playerId);
+      appState.teams.forEach(t => {
+        if (t.playerIds) t.playerIds = t.playerIds.filter(id => id !== playerId);
+      });
+      saveState();
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (team) renderManagedTeamPlayers(team);
+      updateCounters();
+    }
+
+    function addNewPlayerToManagedTeam() {
+      const firstInput = document.getElementById('manageNewPlayerFirst');
+      const lastInput = document.getElementById('manageNewPlayerLast');
+      const first = firstInput ? firstInput.value.trim() : '';
+      const last = lastInput ? lastInput.value.trim() : '';
+      if (!first || !last) {
+        alert("Bitte Vorname und Nachname eingeben.");
+        return;
+      }
+
+      const fullName = `${first} ${last}`;
       const team = appState.teams.find(t => t.id === managedTeamId);
       if (!team) return;
 
-      const names = val.split(',').map(n => n.trim()).filter(Boolean);
-      names.forEach(rawName => {
-        let existing = appState.players.find(p => p.name.toLowerCase() === rawName.toLowerCase());
-        if (!existing) {
-          existing = {
-            id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-            name: rawName,
-            email: ""
-          };
-          appState.players.push(existing);
-        }
-        if (!team.playerIds) team.playerIds = [];
-        if (!team.playerIds.includes(existing.id)) {
-          team.playerIds.push(existing.id);
-        }
-      });
+      let existing = appState.players.find(p => p.name.toLowerCase() === fullName.toLowerCase());
+      if (!existing) {
+        existing = {
+          id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          name: fullName,
+          email: ""
+        };
+        appState.players.push(existing);
+      }
+      if (!team.playerIds) team.playerIds = [];
+      if (!team.playerIds.includes(existing.id)) {
+        team.playerIds.push(existing.id);
+      }
 
-      input.value = '';
+      if (firstInput) firstInput.value = '';
+      if (lastInput) lastInput.value = '';
       saveState();
       renderManagedTeamPlayers(team);
       updateCounters();
+    }
+
+    function changeManagedTeamPassword() {
+      const team = appState.teams.find(t => t.id === managedTeamId);
+      if (!team) return;
+
+      const oldPw = document.getElementById('manageOldPassword').value.trim();
+      const newPw = document.getElementById('manageNewPassword').value.trim();
+      const confirmPw = document.getElementById('manageNewPasswordConfirm').value.trim();
+      const msg = document.getElementById('managePasswordMsg');
+
+      const fallbackPw = team ? ('paderbowler' + (team.id || '').replace('team_pb', '')) : 'paderbowler';
+      const currentPw = team.password || fallbackPw;
+
+      if (!oldPw || !newPw || !confirmPw) {
+        msg.className = "text-[11px] font-bold text-rose-600 block";
+        msg.textContent = "Bitte alle 3 Passwortfelder ausfüllen.";
+        return;
+      }
+
+      if (oldPw !== currentPw) {
+        msg.className = "text-[11px] font-bold text-rose-600 block";
+        msg.textContent = "Das alte Passwort ist nicht korrekt.";
+        return;
+      }
+
+      if (newPw.length < 3) {
+        msg.className = "text-[11px] font-bold text-rose-600 block";
+        msg.textContent = "Das neue Passwort muss mindestens 3 Zeichen lang sein.";
+        return;
+      }
+
+      if (newPw !== confirmPw) {
+        msg.className = "text-[11px] font-bold text-rose-600 block";
+        msg.textContent = "Die beiden neuen Passwörter stimmen nicht überein.";
+        return;
+      }
+
+      team.password = newPw;
+      saveState();
+
+      document.getElementById('manageOldPassword').value = '';
+      document.getElementById('manageNewPassword').value = '';
+      document.getElementById('manageNewPasswordConfirm').value = '';
+
+      msg.className = "text-[11px] font-bold text-emerald-700 block";
+      msg.textContent = "Passwort erfolgreich aktualisiert!";
+      setTimeout(() => { msg.classList.add('hidden'); }, 4000);
     }
 
     function renderManagedTeamOpponents(team) {
@@ -1061,14 +2047,29 @@
       if (input === '12345') {
         const team = appState.teams.find(t => t.id === teamIdToDelete);
         const teamName = team ? team.name : 'Mannschaft';
+        const deletedId = teamIdToDelete;
 
-        // 1. Aus appState entfernen
-        appState.teams = appState.teams.filter(t => t.id !== teamIdToDelete);
+        // 1. In deletedTeamIds vermerken (verhindert Wiederherstellung durch Cloud-Sync oder Cache)
+        if (!appState.deletedTeamIds) appState.deletedTeamIds = [];
+        if (!appState.deletedTeamIds.includes(deletedId)) {
+          appState.deletedTeamIds.push(deletedId);
+        }
 
-        // 2. Spieltage dieser Mannschaft aus localStorage löschen
-        localStorage.removeItem(`paderbowler_matchdays_${teamIdToDelete}`);
+        // 2. Aus appState entfernen
+        appState.teams = appState.teams.filter(t => t.id !== deletedId);
 
+        // 3. Spieltage dieser Mannschaft aus localStorage löschen
+        localStorage.removeItem(`paderbowler_matchdays_${deletedId}`);
+
+        // 4. Falls die gelöschte Mannschaft die aktive war, aktive Mannschaft auf die erste verbleibende setzen
+        if (localStorage.getItem('paderbowler_active_team') === deletedId) {
+          const nextActive = appState.teams[0]?.id || '';
+          localStorage.setItem('paderbowler_active_team', nextActive);
+        }
+
+        // 5. Lokal speichern & in die Cloud übertragen
         saveState();
+
         closeModal('modalDeleteTeamPassword');
         closeModal('modalManageTeam');
         teamIdToDelete = null;

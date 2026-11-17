@@ -113,8 +113,8 @@
         <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
 
         <!-- Schneller Team-Wechsler -->
-        <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
-          <span class="text-xs text-slate-700 mr-2 font-bold">Team:</span>
+        <div class="flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2 shadow-sm">
+          <span class="text-xs text-slate-700 mr-2 font-bold hidden sm:inline">Team:</span>
           <select id="teamHeaderSelect" onchange="switchTeam(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
             <!-- Dynamisch per JS befüllt -->
           </select>
@@ -596,12 +596,12 @@
     let currentMatchdayNum = 1;
     let recipients = [];
 
-    function initReport() {
+    function initReport(explicitTeamId = null, explicitSeasonId = null) {
       appState = getAppState();
 
       const params = new URLSearchParams(window.location.search);
-      activeTeamId = params.get('team') || localStorage.getItem('paderbowler_active_team') || appState.teams[0]?.id || 'team_pb2';
-      activeSeasonId = params.get('season') || localStorage.getItem('paderbowler_active_season') || appState.currentSeasonId;
+      activeTeamId = explicitTeamId || (params.has('team') ? params.get('team') : null) || localStorage.getItem('paderbowler_active_team') || appState.teams[0]?.id || 'team_pb2';
+      activeSeasonId = explicitSeasonId || (params.has('season') ? params.get('season') : null) || localStorage.getItem('paderbowler_active_season') || appState.currentSeasonId;
 
       currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || appState.seasons[0];
       currentTeam = appState.teams.find(t => t.id === activeTeamId) || appState.teams[0];
@@ -650,7 +650,7 @@
       const select = document.getElementById('teamHeaderSelect');
       if (select) {
         select.innerHTML = appState.teams
-          .filter(t => t.seasonId === activeSeasonId)
+          .filter(t => !t.seasonId || t.seasonId === activeSeasonId)
           .map(t => `<option value="${t.id}" ${t.id === currentTeam.id ? 'selected' : ''}>${t.name} (${t.league})</option>`)
           .join('');
       }
@@ -703,7 +703,7 @@
 
         for (let g = 1; g <= 5; g++) {
           const lineup = md.gameLineups?.[g] || [];
-          const oppObj = md.gameOpponents?.[g] || { id: "Gegner", pins: 0 };
+          const oppObj = md.gameOpponents?.[g] || { id: "", name: "", pins: 0 };
           let ourGamePins = 0;
           const playerScores = [];
 
@@ -743,9 +743,14 @@
               else if (ourGamePins === oppPins) { pts = 1; draws++; }
               else { pts = 0; losses++; }
             }
+
+            const opponentDisplayName = (typeof resolveOpponentName === 'function')
+              ? resolveOpponentName(oppObj, currentTeam, g)
+              : (oppObj.name || oppObj.id || `Gegner ${g}`);
+
             gamesList.push({
               game: g,
-              opp: oppObj.id || `Gegner ${g}`,
+              opp: opponentDisplayName,
               our: ourGamePins,
               oppP: oppPins,
               pts: pts,
@@ -1220,6 +1225,12 @@
       const validEmails = selected.map(r => r.email).filter(e => e && e.includes('@'));
       const data = matchdaysData[currentMatchdayNum] || { number: currentMatchdayNum, center: "Bowlingcenter", totalPoints: 0, ourTotalPins: 0, teamAverage: 0, date: "" };
       const subject = document.getElementById('email-subject-input').value || `${currentTeam.name}: Spieltagsbericht Spieltag ${data.number} (${data.center})`;
+
+      let gamesText = '';
+      if (data.games && data.games.length > 0) {
+        gamesText = 'Spiele & Gegner:\n' + data.games.map(g => `• Spiel ${g.game}: vs. ${g.opp} (${g.our} : ${g.oppP} Pins, ${g.pts} : ${2 - g.pts} Pkt.)`).join('\n') + '\n\n';
+      }
+
       const bodyText = `Hallo zusammen,\n\nhier ist der offizielle Spieltagsbericht für ${currentTeam.name}:\n\n` +
         `• Spieltag: ${data.number}\n` +
         `• Austragungsort: ${data.center}\n` +
@@ -1227,6 +1238,7 @@
         `• Punkte: ${data.totalPoints} : ${10 - data.totalPoints}\n` +
         `• Mannschafts-Pins: ${data.ourTotalPins}\n` +
         `• Spieltagsschnitt: ${data.teamAverage.toFixed(2)} Pins\n\n` +
+        gamesText +
         `Der vollständige Spieltags- und Saisonbericht als PDF liegt bei bzw. wurde über Paderbowler Stats 2 erstellt.\n\n` +
         `Gut Holz!\n${currentTeam.name}`;
 
@@ -1372,13 +1384,14 @@
     }
 
     function switchTeam(teamId) {
+      if (!teamId) return;
       activeTeamId = teamId;
       localStorage.setItem('paderbowler_active_team', teamId);
-      initReport();
       if (window.history.pushState) {
         const newUrl = `pdf-report.html?team=${teamId}&season=${activeSeasonId}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
       }
+      initReport(teamId, activeSeasonId);
     }
 
     // INIT

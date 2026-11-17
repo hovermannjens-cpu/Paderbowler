@@ -48,12 +48,21 @@
       <!-- Cloud Sync Status Pill -->
       <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
 
-      <!-- Schneller Team- & Vereins-Wechsler -->
-      <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
-        <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
-        <select id="teamHeaderSelect" onchange="switchChartScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
-          <option value="all">Vereinsstatistik</option>
-        </select>
+      <!-- Schneller Saison- & Team-Wechsler -->
+      <div class="hidden sm:flex items-center gap-2">
+        <div class="flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1">
+          <span class="text-xs text-slate-700 mr-1.5 font-bold">📅 Saison:</span>
+          <select id="seasonHeaderSelect" onchange="switchSeasonScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+            <option value="season_2026_2027">2026/2027</option>
+            <option value="all">Alle Saisons (Entwicklung 📈)</option>
+          </select>
+        </div>
+        <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1">
+          <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
+          <select id="teamHeaderSelect" onchange="switchChartScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+            <option value="all">Vereinsstatistik</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -76,7 +85,7 @@
 
   <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- Modus-Umschalter: Mannschaft vs. Vereinsstatistik -->
+    <!-- Modus- & Saison-Umschalter -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 shadow-sm">
       <div class="flex flex-wrap items-center gap-2">
         <button id="scope-team-btn" onclick="setChartScope('team')" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm">
@@ -87,8 +96,22 @@
         </button>
       </div>
 
-      <div class="text-xs text-slate-600 font-medium" id="scopeDescriptionText">
-        Diagramme & Kennzahlen für dieses Team.
+      <!-- Saison-Auswahl & Mehrjahres-Vergleich -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-3 py-1.5 shadow-inner">
+          <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
+            <span>📅</span> <span>Saison:</span>
+          </span>
+          <select id="seasonSelect" onchange="switchSeasonScope(this.value)" class="bg-white border border-[#A499A7] rounded-lg px-2.5 py-1 text-xs font-black text-[#23548F] focus:outline-none focus:border-[#23548F] cursor-pointer shadow-sm">
+            <option value="season_2026_2027">Saison 2026/2027</option>
+            <option value="all">Alle Saisons &bull; Entwicklung 📈</option>
+          </select>
+        </div>
+
+        <button type="button" id="btnMultiSeasonTrend" onclick="toggleMultiSeasonTrendModal()" class="px-3 py-1.5 rounded-xl bg-[#43447D] hover:bg-[#343564] text-white text-xs font-bold shadow-sm touch-btn flex items-center gap-1">
+          <span>📈</span>
+          <span>Saisons vergleichen</span>
+        </button>
       </div>
     </div>
 
@@ -115,24 +138,30 @@
       <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
         <span class="text-xs font-bold text-slate-600 uppercase tracking-wider block">Bierframes</span>
         <span id="kpi-bier-val" class="text-2xl font-black text-[#E8C543] mt-1 block">50</span>
-        <span id="kpi-bier-sub" class="text-xs text-slate-600">13 von Andre Klipenstein</span>
+        <span id="kpi-bier-sub" class="text-xs text-slate-600">Rekord: 13 durch Andre</span>
       </div>
     </div>
 
-    <!-- 2. DIAGRAMM 1: FORMKURVEN -->
+    <!-- 2. DIAGRAMM 1: FORMKURVEN (VERGRÖSSERTE DETAILANSICHT FÜR WEITE PUNKTEABSTÄNDE) -->
     <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#A499A7]/50 pb-3">
         <div>
-          <h2 class="text-base font-bold text-slate-900">Formkurven</h2>
-          <p class="text-xs text-slate-600">Spieler in der Legende antippen zum Filtern:</p>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-900">Formkurven (Spieltagsschnitt)</h2>
+            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/30">Große Detailansicht</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5">Spieler in der Legende antippen zum Filtern &bull; Weite Abstände zwischen Punkten für beste Übersicht:</p>
         </div>
         <div class="flex items-center gap-1.5 text-xs">
-          <button onclick="toggleAllLines(true)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs">Alle</button>
-          <button onclick="toggleAllLines(false)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs">Nur Team</button>
+          <button onclick="toggleAllLines(true)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs touch-btn">Alle</button>
+          <button onclick="toggleAllLines(false)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-[#A499A7] font-bold text-xs touch-btn">Nur Team</button>
         </div>
       </div>
-      <div class="h-72 w-full pt-2">
-        <canvas id="chartFormkurve"></canvas>
+      <!-- Scrollbarer Container auf Mobile & extra Höhe, damit die Punkte nicht zu nah aneinander liegen -->
+      <div class="overflow-x-auto w-full pt-1 pb-1">
+        <div class="h-96 sm:h-[480px] lg:h-[540px] min-w-[580px] sm:min-w-full">
+          <canvas id="chartFormkurve"></canvas>
+        </div>
       </div>
     </div>
 
@@ -221,13 +250,94 @@
       </div>
     </div>
 
+    <!-- 6. SEKTION: SAISON-ENTWICKLUNG & MEHRJAHRES-TREND (AM ENDE DER SEITE) -->
+    <div id="sectionSeasonEvolution" class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#A499A7]/50 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📈</span>
+            <h2 class="text-base font-black text-slate-900">Saison-Entwicklung & Mehrjahres-Trend</h2>
+            <span id="seasonEvolutionBadge" class="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/30">Alle Saisons</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5">Entwicklung von Saisonschnitt, Gesamtpins und Spielern im direkten Saisonvergleich</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Umschalter Trend-Metrik (Schnitt vs Pins) -->
+          <div class="flex items-center bg-[#E4D7CF]/40 border border-[#A499A7] rounded-xl p-1 text-xs font-bold">
+            <button id="trendMetricAvgBtn" type="button" onclick="setTrendMetric('avg')" class="px-2.5 py-1 rounded-lg bg-[#23548F] text-white shadow-sm transition">Schnitt (Pins)</button>
+            <button id="trendMetricPinsBtn" type="button" onclick="setTrendMetric('pins')" class="px-2.5 py-1 rounded-lg text-slate-700 hover:text-slate-900 transition">Gesamtpins</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagramm: Saison-Verlauf (Balken & Linien) -->
+      <div class="h-64 sm:h-72 w-full pt-1">
+        <canvas id="chartSeasonEvolution"></canvas>
+      </div>
+
+      <!-- Spieler-Entwicklungstabelle -->
+      <div class="space-y-2 pt-2 border-t border-[#A499A7]/40">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Spieler-Entwicklung im Saisonvergleich:</span>
+          <span class="text-[11px] text-slate-500 font-medium">Trend = Differenz zur Vorsaison</span>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-[#A499A7]">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#E4D7CF]/60 text-slate-700 uppercase text-[10px] tracking-wider border-b border-[#A499A7]">
+              <tr id="evolutionTableHeaderRow">
+                <th class="py-2.5 px-3">Spieler</th>
+                <th class="py-2.5 px-2 text-center text-[#23548F]">Allzeit-Schnitt</th>
+                <th class="py-2.5 px-2 text-center text-[#70C04D]">High Game</th>
+                <th class="py-2.5 px-2 text-center">Trend 📈</th>
+              </tr>
+            </thead>
+            <tbody id="evolutionTableBody" class="divide-y divide-[#A499A7]/40">
+              <!-- Dynamisch gerendert per JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- MODAL: MEHRERE SAISONS VERGLEICHEN / AUSWÄHLEN -->
+  <div id="modalSelectSeasons" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📈</span>
+          <h3 class="font-extrabold text-base text-slate-900">Saisons vergleichen</h3>
+        </div>
+        <button onclick="closeModal('modalSelectSeasons')" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-600">
+        Wähle die Spielzeiten aus, deren Entwicklung du im Diagramm und in der Tabelle vergleichen möchtest:
+      </p>
+
+      <div id="multiSeasonCheckboxes" class="space-y-2 max-h-60 overflow-y-auto p-2 bg-[#E4D7CF]/20 rounded-xl border border-[#A499A7]">
+        <!-- Dynamisch erzeugt -->
+      </div>
+
+      <div class="flex justify-between items-center gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button type="button" onclick="selectAllSeasonsForCompare()" class="text-xs font-bold text-[#23548F] hover:underline">Alle wählen</button>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeModal('modalSelectSeasons')" class="px-3 py-1.5 rounded-lg bg-white border border-[#A499A7] text-xs font-bold text-slate-700">Abbrechen</button>
+          <button type="button" onclick="applyMultiSeasonCompare()" class="px-4 py-1.5 rounded-lg bg-[#23548F] hover:bg-[#1a4270] text-white font-extrabold text-xs shadow-md">Vergleichen</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- JavaScript Logik & Chart.js Initialisierung -->
   <script>
     let appState = null;
     let activeTeamId = 'team_pb2';
     let activeSeasonId = 'season_2026_2027';
+    let selectedSeasonIds = ['season_2026_2027'];
+    let trendMetric = 'avg';
     let isClubWide = false;
     let currentTeam = null;
     let currentSeason = null;
@@ -239,7 +349,18 @@
     let chartFormkurveInstance = null;
     let chartCentersInstance = null;
     let chartTalliesInstance = null;
+    let chartSeasonEvolutionInstance = null;
     let selectedPlayerProfileId = null;
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
 
     // Palette Farben:
     // Navy #23548F, Green #70C04D, Gold #E8C543, Slate Indigo #43447D, Coral #ED755D, Red #DE4341
@@ -260,8 +381,17 @@
       const teamParam = params.get('team');
       const seasonParam = params.get('season');
 
-      activeSeasonId = seasonParam || localStorage.getItem('paderbowler_active_season') || appState.currentSeasonId;
-      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || appState.seasons[0];
+      const storedSeason = localStorage.getItem('paderbowler_active_season');
+      activeSeasonId = seasonParam || (storedSeason === 'all' ? 'all' : (storedSeason || appState.currentSeasonId));
+
+      if (activeSeasonId === 'all') {
+        selectedSeasonIds = appState.seasons.map(s => s.id);
+        currentSeason = { id: 'all', name: 'Alle Saisons' };
+      } else {
+        currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || appState.seasons[0];
+        activeSeasonId = currentSeason ? currentSeason.id : 'season_2026_2027';
+        selectedSeasonIds = [activeSeasonId];
+      }
 
       if (teamParam === 'all' || (!teamParam && localStorage.getItem('paderbowler_active_team') === 'all')) {
         isClubWide = true;
@@ -276,14 +406,109 @@
         }
       }
 
+      populateSeasonDropdown();
       loadDataAndRenderAll();
+    }
+
+    function populateSeasonDropdown() {
+      const headerSelect = document.getElementById('seasonHeaderSelect');
+      const mainSelect = document.getElementById('seasonSelect');
+
+      const optionsHtml = `
+        <option value="all" ${activeSeasonId === 'all' ? 'selected' : ''}>Alle Saisons &bull; Entwicklung 📈</option>
+        <optgroup label="Einzelne Saisons">
+          ${(appState.seasons || []).map(s => `
+            <option value="${s.id}" ${s.id === activeSeasonId ? 'selected' : ''}>Saison ${s.name} ${s.isCurrent ? '(Aktuell)' : ''}</option>
+          `).join('')}
+        </optgroup>
+      `;
+
+      if (headerSelect) headerSelect.innerHTML = optionsHtml;
+      if (mainSelect) mainSelect.innerHTML = optionsHtml;
+    }
+
+    function switchSeasonScope(newSeason) {
+      activeSeasonId = newSeason;
+      localStorage.setItem('paderbowler_active_season', newSeason);
+
+      if (newSeason === 'all') {
+        currentSeason = { id: 'all', name: 'Alle Saisons' };
+        selectedSeasonIds = (appState.seasons || []).map(s => s.id);
+      } else {
+        currentSeason = appState.seasons.find(s => s.id === newSeason) || appState.seasons[0];
+        selectedSeasonIds = [newSeason];
+      }
+
+      loadDataAndRenderAll();
+
+      if (window.history.pushState) {
+        const newUrl = `dashboard-charts.html?team=${activeTeamId}&season=${activeSeasonId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+
+    function toggleMultiSeasonTrendModal() {
+      const container = document.getElementById('multiSeasonCheckboxes');
+      if (container) {
+        container.innerHTML = (appState.seasons || []).map(s => {
+          const isChecked = (activeSeasonId === 'all' || selectedSeasonIds.includes(s.id));
+          return `
+            <label class="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-[#A499A7] hover:border-[#23548F] cursor-pointer text-xs font-bold text-slate-800">
+              <input type="checkbox" value="${s.id}" class="season-compare-cb w-4 h-4 text-[#23548F] rounded focus:ring-0 cursor-pointer" ${isChecked ? 'checked' : ''}>
+              <span>Saison ${s.name} ${s.isCurrent ? '(Aktuell)' : ''}</span>
+            </label>
+          `;
+        }).join('');
+      }
+      openModal('modalSelectSeasons');
+    }
+
+    function selectAllSeasonsForCompare() {
+      const cbs = document.querySelectorAll('.season-compare-cb');
+      cbs.forEach(cb => { cb.checked = true; });
+    }
+
+    function applyMultiSeasonCompare() {
+      const cbs = document.querySelectorAll('.season-compare-cb:checked');
+      const chosen = Array.from(cbs).map(cb => cb.value);
+
+      if (chosen.length === 0) {
+        alert('Bitte wähle mindestens eine Saison aus.');
+        return;
+      }
+
+      selectedSeasonIds = chosen;
+      if (chosen.length === appState.seasons.length || chosen.length > 1) {
+        activeSeasonId = 'all';
+      } else {
+        activeSeasonId = chosen[0];
+      }
+
+      localStorage.setItem('paderbowler_active_season', activeSeasonId);
+      closeModal('modalSelectSeasons');
+      populateSeasonDropdown();
+      loadDataAndRenderAll();
+    }
+
+    function setTrendMetric(metric) {
+      trendMetric = metric;
+      const avgBtn = document.getElementById('trendMetricAvgBtn');
+      const pinsBtn = document.getElementById('trendMetricPinsBtn');
+      if (metric === 'avg') {
+        if (avgBtn) avgBtn.className = "px-2.5 py-1 rounded-lg bg-[#23548F] text-white shadow-sm transition";
+        if (pinsBtn) pinsBtn.className = "px-2.5 py-1 rounded-lg text-slate-700 hover:text-slate-900 transition";
+      } else {
+        if (avgBtn) avgBtn.className = "px-2.5 py-1 rounded-lg text-slate-700 hover:text-slate-900 transition";
+        if (pinsBtn) pinsBtn.className = "px-2.5 py-1 rounded-lg bg-[#23548F] text-white shadow-sm transition";
+      }
+      renderSeasonEvolutionSection();
     }
 
     function loadDataAndRenderAll() {
       // 1. Spieler-Statistiken laden
       let rawPlayers = [];
       if (isClubWide) {
-        rawPlayers = calculateClubWidePlayerStats(activeSeasonId, appState);
+        rawPlayers = calculateClubWidePlayerStats(selectedSeasonIds.length > 0 ? selectedSeasonIds : 'all', appState);
       } else {
         rawPlayers = calculatePlayerStatsForTeam(activeTeamId, appState);
       }
@@ -300,7 +525,10 @@
       // 5. KPIs aktualisieren
       updateKpis();
 
-      // 6. Diagramme zeichnen
+      // 6. Saison-Entwicklungs-Sektion (Trend) rendern
+      renderSeasonEvolutionSection();
+
+      // 7. Diagramme zeichnen
       renderFormkurvenChart();
       renderCentersChart();
       renderCenterTable();
@@ -308,7 +536,7 @@
       const metricSel = document.getElementById('metricSelector');
       updateTallyChart(metricSel ? metricSel.value : 'bier');
 
-      // 7. Spieler-Profil Dropdown befüllen & rendern
+      // 8. Spieler-Profil Dropdown befüllen & rendern
       populatePlayerProfileDropdown();
     }
 
@@ -317,7 +545,11 @@
 
       let teamsToInspect = [];
       if (isClubWide) {
-        teamsToInspect = appState.teams.filter(t => t.seasonId === activeSeasonId);
+        if (activeSeasonId === 'all') {
+          teamsToInspect = appState.teams;
+        } else {
+          teamsToInspect = appState.teams.filter(t => selectedSeasonIds.includes(t.seasonId));
+        }
       } else {
         if (currentTeam) teamsToInspect = [currentTeam];
       }
@@ -416,7 +648,7 @@
     function computeCenterStats() {
       const centerMap = {};
       let teamsToInspect = isClubWide 
-        ? appState.teams.filter(t => t.seasonId === activeSeasonId)
+        ? (activeSeasonId === 'all' ? appState.teams : appState.teams.filter(t => selectedSeasonIds.includes(t.seasonId)))
         : (currentTeam ? [currentTeam] : []);
 
       teamsToInspect.forEach(team => {
@@ -558,7 +790,7 @@
       const kpiBierVal = document.getElementById('kpi-bier-val');
       if (kpiBierVal) kpiBierVal.innerText = `${totalBier}`;
       const kpiBierSub = document.getElementById('kpi-bier-sub');
-      if (kpiBierSub) kpiBierSub.innerText = maxBier > 0 ? `${maxBier} von ${maxBierPlayerName}` : "Noch keine Bierframes";
+      if (kpiBierSub) kpiBierSub.innerText = maxBier > 0 ? `Rekord: ${maxBier} durch ${maxBierPlayerName}` : "Noch keine Bierframes";
     }
 
     function updateHeaderUI() {
@@ -569,29 +801,47 @@
       const scopeDesc = document.getElementById('scopeDescriptionText');
       const select = document.getElementById('teamHeaderSelect');
 
+      // Sync season selectors
+      const mainSeasonSelect = document.getElementById('seasonSelect');
+      const headerSeasonSelect = document.getElementById('seasonHeaderSelect');
+      if (mainSeasonSelect && mainSeasonSelect.value !== activeSeasonId) mainSeasonSelect.value = activeSeasonId;
+      if (headerSeasonSelect && headerSeasonSelect.value !== activeSeasonId) headerSeasonSelect.value = activeSeasonId;
+
       if (select) {
+        const teamsForSelect = (activeSeasonId === 'all')
+          ? appState.teams
+          : appState.teams.filter(t => t.seasonId === activeSeasonId);
+
         select.innerHTML = `
           <option value="all" ${isClubWide ? 'selected' : ''}>Vereinsstatistik</option>
           <optgroup label="Einzelne Mannschaften">
-            ${appState.teams.filter(t => t.seasonId === activeSeasonId).map(t => `
+            ${teamsForSelect.map(t => `
               <option value="${t.id}" ${(!isClubWide && t.id === activeTeamId) ? 'selected' : ''}>${t.name} (${t.league})</option>
             `).join('')}
           </optgroup>
         `;
       }
 
+      const isMulti = (activeSeasonId === 'all' || selectedSeasonIds.length > 1);
+
       if (isClubWide) {
-        badge.innerText = "Vereinsstatistik";
+        badge.innerText = isMulti ? "Vereinsstatistik (Alle Saisons)" : "Vereinsstatistik";
         badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-[#43447D] text-white font-bold border border-[#43447D]";
-        subtitle.innerText = `Saison ${currentSeason?.name || '2026/2027'} • Gesamt-Statistik aller ${playersData.length} Spieler • Alle Mannschaften`;
-        if (scopeDesc) scopeDesc.innerText = "Diagramme & Auswertungen kombiniert über alle Mannschaften des Vereins.";
+        subtitle.innerText = isMulti
+          ? `Alle Saisons • Mehrjahres-Auswertung & Entwicklung 📈 • ${appState.seasons.length} Spielzeiten • ${playersData.length} Spieler`
+          : `Saison ${currentSeason?.name || '2026/2027'} • Gesamt-Statistik aller ${playersData.length} Spieler • Alle Mannschaften`;
+        if (scopeDesc) scopeDesc.innerText = isMulti
+          ? "Diagramme, Mehrjahres-Entwicklung und Kennzahlen über alle bisherigen Saisons des Vereins."
+          : "Diagramme & Auswertungen kombiniert über alle Mannschaften des Vereins.";
 
         if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#43447D] text-white border-2 border-[#43447D] shadow";
         if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
       } else {
         badge.innerText = currentTeam ? currentTeam.name : "Pader-Bowler-06 2";
         badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold";
-        subtitle.innerText = `Saison ${currentSeason?.name || '2026/2027'} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Statistik`;
+        subtitle.innerText = isMulti
+          ? `Alle Saisons • Mehrjahres-Entwicklung 📈 • ${currentTeam?.name || ''}`
+          : `Saison ${currentSeason?.name || '2026/2027'} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Statistik`;
         if (scopeDesc) scopeDesc.innerText = `Diagramme & Kennzahlen ausschließlich für ${currentTeam?.name || ''}.`;
 
         if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow";
@@ -636,7 +886,169 @@
       }
     }
 
-    // 1. Formkurven Chart
+    // 0. Saison-Entwicklung & Mehrjahres-Trend
+    function renderSeasonEvolutionSection() {
+      const section = document.getElementById('sectionSeasonEvolution');
+      if (!section) return;
+
+      const seasonsToCompare = (activeSeasonId === 'all' || selectedSeasonIds.length > 1)
+        ? selectedSeasonIds
+        : (appState.seasons || []).map(s => s.id);
+
+      const evolution = calculateMultiSeasonEvolution(seasonsToCompare, appState);
+      if (!evolution || evolution.seasons.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+
+      const badge = document.getElementById('seasonEvolutionBadge');
+      if (badge) {
+        if (activeSeasonId === 'all') {
+          badge.textContent = `${evolution.seasons.length} Saisons verglichen`;
+        } else {
+          badge.textContent = `Saison ${currentSeason?.name || ''} vs. Historie`;
+        }
+      }
+
+      renderSeasonEvolutionChart(evolution);
+      renderSeasonEvolutionTable(evolution);
+    }
+
+    function renderSeasonEvolutionChart(evolution) {
+      const canvas = document.getElementById('chartSeasonEvolution');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (chartSeasonEvolutionInstance) chartSeasonEvolutionInstance.destroy();
+
+      const labels = evolution.seasons.map(s => `Saison ${s.seasonName}`);
+
+      let datasets = [];
+      if (trendMetric === 'avg') {
+        // Vereinsschnitt über die Saisons
+        datasets.push({
+          type: 'line',
+          label: isClubWide ? 'Vereins-Schnitt' : 'Team-Schnitt',
+          data: evolution.seasons.map(s => s.average),
+          borderColor: '#23548F',
+          backgroundColor: 'rgba(35, 84, 143, 0.12)',
+          fill: true,
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 9,
+          tension: 0.2
+        });
+
+        // Top Spieler über die Saisons
+        const topPlayers = evolution.players
+          .filter(p => p.careerGames >= 2)
+          .sort((a, b) => b.careerAvg - a.careerAvg)
+          .slice(0, 6);
+
+        topPlayers.forEach((p, idx) => {
+          const color = playerColors[p.id] || defaultColorPalette[idx % defaultColorPalette.length];
+          datasets.push({
+            type: 'line',
+            label: p.displayName,
+            data: p.history.map(h => h.avg),
+            borderColor: color,
+            backgroundColor: color,
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 4,
+            tension: 0.2,
+            spanGaps: true
+          });
+        });
+      } else {
+        // Pins-Verlauf je Saison
+        datasets.push({
+          type: 'bar',
+          label: 'Gesamtpins der Saison',
+          data: evolution.seasons.map(s => s.totalPins),
+          backgroundColor: '#70C04D',
+          borderRadius: 8
+        });
+      }
+
+      chartSeasonEvolutionInstance = new Chart(ctx, {
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#1e293b', font: { size: 11, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw ? (trendMetric === 'avg' ? ctx.raw + ' Pins Schnitt' : ctx.raw.toLocaleString('de-DE') + ' Pins') : 'Keine Spiele'}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              min: trendMetric === 'avg' ? 140 : 0,
+              max: trendMetric === 'avg' ? 220 : undefined,
+              grid: { color: 'rgba(164, 153, 167, 0.25)' },
+              ticks: { color: '#475569', font: { weight: 'bold' } }
+            },
+            x: {
+              grid: { color: 'rgba(164, 153, 167, 0.15)' },
+              ticks: { color: '#475569', font: { size: 11, weight: 'bold' } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderSeasonEvolutionTable(evolution) {
+      const headerRow = document.getElementById('evolutionTableHeaderRow');
+      const tbody = document.getElementById('evolutionTableBody');
+      if (!headerRow || !tbody) return;
+
+      headerRow.innerHTML = `
+        <th class="py-2.5 px-3">Spieler</th>
+        ${evolution.seasons.map(s => `<th class="py-2.5 px-2 text-center text-slate-800">${s.seasonName}</th>`).join('')}
+        <th class="py-2.5 px-2 text-center text-[#23548F]">Allzeit-Schnitt</th>
+        <th class="py-2.5 px-2 text-center text-[#70C04D]">High Game</th>
+        <th class="py-2.5 px-2 text-center">Trend 📈</th>
+      `;
+
+      if (evolution.players.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${evolution.seasons.length + 4}" class="py-4 text-center text-slate-600 font-bold">Keine Spieler-Statistiken vorhanden.</td></tr>`;
+        return;
+      }
+
+      const sortedPlayers = [...evolution.players].sort((a, b) => b.careerAvg - a.careerAvg);
+
+      tbody.innerHTML = sortedPlayers.map(p => {
+        let trendBadge = `<span class="text-slate-400 font-semibold">—</span>`;
+        if (p.trend > 0) {
+          trendBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[11px]">+${p.trend.toFixed(2)} ↗️</span>`;
+        } else if (p.trend < 0) {
+          trendBadge = `<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black text-[11px]">${p.trend.toFixed(2)} ↘️</span>`;
+        } else if (p.trend === 0 && p.history.filter(h => h.games > 0).length >= 2) {
+          trendBadge = `<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-black text-[11px]">0.00 ➡️</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-[#E4D7CF]/30 transition">
+            <td class="py-2 px-3 font-extrabold text-slate-900">${p.displayName}</td>
+            ${p.history.map(h => `
+              <td class="py-2 px-2 text-center font-bold ${h.avg ? 'text-slate-800' : 'text-slate-400'}">
+                ${h.avg ? `${h.avg.toFixed(2)} <span class="text-[10px] text-slate-500 font-normal block">(${h.games} Sp.)</span>` : '—'}
+              </td>
+            `).join('')}
+            <td class="py-2 px-2 text-center font-black text-[#23548F]">${p.careerAvg.toFixed(2)}</td>
+            <td class="py-2 px-2 text-center font-black text-[#70C04D]">${p.careerHigh > 0 ? p.careerHigh : '—'}</td>
+            <td class="py-2 px-2 text-center">${trendBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 1. Formkurven Chart (Große Detailansicht mit weiten Punkteabständen)
     function renderFormkurvenChart() {
       const canvas = document.getElementById('chartFormkurve');
       if (!canvas) return;
@@ -646,26 +1058,39 @@
       const labels = matchdaysData.map(m => `ST ${m.number} (${m.center})`);
       const teamAvgLabel = isClubWide ? 'Vereins-Schnitt' : 'Team-Schnitt';
 
+      // Dynamische Min/Max-Berechnung für optimale Spreizung der Y-Achse
+      let allValues = matchdaysData.map(m => m.avg).filter(v => v > 0);
+      playersData.forEach(p => {
+        if (p.curve) {
+          p.curve.forEach(v => { if (v && v > 0) allValues.push(v); });
+        }
+      });
+      const minVal = allValues.length > 0 ? Math.max(100, Math.floor((Math.min(...allValues) - 15) / 10) * 10) : 120;
+      const maxVal = allValues.length > 0 ? Math.min(270, Math.ceil((Math.max(...allValues) + 15) / 10) * 10) : 230;
+
       const datasets = [
         {
           label: teamAvgLabel,
           data: matchdaysData.map(m => m.avg),
           borderColor: '#0f172a',
           backgroundColor: '#0f172a',
-          borderWidth: 3,
+          borderWidth: 3.5,
           tension: 0.25,
-          pointRadius: 5,
-          pointHoverRadius: 8
+          pointRadius: 6.5,
+          pointHoverRadius: 9.5,
+          pointHitRadius: 16
         },
         ...playersData.map(p => ({
           label: p.displayName,
           data: p.curve,
           borderColor: p.color,
           backgroundColor: p.color,
-          borderWidth: 2,
-          borderDash: [4, 4],
+          borderWidth: 2.2,
+          borderDash: [5, 4],
           tension: 0.2,
-          pointRadius: 4,
+          pointRadius: 5,
+          pointHoverRadius: 8.5,
+          pointHitRadius: 14,
           spanGaps: true
         }))
       ];
@@ -678,24 +1103,34 @@
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              labels: { color: '#1e293b', font: { size: 11, weight: 'bold' } }
+              position: 'top',
+              labels: {
+                color: '#1e293b',
+                font: { size: 12, weight: 'bold' },
+                padding: 14,
+                boxWidth: 20,
+                usePointStyle: true
+              }
             },
             tooltip: {
+              padding: 10,
+              titleFont: { size: 13, weight: 'bold' },
+              bodyFont: { size: 12 },
               callbacks: {
-                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} Pins`
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} Pins`
               }
             }
           },
           scales: {
             y: {
-              min: 120,
-              max: 230,
+              min: minVal,
+              max: maxVal,
               grid: { color: 'rgba(164, 153, 167, 0.25)' },
-              ticks: { color: '#475569', font: { weight: 'bold' }, stepSize: 15 }
+              ticks: { color: '#475569', font: { weight: 'bold', size: 11 }, stepSize: 10 }
             },
             x: {
               grid: { color: 'rgba(164, 153, 167, 0.15)' },
-              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } }
+              ticks: { color: '#334155', font: { size: 11, weight: 'bold' }, padding: 8 }
             }
           }
         }

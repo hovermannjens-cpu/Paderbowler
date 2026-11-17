@@ -58,12 +58,21 @@
       <!-- Cloud Sync Status Pill -->
       <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
 
-      <!-- Schneller Team- & Vereins-Wechsler -->
-      <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1 ml-2">
-        <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
-        <select id="teamHeaderSelect" onchange="switchTeamScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
-          <option value="all">Vereinsstatistik</option>
-        </select>
+      <!-- Schneller Saison- & Team-Wechsler -->
+      <div class="hidden sm:flex items-center gap-2">
+        <div class="flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1">
+          <span class="text-xs text-slate-700 mr-1.5 font-bold">📅 Saison:</span>
+          <select id="seasonHeaderSelect" onchange="switchSeasonScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+            <option value="season_2026_2027">2026/2027</option>
+            <option value="all">Alle Saisons (Ewige Bestenliste 🏆)</option>
+          </select>
+        </div>
+        <div class="hidden md:flex items-center bg-white border-2 border-[#8e8292] rounded-xl px-2.5 py-1">
+          <span class="text-xs text-slate-700 mr-2 font-bold">Ansicht:</span>
+          <select id="teamHeaderSelect" onchange="switchTeamScope(this.value)" class="bg-transparent text-xs font-black text-[#23548F] focus:outline-none cursor-pointer">
+            <option value="all">Vereinsstatistik</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -89,7 +98,7 @@
 
   <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- Modus-Umschalter: Mannschaft vs. Vereinsstatistik -->
+    <!-- Modus- & Saison-Umschalter -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 shadow-sm">
       <div class="flex flex-wrap items-center gap-2">
         <button id="scope-team-btn" onclick="setScope('team')" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow-sm">
@@ -100,8 +109,15 @@
         </button>
       </div>
 
-      <div class="text-xs text-slate-600 font-medium" id="scopeDescriptionText">
-        Statistiken und Awards ausschließlich für dieses Team.
+      <!-- Saison-Auswahl (Aktuell vs Alle Saisons) -->
+      <div class="flex items-center gap-1.5 bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-3 py-1.5 shadow-inner">
+        <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
+          <span>📅</span> <span>Saison:</span>
+        </span>
+        <select id="seasonSelect" onchange="switchSeasonScope(this.value)" class="bg-white border border-[#A499A7] rounded-lg px-2.5 py-1 text-xs font-black text-[#23548F] focus:outline-none focus:border-[#23548F] cursor-pointer shadow-sm">
+          <option value="season_2026_2027">Saison 2026/2027</option>
+          <option value="all">Alle Saisons (Ewige Bestenliste 🏆)</option>
+        </select>
       </div>
     </div>
 
@@ -338,6 +354,41 @@
     let isClubWide = false;
     let playersData = [];
 
+    function populateSeasonDropdown() {
+      const headerSelect = document.getElementById('seasonHeaderSelect');
+      const mainSelect = document.getElementById('seasonSelect');
+
+      const optionsHtml = `
+        <option value="all" ${activeSeasonId === 'all' ? 'selected' : ''}>Alle Saisons (Ewige Bestenliste 🏆)</option>
+        <optgroup label="Einzelne Saisons">
+          ${(appState.seasons || []).map(s => `
+            <option value="${s.id}" ${s.id === activeSeasonId ? 'selected' : ''}>Saison ${s.name} ${s.isCurrent ? '(Aktuell)' : ''}</option>
+          `).join('')}
+        </optgroup>
+      `;
+
+      if (headerSelect) headerSelect.innerHTML = optionsHtml;
+      if (mainSelect) mainSelect.innerHTML = optionsHtml;
+    }
+
+    function switchSeasonScope(newSeason) {
+      activeSeasonId = newSeason;
+      localStorage.setItem('paderbowler_active_season', newSeason);
+
+      if (newSeason === 'all') {
+        currentSeason = { id: 'all', name: 'Alle Saisons (Ewige Bestenliste)' };
+      } else {
+        currentSeason = appState.seasons.find(s => s.id === newSeason) || appState.seasons[0];
+      }
+
+      loadAwardsData();
+
+      if (window.history.pushState) {
+        const newUrl = `awards-rankings.html?team=${activeTeamId}&season=${activeSeasonId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+
     function loadAwardsData() {
       appState = getAppState();
 
@@ -345,12 +396,19 @@
       const paramTeam = params.get('team');
       const paramSeason = params.get('season');
 
-      if (paramSeason && appState.seasons.some(s => s.id === paramSeason)) {
-        activeSeasonId = paramSeason;
+      const storedSeason = localStorage.getItem('paderbowler_active_season');
+      const targetSeason = paramSeason || (storedSeason === 'all' ? 'all' : (storedSeason || appState.currentSeasonId));
+
+      if (targetSeason === 'all') {
+        activeSeasonId = 'all';
+        currentSeason = { id: 'all', name: 'Alle Saisons' };
+      } else if (appState.seasons.some(s => s.id === targetSeason)) {
+        activeSeasonId = targetSeason;
+        currentSeason = appState.seasons.find(s => s.id === activeSeasonId);
       } else {
         activeSeasonId = appState.currentSeasonId || appState.seasons[0].id;
+        currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || { id: activeSeasonId, name: "2026/2027" };
       }
-      currentSeason = appState.seasons.find(s => s.id === activeSeasonId) || { id: activeSeasonId, name: "2026/2027" };
 
       if (paramTeam === 'all') {
         isClubWide = true;
@@ -387,7 +445,10 @@
         displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim()
       }));
 
+      populateSeasonDropdown();
       updateHeaderUI();
+      renderAwards();
+      renderLeaderboard();
     }
 
     function updateHeaderUI() {
@@ -398,29 +459,47 @@
       const scopeDesc = document.getElementById('scopeDescriptionText');
       const select = document.getElementById('teamHeaderSelect');
 
+      // Sync season selectors
+      const mainSeasonSelect = document.getElementById('seasonSelect');
+      const headerSeasonSelect = document.getElementById('seasonHeaderSelect');
+      if (mainSeasonSelect && mainSeasonSelect.value !== activeSeasonId) mainSeasonSelect.value = activeSeasonId;
+      if (headerSeasonSelect && headerSeasonSelect.value !== activeSeasonId) headerSeasonSelect.value = activeSeasonId;
+
       if (select) {
+        const teamsForSelect = (activeSeasonId === 'all')
+          ? appState.teams
+          : appState.teams.filter(t => t.seasonId === activeSeasonId);
+
         select.innerHTML = `
           <option value="all" ${isClubWide ? 'selected' : ''}>Vereinsstatistik</option>
           <optgroup label="Einzelne Mannschaften">
-            ${appState.teams.filter(t => t.seasonId === activeSeasonId).map(t => `
+            ${teamsForSelect.map(t => `
               <option value="${t.id}" ${(!isClubWide && t.id === activeTeamId) ? 'selected' : ''}>${t.name} (${t.league})</option>
             `).join('')}
           </optgroup>
         `;
       }
 
+      const isAllSeasons = (activeSeasonId === 'all');
+
       if (isClubWide) {
-        badge.innerText = "Vereinsstatistik";
+        badge.innerText = isAllSeasons ? "Ewige Vereins-Bestenliste" : "Vereinsstatistik";
         badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-[#43447D] text-white font-bold border border-[#43447D]";
-        subtitle.innerText = `Saison ${currentSeason.name} • Gesamte Vereins-Rangliste aller ${playersData.length} Spieler • Alle Mannschaften`;
-        if (scopeDesc) scopeDesc.innerText = "Zeigt alle Einsätze, Pins und Strichlisten jedes Spielers über alle Mannschaften des Vereins hinweg.";
+        subtitle.innerText = isAllSeasons
+          ? `Alle Saisons • Ewige Bestenliste & Allzeit-Awards aller ${playersData.length} Spieler • Alle Mannschaften`
+          : `Saison ${currentSeason?.name || '2026/2027'} • Gesamte Vereins-Rangliste aller ${playersData.length} Spieler • Alle Mannschaften`;
+        if (scopeDesc) scopeDesc.innerText = isAllSeasons
+          ? "Ewige Bestenliste: Zeigt alle Einsätze, Pins und Strichlisten jedes Spielers über alle Saisons des Vereins hinweg."
+          : "Zeigt alle Einsätze, Pins und Strichlisten jedes Spielers über alle Mannschaften des Vereins hinweg.";
 
         if (scopeClubBtn) scopeClubBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#43447D] text-white border-2 border-[#43447D] shadow";
         if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 border-2 border-[#A499A7] transition bg-white";
       } else {
         badge.innerText = currentTeam ? currentTeam.name : "Pader-Bowler-06 2";
         badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-white/80 text-[#23548F] border border-[#23548F]/40 font-bold";
-        subtitle.innerText = `Saison ${currentSeason.name} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Wertung (${currentTeam?.matchdaysCount || 5} Spieltage)`;
+        subtitle.innerText = isAllSeasons
+          ? `Alle Saisons • Ewige Team-Rangliste • ${currentTeam?.name || ''}`
+          : `Saison ${currentSeason?.name || '2026/2027'} • ${currentTeam?.league || 'Landesliga 1'} • Mannschafts-Wertung (${currentTeam?.matchdaysCount || 5} Spieltage)`;
         if (scopeDesc) scopeDesc.innerText = `Statistiken und Awards ausschließlich für ${currentTeam?.name || ''}.`;
 
         if (scopeTeamBtn) scopeTeamBtn.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-[#23548F] text-white border-2 border-[#23548F] shadow";

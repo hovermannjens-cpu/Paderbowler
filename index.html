@@ -106,6 +106,9 @@
         <button onclick="openModal('modalInstallApp')" class="px-3.5 py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-sm">
           <span>App auf Handy</span>
         </button>
+        <button onclick="openModal('modalBackupData')" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm" title="Daten sichern oder wiederherstellen">
+          <span>💾 Backup</span>
+        </button>
         <button onclick="openDeleteSeasonModal()" class="px-3 py-2 rounded-xl bg-white hover:bg-red-50 text-xs font-bold text-[#DE4341] border-2 border-[#DE4341]/40 hover:border-[#DE4341] touch-btn shadow-sm" title="Aktuell ausgewählte Saison löschen">
           <span>🗑️ Saison löschen</span>
         </button>
@@ -682,6 +685,48 @@
 
       <div class="flex justify-end pt-2 border-t border-[#A499A7]/50">
         <button onclick="closeModal('modalInstallApp')" class="px-5 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white text-xs font-black border-2 border-[#23548F] shadow-sm touch-btn">Verstanden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Daten-Backup & Wiederherstellung -->
+  <div id="modalBackupData" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#23548F] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#23548F]/30 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💾</span>
+          <h3 class="font-bold text-base text-[#23548F]">Daten-Sicherung (Backup)</h3>
+        </div>
+        <button onclick="closeModal('modalBackupData')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <p class="text-slate-600 leading-relaxed">
+          Hier kannst du alle auf diesem Gerät eingegebenen Mannschaften, Spieltage, Pins und Strichlisten mit einem Klick als Sicherungsdatei herunterladen oder auf ein anderes Gerät übertragen.
+        </p>
+
+        <!-- 1. Backup herunterladen -->
+        <div class="bg-[#E4D7CF]/30 border-2 border-[#A499A7] rounded-xl p-3.5 space-y-2">
+          <span class="font-black text-slate-900 block">1. Aktuelle Daten als Datei sichern</span>
+          <p class="text-slate-600">Erstellt eine vollständige Sicherungsdatei (.json) aller bisher erfassten Daten.</p>
+          <button type="button" onclick="downloadBackupFile()" class="w-full py-2.5 px-4 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white font-black text-xs border-2 border-[#23548F] shadow-sm touch-btn flex items-center justify-center gap-2">
+            <span>💾 Backup-Datei herunterladen</span>
+          </button>
+        </div>
+
+        <!-- 2. Backup wiederherstellen -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-xl p-3.5 space-y-2">
+          <span class="font-black text-slate-900 block">2. Gesichertes Backup wiederherstellen</span>
+          <p class="text-slate-600">Lade eine zuvor gespeicherte Sicherungsdatei (.json), um alle Daten auf diesem Gerät einzuspielen.</p>
+          <input type="file" id="backupFileInput" accept=".json,application/json" onchange="uploadBackupFile(event)" class="hidden">
+          <button type="button" onclick="document.getElementById('backupFileInput').click()" class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border-2 border-[#A499A7] shadow-sm touch-btn flex items-center justify-center gap-2">
+            <span>📂 Backup-Datei auswählen & einspielen</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalBackupData')" class="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold touch-btn">Schließen</button>
       </div>
     </div>
   </div>
@@ -2170,6 +2215,46 @@
     }
 
     // 6. MODAL UTILS
+    // Backup Funktionen: Export & Import
+    function downloadBackupFile() {
+      const jsonStr = (typeof exportAllAppDataAsJson === 'function')
+        ? exportAllAppDataAsJson()
+        : JSON.stringify({ hub: appState }, null, 2);
+
+      const today = new Date().toISOString().split('T')[0];
+      const filename = `paderbowler-stats-backup-${today}.json`;
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function uploadBackupFile(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const content = evt.target.result;
+        const success = (typeof importAllAppDataFromJson === 'function')
+          ? importAllAppDataFromJson(content)
+          : false;
+
+        if (success) {
+          alert("Backup erfolgreich wiederhergestellt! Die Seite wird nun neu geladen.");
+          window.location.reload();
+        } else {
+          alert("Fehler beim Einlesen der Backup-Datei. Bitte prüfe das Dateiformat.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function openModal(id) {
       if (id === 'modalNewTeam') {
         resetNewTeamModal();

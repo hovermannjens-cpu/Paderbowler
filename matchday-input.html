@@ -135,14 +135,17 @@
     <div id="windowMatchday" class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
         
-        <!-- Spieltag Dropdown -->
-        <div class="flex items-center gap-2.5">
+        <!-- Spieltag Dropdown & Aktionen -->
+        <div class="flex items-center gap-2">
           <span class="text-xs font-black uppercase text-slate-700 tracking-wider">Spieltag</span>
-          <select id="selectedMatchday" onchange="changeMatchday(this.value)" class="bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-4 py-2.5 text-sm sm:text-base font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+          <select id="selectedMatchday" onchange="changeMatchday(this.value)" class="bg-[#E4D7CF]/40 border-2 border-[#A499A7] rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-base font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
             <!-- Dynamisch befüllt -->
           </select>
-          <button onclick="openModal('modalMatchday')" class="w-11 h-11 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white border-2 border-[#23548F] font-black text-xl touch-btn flex items-center justify-center shadow-sm" title="Neuen Spieltag anlegen">
+          <button onclick="openModal('modalMatchday')" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white border-2 border-[#23548F] font-black text-xl touch-btn flex items-center justify-center shadow-sm" title="Neuen Spieltag anlegen">
             +
+          </button>
+          <button type="button" id="btnDeleteMatchday" onclick="openDeleteMatchdayModal()" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white hover:bg-red-50 text-[#DE4341] border-2 border-[#DE4341] font-black touch-btn flex items-center justify-center shadow-sm" title="Aktuellen Spieltag löschen">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
         </div>
 
@@ -382,6 +385,44 @@
     </div>
   </div>
 
+  <!-- Modal: Spieltag löschen mit Mannschafts-Passwort -->
+  <div id="modalDeleteMatchday" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#DE4341] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-red-200 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-red-100 border border-red-300 flex items-center justify-center text-base">
+            🗑️
+          </div>
+          <h3 id="deleteMatchdayModalTitle" class="font-black text-base text-[#DE4341]">Spieltag löschen</h3>
+        </div>
+        <button onclick="closeModal('modalDeleteMatchday')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 space-y-1">
+        <p class="font-bold flex items-center gap-1.5">
+          <span>⚠️</span>
+          <span>Achtung: Unwiderruflich!</span>
+        </p>
+        <p id="deleteMatchdayModalDesc" class="leading-relaxed">
+          Möchtest du diesen Spieltag wirklich löschen? Alle eingegebenen Ergebnisse, Pins, Aufstellungen und Strichlisten für diesen Spieltag werden dauerhaft entfernt.
+        </p>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <label class="block text-slate-700 font-bold">
+          Passwort für <span id="deleteMatchdayTeamName" class="text-[#23548F] font-black">Mannschaft</span> eingeben:
+        </label>
+        <input type="password" id="deleteMatchdayPassword" placeholder="Mannschafts-Passwort..." onkeydown="if(event.key==='Enter') confirmDeleteMatchday()" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#DE4341]">
+        <p class="text-[11px] text-slate-500">Nur die berechtigte Mannschaft kann diesen Spieltag löschen.</p>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button type="button" onclick="closeModal('modalDeleteMatchday')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button type="button" onclick="confirmDeleteMatchday()" class="px-4 py-2 rounded-lg bg-[#DE4341] hover:bg-[#c93432] font-black text-xs text-white border-2 border-[#DE4341] shadow-sm">Spieltag endgültig löschen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: Bestätigung leere Strichliste vor dem Sperren -->
   <div id="modalConfirmEmptyTallies" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
@@ -584,7 +625,7 @@
 
       // Neu angelegte Mannschaften: Spieltage sind noch frei und müssen erst angelegt werden!
       if (!matchdaysData || Object.keys(matchdaysData).length === 0) {
-        if (currentTeam.id === 'team_pb2') {
+        if (currentTeam.id === 'team_pb2' && storedMatchdays === null) {
           matchdaysData = JSON.parse(JSON.stringify(initialPb2Matchdays));
           localStorage.setItem(teamDataKey, JSON.stringify(matchdaysData));
           currentMatchday = 5;
@@ -1176,6 +1217,75 @@
       }
       closeModal('modalUnlockMatchday');
       selectGame(currentGame);
+    }
+
+    function openDeleteMatchdayModal() {
+      const md = getActiveMatchday();
+      if (!md) {
+        alert("Kein Spieltag zum Löschen vorhanden.");
+        return;
+      }
+      const title = document.getElementById('deleteMatchdayModalTitle');
+      if (title) title.innerText = `Spieltag ${currentMatchday} löschen`;
+
+      const teamName = document.getElementById('deleteMatchdayTeamName');
+      if (teamName) teamName.innerText = currentTeam ? currentTeam.name : 'diese Mannschaft';
+
+      const desc = document.getElementById('deleteMatchdayModalDesc');
+      if (desc) desc.innerText = `Möchtest du Spieltag ${currentMatchday} (${currentTeam ? currentTeam.name : 'Mannschaft'}) wirklich löschen? Alle Pins, Aufstellungen und Striche dieses Spieltags werden dauerhaft entfernt.`;
+
+      const pwInput = document.getElementById('deleteMatchdayPassword');
+      if (pwInput) pwInput.value = '';
+
+      openModal('modalDeleteMatchday');
+      setTimeout(() => { if (pwInput) pwInput.focus(); }, 100);
+    }
+
+    function confirmDeleteMatchday() {
+      const pwInput = document.getElementById('deleteMatchdayPassword');
+      const enteredPw = pwInput ? pwInput.value.trim() : '';
+      const fallbackPw = currentTeam ? ('paderbowler' + (currentTeam.id || '').replace('team_pb', '')) : "paderbowler";
+      const expectedPw = (currentTeam && currentTeam.password) ? currentTeam.password : fallbackPw;
+
+      if (!enteredPw) {
+        alert("Bitte das Mannschafts-Passwort eingeben.");
+        return;
+      }
+
+      if (enteredPw !== expectedPw) {
+        alert("Falsches Passwort! Zugriff verweigert.\n\nNur die berechtigte Mannschaft (" + (currentTeam ? currentTeam.name : "Team") + ") kann diesen Spieltag löschen.");
+        return;
+      }
+
+      const mdToDelete = currentMatchday;
+      if (!matchdaysData[mdToDelete]) {
+        closeModal('modalDeleteMatchday');
+        return;
+      }
+
+      // 1. Spieltag aus dem lokalen Datenbestand löschen
+      delete matchdaysData[mdToDelete];
+
+      // 2. Im localStorage speichern & Mannschafts-Statistiken neu berechnen
+      persistCurrentTeamData();
+
+      closeModal('modalDeleteMatchday');
+
+      // 3. UI anpassen: Auf nächsten verbleibenden Spieltag umschalten
+      const remainingKeys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
+      if (remainingKeys.length > 0) {
+        const nextMd = remainingKeys.filter(k => k < mdToDelete).pop() || remainingKeys[0];
+        currentMatchday = nextMd;
+        renderMatchdayDropdown();
+        showMatchdayContent(true);
+        changeMatchday(nextMd);
+      } else {
+        currentMatchday = null;
+        renderMatchdayDropdown();
+        showMatchdayContent(false);
+      }
+
+      alert(`Spieltag ${mdToDelete} wurde erfolgreich gelöscht.`);
     }
 
     function lockCurrentMatchday() {

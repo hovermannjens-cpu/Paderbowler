@@ -535,7 +535,7 @@ function getTeamMatchdays(teamId) {
     }
 
     if (teamId === 'team_pb2') {
-      if (!parsed || Object.keys(parsed).length === 0) {
+      if (raw === null) {
         const cloned = JSON.parse(JSON.stringify(initialPb2Matchdays));
         localStorage.setItem(teamKey, JSON.stringify(cloned));
         return cloned;
@@ -644,6 +644,57 @@ function saveTeamMatchdays(teamId, matchdaysData) {
 
   saveAppState(state);
 }
+
+// Exportiert den kompletten lokalen App- und Spieltagsdatenbestand als JSON-String
+function exportAllAppDataAsJson() {
+  const exportData = {
+    version: '2.0',
+    exportedAt: new Date().toISOString(),
+    hub: getAppState(),
+    matchdays: {}
+  };
+  const state = getAppState();
+  if (state.teams && Array.isArray(state.teams)) {
+    state.teams.forEach(t => {
+      const teamKey = `paderbowler_matchdays_${t.id}`;
+      const raw = localStorage.getItem(teamKey);
+      if (raw) {
+        try {
+          exportData.matchdays[t.id] = JSON.parse(raw);
+        } catch(e) {}
+      }
+    });
+  }
+  return JSON.stringify(exportData, null, 2);
+}
+
+// Importiert einen exportierten Datenbestand und aktualisiert localStorage
+function importAllAppDataFromJson(jsonString) {
+  try {
+    const data = JSON.parse(jsonString);
+    if (!data || typeof data !== 'object') return false;
+
+    if (data.hub && Array.isArray(data.hub.teams) && data.hub.teams.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.hub));
+    }
+    if (data.matchdays && typeof data.matchdays === 'object') {
+      Object.keys(data.matchdays).forEach(teamId => {
+        if (data.matchdays[teamId]) {
+          localStorage.setItem(`paderbowler_matchdays_${teamId}`, JSON.stringify(data.matchdays[teamId]));
+        }
+      });
+    }
+    if (typeof triggerCloudSync === 'function') {
+      triggerCloudSync();
+    }
+    return true;
+  } catch(e) {
+    console.error("Fehler beim Importieren des Backups", e);
+    return false;
+  }
+}
+window.exportAllAppDataAsJson = exportAllAppDataAsJson;
+window.importAllAppDataFromJson = importAllAppDataFromJson;
 
 /**
  * 3. BERECHNUNG DER STATISTIKEN EINER BESTIMMTEN MANNSCHAFT

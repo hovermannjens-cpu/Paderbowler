@@ -532,6 +532,149 @@ function resolveOpponentName(oppObj, team = null, gameIdx = 1) {
 }
 window.resolveOpponentName = resolveOpponentName;
 
+/**
+ * Bereinigt Trainingstage vor dem Upload nach Firestore & im lokalen Speicher:
+ * Cloud Firestore verbietet verschachtelte Arrays ("Nested arrays are not supported").
+ * standingRolls: [[pins1], [pins2], [pins3]] wird daher in unverschachtelte flache Einzelfelder
+ * standingRoll1, standingRoll2, standingRoll3 umgewandelt und standingRolls restlos gelöscht.
+ */
+function sanitizeTrainingDaysForFirestore(trainingDays) {
+  if (!Array.isArray(trainingDays)) return [];
+  return trainingDays.map(day => {
+    if (!day || typeof day !== 'object') return day;
+    const dayCopy = { ...day };
+    if (Array.isArray(dayCopy.games)) {
+      dayCopy.games = dayCopy.games.map(g => {
+        if (!g || typeof g !== 'object') return g;
+        const gCopy = { ...g };
+        if (Array.isArray(gCopy.frames)) {
+          gCopy.frames = gCopy.frames.map(f => {
+            if (!f || typeof f !== 'object') return f;
+            const fCopy = { ...f };
+            // Legacy standingRolls migrieren falls vorhanden
+            if (Array.isArray(fCopy.standingRolls)) {
+              if ((!fCopy.standingRoll1 || fCopy.standingRoll1.length === 0) && Array.isArray(fCopy.standingRolls[0])) {
+                fCopy.standingRoll1 = [...fCopy.standingRolls[0]];
+              }
+              if ((!fCopy.standingRoll2 || fCopy.standingRoll2.length === 0) && Array.isArray(fCopy.standingRolls[1])) {
+                fCopy.standingRoll2 = [...fCopy.standingRolls[1]];
+              }
+              if ((!fCopy.standingRoll3 || fCopy.standingRoll3.length === 0) && Array.isArray(fCopy.standingRolls[2])) {
+                fCopy.standingRoll3 = [...fCopy.standingRolls[2]];
+              }
+              delete fCopy.standingRolls;
+            }
+            // Sicherstellen, dass standingRoll1..3 flache Zahlen-Arrays sind
+            fCopy.standingRoll1 = Array.isArray(fCopy.standingRoll1) ? fCopy.standingRoll1.filter(p => typeof p === 'number') : [];
+            fCopy.standingRoll2 = Array.isArray(fCopy.standingRoll2) ? fCopy.standingRoll2.filter(p => typeof p === 'number') : [];
+            fCopy.standingRoll3 = Array.isArray(fCopy.standingRoll3) ? fCopy.standingRoll3.filter(p => typeof p === 'number') : [];
+            delete fCopy.standingRolls;
+            return fCopy;
+          });
+        }
+        return gCopy;
+      });
+    }
+    return dayCopy;
+  });
+}
+window.sanitizeTrainingDaysForFirestore = sanitizeTrainingDaysForFirestore;
+
+/**
+ * Normalisiert Trainingstage nach dem Laden aus der Cloud oder LocalStorage:
+ * Stellt sicher, dass flache standingRoll1..3 Felder existieren und keine verschachtelten Arrays vorhanden sind.
+ */
+function restoreTrainingDaysFromFirestore(trainingDays) {
+  // Verhindert verschachtelte Arrays auch lokal vollständig
+  return sanitizeTrainingDaysForFirestore(trainingDays);
+}
+window.restoreTrainingDaysFromFirestore = restoreTrainingDaysFromFirestore;
+
+/**
+ * Berechnet für alle Mannschaften die Statistiken (Pins, Spieltage, Punkte, Schnitt, Kader)
+ * direkt und dynamisch aus ihren Spieltagsdaten (Matchdays).
+ */
+function recalculateTeamTotalsFromMatchdays(state, matchdaysMap = null) {
+  if (!state || !Array.isArray(state.teams)) return false;
+  let changed = false;
+
+  state.teams.forEach(team => {
+    let mds = matchdaysMap ? matchdaysMap[team.id] : null;
+    if (!mds) {
+      try {
+        const raw = localStorage.getItem(`paderbowler_matchdays_${team.id}`);
+        if (raw) mds = JSON.parse(raw);
+      } catch (e) {}
+    }
+    if (!mds || typeof mds !== 'object') return;
+
+    let totalPins = 0;
+    let totalGamesCount = 0;
+    let playedMatchdays = 0;
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+    const squadSet = new Set(Array.isArray(team.playerIds) ? team.playerIds : []);
+
+    Object.values(mds).forEach(md => {
+      if (!md || typeof md !== 'object') return;
+      let mdHasGames = false;
+      for (let g = 1; g <= 5; g++) {
+        const opp = md.gameOpponents?.[g] || { pins: 0 };
+        const lineups = md.gameLineups?.[g] || [];
+        lineups.forEach(pId => squadSet.add(pId));
+
+        let ourPins = 0;
+        lineups.forEach(pId => {
+          ourPins += md.gamePlayerPins?.[g]?.[pId] || 0;
+        });
+
+        if (md.gamePlayerPins?.[g]) {
+          Object.keys(md.gamePlayerPins[g]).forEach(pId => {
+            const pVal = md.gamePlayerPins[g][pId];
+            if (pVal > 0) squadSet.add(pId);
+          });
+        }
+
+        if (ourPins > 0) {
+          mdHasGames = true;
+          totalPins += ourPins;
+          totalGamesCount += lineups.length;
+          if (opp.pins > 0) {
+            if (ourPins > opp.pins) wins++;
+            else if (ourPins === opp.pins) draws++;
+            else losses++;
+          }
+        }
+      }
+      if (mdHasGames) playedMatchdays++;
+    });
+
+    if (playedMatchdays > 0) {
+      const pointsWon = wins * 2 + draws;
+      const pointsLost = losses * 2 + draws;
+      const avg = totalGamesCount > 0 ? parseFloat((totalPins / totalGamesCount).toFixed(2)) : 0;
+      const newPts = `${pointsWon} : ${pointsLost}`;
+
+      if (team.matchdaysCount !== playedMatchdays || team.totalPins !== totalPins || team.points !== newPts || team.average !== avg) {
+        team.matchdaysCount = playedMatchdays;
+        team.totalPins = totalPins;
+        team.points = newPts;
+        team.average = avg;
+        changed = true;
+      }
+
+      if ((!team.playerIds || team.playerIds.length === 0) && squadSet.size > 0) {
+        team.playerIds = Array.from(squadSet);
+        changed = true;
+      }
+    }
+  });
+
+  return changed;
+}
+window.recalculateTeamTotalsFromMatchdays = recalculateTeamTotalsFromMatchdays;
+
 // Lädt den globalen App-Zustand aus localStorage
 function getAppState() {
   try {
@@ -539,7 +682,20 @@ function getAppState() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.teams) && parsed.teams.length > 0) {
-        const changed = syncClubState(parsed);
+        // Test-Trainingstage restlos entfernen
+        if (Array.isArray(parsed.trainingDays)) {
+          parsed.trainingDays = parsed.trainingDays.filter(d => d.id !== 'train_test_1795165622725' && !d.id?.startsWith('train_test_'));
+          parsed.trainingDays = restoreTrainingDaysFromFirestore(parsed.trainingDays);
+        }
+        if (!Array.isArray(parsed.deletedTrainingDayIds)) parsed.deletedTrainingDayIds = [];
+        if (!parsed.deletedTrainingDayIds.includes('train_test_1795165622725')) {
+          parsed.deletedTrainingDayIds.push('train_test_1795165622725');
+        }
+
+        let changed = syncClubState(parsed);
+        if (recalculateTeamTotalsFromMatchdays(parsed)) {
+          changed = true;
+        }
         if (changed) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
           if (typeof triggerCloudSync === 'function') triggerCloudSync();
@@ -552,12 +708,16 @@ function getAppState() {
   }
   const cloned = JSON.parse(JSON.stringify(defaultInitialAppState));
   syncClubState(cloned);
+  recalculateTeamTotalsFromMatchdays(cloned);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cloned));
   return cloned;
 }
 
 // Speichert den globalen App-Zustand in localStorage
 function saveAppState(state) {
+  if (state && Array.isArray(state.trainingDays)) {
+    state.trainingDays = sanitizeTrainingDaysForFirestore(state.trainingDays);
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if (typeof triggerCloudSync === 'function') {
     triggerCloudSync();
@@ -1123,6 +1283,8 @@ function getActiveFirebaseConfig() {
 
 let cloudDb = null;
 let isApplyingCloudUpdate = false;
+let isPushingToCloud = false;
+let pushPending = false;
 let cloudSyncDebounceTimer = null;
 let cloudStatus = 'init'; // 'init' | 'synced' | 'syncing' | 'offline' | 'error'
 let cloudStatusMessage = '';
@@ -1159,7 +1321,7 @@ function initPaderbowlerCloudSync() {
   cloudStatusMessage = 'Verbinde mit Cloud...';
   updateCloudStatusUI();
 
-  // Sicherheits-Timeout: Maximal 4 Sekunden im Status "syncing" verweilen
+  // Sicherheits-Timeout: Maximal 15 Sekunden im Status "syncing" verweilen (für Mobilfunkverbindungen)
   const syncTimeout = setTimeout(() => {
     if (cloudStatus === 'syncing') {
       if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -1171,7 +1333,7 @@ function initPaderbowlerCloudSync() {
       }
       updateCloudStatusUI();
     }
-  }, 4000);
+  }, 15000);
 
   // Echtzeit-Referenz auf das zentrale Vereins-Dokument
   const docRef = cloudDb.collection('clubs').doc('paderbowler_stats');
@@ -1272,8 +1434,8 @@ function applyIncomingCloudData(data) {
 
       // 1. Trainingstage intelligent zusammenführen (Union by ID)
       // Damit gehen keine lokal neu erfassten Trainingstage verloren und die Einheiten aller Spieler werden vereint.
-      const localTrainingDays = Array.isArray(local.trainingDays) ? local.trainingDays : [];
-      const cloudTrainingDays = Array.isArray(data.hub.trainingDays) ? data.hub.trainingDays : [];
+      const localTrainingDays = Array.isArray(local.trainingDays) ? restoreTrainingDaysFromFirestore(local.trainingDays) : [];
+      let cloudTrainingDays = Array.isArray(data.hub.trainingDays) ? restoreTrainingDaysFromFirestore(data.hub.trainingDays) : [];
 
       const trainingDaysMap = {};
       // Erst Cloud-Tage einfügen (außer gelöschte)
@@ -1323,6 +1485,10 @@ function applyIncomingCloudData(data) {
           localStorage.removeItem(`paderbowler_matchdays_${teamId}`);
         }
       });
+      if (data.hub) {
+        recalculateTeamTotalsFromMatchdays(data.hub, data.matchdays);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.hub));
+      }
     }
 
     // WICHTIG: Der angemeldete Spieler bleibt IMMER lokal auf diesem Gerät!
@@ -1360,14 +1526,26 @@ function pushLocalDataToCloud(isInitial = false) {
     return;
   }
 
-  // Timeout falls Schreibvorgang netzwerkbedingt hängt
+  if (isPushingToCloud) {
+    pushPending = true;
+    return;
+  }
+  isPushingToCloud = true;
+
+  cloudStatus = 'syncing';
+  cloudStatusMessage = 'Speichere in Cloud...';
+  updateCloudStatusUI();
+
+  // Timeout falls Schreibvorgang netzwerkbedingt hängt (20 Sekunden für Mobilfunk & große Payloads)
+  let pushFinished = false;
   const pushTimeout = setTimeout(() => {
-    if (cloudStatus === 'syncing') {
+    if (!pushFinished && cloudStatus === 'syncing') {
       cloudStatus = 'error';
       cloudStatusMessage = 'Lokal gespeichert (Timeout)';
       updateCloudStatusUI();
+      isPushingToCloud = false;
     }
-  }, 4000);
+  }, 20000);
   
   try {
     const hubState = getAppState();
@@ -1378,23 +1556,59 @@ function pushLocalDataToCloud(isInitial = false) {
       matchdaysObj[team.id] = getTeamMatchdays(team.id);
     });
 
+    // WICHTIG: Trainingstage von verschachtelten Arrays bereinigen!
+    // Cloud Firestore verbietet verschachtelte Arrays ("Nested arrays are not supported").
+    const cleanHub = JSON.parse(JSON.stringify(hubState));
+    if (Array.isArray(cleanHub.trainingDays)) {
+      cleanHub.trainingDays = sanitizeTrainingDaysForFirestore(cleanHub.trainingDays);
+    }
+
     const payload = JSON.parse(JSON.stringify({
-      hub: hubState,
+      hub: cleanHub,
       matchdays: matchdaysObj,
       clientTimestamp: new Date().toISOString()
     }));
-    payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
 
-    cloudDb.collection('clubs').doc('paderbowler_stats').set(payload)
+    // Tiefenreinigung: Verhindert restlos jedes verschachtelte Array im gesamten Dokument
+    function stripNestedArraysDeep(val) {
+      if (Array.isArray(val)) {
+        return val.map(item => {
+          if (Array.isArray(item)) return item.filter(sub => !Array.isArray(sub));
+          if (item && typeof item === 'object') return stripNestedArraysDeep(item);
+          return item;
+        }).filter(item => !Array.isArray(item));
+      }
+      if (val && typeof val === 'object') {
+        const out = {};
+        for (const k of Object.keys(val)) {
+          out[k] = stripNestedArraysDeep(val[k]);
+        }
+        return out;
+      }
+      return val;
+    }
+    const safePayload = stripNestedArraysDeep(payload);
+    safePayload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+    cloudDb.collection('clubs').doc('paderbowler_stats').set(safePayload)
       .then(() => {
+        pushFinished = true;
         clearTimeout(pushTimeout);
+        isPushingToCloud = false;
         cloudStatus = 'synced';
         lastSyncTimestamp = new Date();
         cloudStatusMessage = 'Cloud synchronisiert (' + lastSyncTimestamp.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ')';
         updateCloudStatusUI();
+
+        if (pushPending) {
+          pushPending = false;
+          setTimeout(() => pushLocalDataToCloud(false), 300);
+        }
       })
       .catch(err => {
+        pushFinished = true;
         clearTimeout(pushTimeout);
+        isPushingToCloud = false;
         console.warn("Fehler beim Cloud-Upload:", err);
         cloudStatus = 'error';
         if (err.code === 'permission-denied') {
@@ -1403,12 +1617,20 @@ function pushLocalDataToCloud(isInitial = false) {
           cloudStatusMessage = 'Lokal gespeichert (Cloud getrennt)';
         }
         updateCloudStatusUI();
+
+        if (pushPending) {
+          pushPending = false;
+        }
       });
   } catch (err) {
+    pushFinished = true;
     clearTimeout(pushTimeout);
+    isPushingToCloud = false;
     console.error("pushLocalDataToCloud Exception:", err);
     cloudStatus = 'error';
+    cloudStatusMessage = 'Lokal gespeichert (Fehler)';
     updateCloudStatusUI();
+    pushPending = false;
   }
 }
 

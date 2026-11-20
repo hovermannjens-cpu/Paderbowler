@@ -11,7 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <!-- Shared Theme Engine & Stats -->
-  <script src="shared-stats.js"></script>
+  <script src="shared-stats.js?v=31"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
@@ -1218,7 +1218,9 @@
         currentGameFrames.push({
           frameNumber: f,
           rolls: [], // Pins pro Wurf (z. B. [9, 1])
-          standingRolls: [], // Stehengebliebene Pin-Nummern pro Wurf
+          standingRoll1: [],
+          standingRoll2: [],
+          standingRoll3: [],
           score: null,
           isStrike: false,
           isSpare: false,
@@ -1237,7 +1239,8 @@
           return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         } else {
           // 2. Wurf: Nur die Pins, die nach dem 1. Wurf stehen geblieben sind!
-          return frame.standingRolls?.[0] ? [...frame.standingRolls[0]] : [];
+          const r1Standing = frame.standingRolls?.[0] || frame.standingRoll1 || [];
+          return [...r1Standing];
         }
       } else {
         // 10. Frame
@@ -1249,7 +1252,8 @@
             return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
           } else {
             // Nach Anwurf: Nur die Pins, die nach Wurf 1 stehen geblieben sind
-            return frame.standingRolls?.[0] ? [...frame.standingRolls[0]] : [];
+            const r1Standing = frame.standingRolls?.[0] || frame.standingRoll1 || [];
+            return [...r1Standing];
           }
         } else if (currentRollIndex === 3) {
           if (frame.rolls[0] === 10 && frame.rolls[1] === 10) {
@@ -1260,7 +1264,8 @@
             return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
           } else if (frame.rolls[0] === 10 && frame.rolls[1] < 10) {
             // Strike in 1, aber kein Strike in 2: Pins, die nach Wurf 2 stehen blieben
-            return frame.standingRolls?.[1] ? [...frame.standingRolls[1]] : [];
+            const r2Standing = frame.standingRolls?.[1] || frame.standingRoll2 || [];
+            return [...r2Standing];
           }
           return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         }
@@ -1302,7 +1307,8 @@
       if (currentFrameIndex < 10) {
         if (currentRollIndex === 2) {
           frame.rolls.pop();
-          const r1Standing = frame.standingRolls?.pop() || [];
+          const r1Standing = frame.standingRolls?.[0] || frame.standingRoll1 || [];
+          frame.standingRoll2 = [];
           currentRollIndex = 1;
           standingPinsState = [...r1Standing];
         }
@@ -1310,16 +1316,19 @@
         // 10. Frame
         if (currentRollIndex === 2) {
           frame.rolls.pop();
-          const r1Standing = frame.standingRolls?.pop() || [];
+          const r1Standing = frame.standingRolls?.[0] || frame.standingRoll1 || [];
+          frame.standingRoll2 = [];
           currentRollIndex = 1;
           standingPinsState = [...r1Standing];
         } else if (currentRollIndex === 3) {
           frame.rolls.pop();
-          const r2Standing = frame.standingRolls?.pop() || [];
+          const r2Standing = frame.standingRolls?.[1] || frame.standingRoll2 || [];
+          frame.standingRoll3 = [];
           currentRollIndex = 2;
           standingPinsState = [...r2Standing];
         }
       }
+      delete frame.standingRolls;
 
       computeBowlingScores();
       renderScoreboard();
@@ -1376,8 +1385,10 @@
     function confirmRoll() {
       const frame = currentGameFrames[currentFrameIndex - 1];
       const standing = [...standingPinsState];
-      frame.standingRolls = frame.standingRolls || [];
-      frame.standingRolls.push(standing);
+      if (currentRollIndex === 1) frame.standingRoll1 = [...standing];
+      else if (currentRollIndex === 2) frame.standingRoll2 = [...standing];
+      else if (currentRollIndex === 3) frame.standingRoll3 = [...standing];
+      delete frame.standingRolls;
 
       // Berechnung gefallene Pins
       let pinsDownThisRoll = 0;
@@ -1611,17 +1622,23 @@
       const target = currentGameFrames[frameNum - 1] || {
         frameNumber: frameNum,
         rolls: [],
-        standingRolls: [],
+        standingRoll1: [],
+        standingRoll2: [],
+        standingRoll3: [],
         isStrike: false,
         isSpare: false,
         isOpen: false,
         score: null
       };
 
+      const roll1Standing = Array.isArray(target.standingRoll1) ? [...target.standingRoll1] : (Array.isArray(target.standingRolls?.[0]) ? [...target.standingRolls[0]] : []);
+      const roll2Standing = Array.isArray(target.standingRoll2) ? [...target.standingRoll2] : (Array.isArray(target.standingRolls?.[1]) ? [...target.standingRolls[1]] : []);
+      const roll3Standing = Array.isArray(target.standingRoll3) ? [...target.standingRoll3] : (Array.isArray(target.standingRolls?.[2]) ? [...target.standingRolls[2]] : []);
+
       editingFrameData = {
         frameNumber: frameNum,
         rolls: [...(target.rolls || [])],
-        standingRolls: (target.standingRolls || []).map(r => [...r]),
+        standingRolls: [roll1Standing, roll2Standing, ...(frameNum === 10 ? [roll3Standing] : [])],
         isStrike: !!target.isStrike,
         isSpare: !!target.isSpare,
         isOpen: !!target.isOpen
@@ -1904,7 +1921,19 @@
 
       const idx = editingTarget.frameNumber - 1;
       currentGameFrames[idx].rolls = [...editingFrameData.rolls];
-      currentGameFrames[idx].standingRolls = editingFrameData.standingRolls.map(r => [...r]);
+      currentGameFrames[idx].standingRoll1 = currentGameFrames[idx].standingRoll1 || [];
+      if (editingFrameData.standingRolls && editingFrameData.standingRolls[0]) {
+        currentGameFrames[idx].standingRoll1 = [...editingFrameData.standingRolls[0]];
+      }
+      currentGameFrames[idx].standingRoll2 = currentGameFrames[idx].standingRoll2 || [];
+      if (editingFrameData.standingRolls && editingFrameData.standingRolls[1]) {
+        currentGameFrames[idx].standingRoll2 = [...editingFrameData.standingRolls[1]];
+      }
+      currentGameFrames[idx].standingRoll3 = currentGameFrames[idx].standingRoll3 || [];
+      if (editingFrameData.standingRolls && editingFrameData.standingRolls[2]) {
+        currentGameFrames[idx].standingRoll3 = [...editingFrameData.standingRolls[2]];
+      }
+      delete currentGameFrames[idx].standingRolls;
       currentGameFrames[idx].isStrike = editingFrameData.isStrike;
       currentGameFrames[idx].isSpare = editingFrameData.isSpare;
       currentGameFrames[idx].isOpen = editingFrameData.isOpen;
@@ -1989,7 +2018,22 @@
 
       closeModal('modalGameRecorder');
 
+      // Verschachtelte Arrays vor Speicherung restlos entfernen (Firestore-Sicherheit)
+      if (currentDaySession && Array.isArray(currentDaySession.games)) {
+        currentDaySession.games.forEach(g => {
+          if (Array.isArray(g.frames)) {
+            g.frames.forEach(f => {
+              delete f.standingRolls;
+              if (!Array.isArray(f.standingRoll1)) f.standingRoll1 = [];
+              if (!Array.isArray(f.standingRoll2)) f.standingRoll2 = [];
+              if (!Array.isArray(f.standingRoll3)) f.standingRoll3 = [];
+            });
+          }
+        });
+      }
+
       // Trainingstag in globalen State speichern
+      appState = getAppState();
       appState.trainingDays = appState.trainingDays || [];
       appState.trainingDays.push(currentDaySession);
       saveAppState(appState);
@@ -2208,9 +2252,8 @@
             }
 
             // Pin 10, Pin 7 und Split Analyse
-            const rollsStanding = f.standingRolls || [];
-            if (rollsStanding.length > 0) {
-              const r1Standing = rollsStanding[0] || [];
+            const r1Standing = f.standingRolls?.[0] || f.standingRoll1 || [];
+            if (r1Standing.length > 0) {
               const isSpareConverted = f.isSpare || (rolls.length >= 2 && (rolls[0] + rolls[1] === 10));
 
               // 10er-Pin Single-Pin Chance
@@ -2588,15 +2631,17 @@
     }
 
     function renderClubStats() {
-      const allDays = appState.trainingDays || [];
+      const allDays = (appState.trainingDays || []).filter(d => d && !d.id?.startsWith('train_test_') && d.id !== 'train_test_1795165622725');
       const playerMap = {};
 
       allDays.forEach(d => {
+        const p = (appState.players || []).find(x => x.id === d.playerId);
+        if (!p) return; // Nur verifizierte Vereinsmitglieder in die Vereinsstatistik aufnehmen
+
         if (!playerMap[d.playerId]) {
-          const p = (appState.players || []).find(x => x.id === d.playerId);
           playerMap[d.playerId] = {
             id: d.playerId,
-            name: p ? formatPlayerDisplayName(p) : 'Unbekannt',
+            name: formatPlayerDisplayName(p),
             daysCount: 0,
             gamesCount: 0,
             totalPins: 0,
@@ -3072,7 +3117,7 @@
       const secC = document.getElementById('tabContentClub');
       if (secC && secC.classList.contains('hidden')) return;
 
-      const allDays = appState.trainingDays || [];
+      const allDays = (appState.trainingDays || []).filter(d => d && !d.id?.startsWith('train_test_') && d.id !== 'train_test_1795165622725');
       const emptyNotice = document.getElementById('clubChartsEmptyNotice');
       const content = document.getElementById('clubChartsContent');
 

@@ -1,5 +1,5 @@
 // Paderbowler Stats 2.0 - Service Worker für PWA Offline & Installation
-const CACHE_NAME = 'paderbowler-stats-v29';
+const CACHE_NAME = 'paderbowler-stats-v31';
 const ASSETS = [
   './index.html',
   './training.html',

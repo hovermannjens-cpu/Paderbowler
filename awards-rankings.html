@@ -78,6 +78,10 @@
 
     <!-- Navigation / Switcher: Passt zu jeder Zeit ins Fenster -->
     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <button id="btnToggleTheme" onclick="toggleTheme()" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/90 hover:bg-white text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm flex items-center gap-1.5" title="Dark Mode umschalten">
+        <span id="themeToggleIcon">🌙</span>
+        <span id="themeToggleText" class="hidden sm:inline">Dunkel</span>
+      </button>
       <a href="index.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
         <span>Teams</span>
       </a>
@@ -143,20 +147,39 @@
     <!-- ANSICHT 1: HALL OF FAME / AWARDS GRID -->
     <div id="view-awards" class="space-y-6">
 
-      <!-- Teaser Banner -->
-      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="space-y-1 text-center sm:text-left">
-          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#E8C543]/20 text-slate-900 text-xs font-bold border border-[#E8C543]/50">
-            <span>Vereins- & Gaudi-Ehrungen</span>
+      <!-- Saison-Schloss Teaser Banner (wenn Saison noch NICHT freigegeben) -->
+      <div id="seasonLockBanner" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-2xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="space-y-1.5 text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 text-xs font-black border border-amber-400">
+            <span>🔒 Saisonhöhepunkt unter Verschluss</span>
           </div>
-          <h2 class="text-lg font-extrabold text-slate-900">Auszeichnungen</h2>
-          <p class="text-xs text-slate-600 max-w-xl">
-            Klicke auf eine Karte, um die Urkunde aufzurufen und auszudrucken.
+          <h2 class="text-base sm:text-lg font-black text-slate-900">Awards & Strichlistenbilanz sind noch geheim!</h2>
+          <p class="text-xs text-slate-700 max-w-xl leading-relaxed">
+            Die Vergabe der Awards und die Strichlisten (Bierframes, Räumfehler etc.) werden traditionell erst zum feierlichen Saisonabschluss enthüllt. Die Freigabe erfolgt am letzten Spieltag oder im Hauptmenü durch den Schriftführer mit dem Mannschafts-Passwort.
           </p>
         </div>
-        <button onclick="startCeremony()" class="px-5 py-3 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs border-2 border-[#cfae2e] shadow-md touch-btn shrink-0">
-          <span>Siegerehrung abspielen</span>
-        </button>
+      </div>
+
+      <!-- Banner für freigegebene Saison (oder Vereinsübersicht) -->
+      <div id="seasonUnlockedBanner" class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="space-y-1 text-center sm:text-left">
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#70C04D]/20 text-[#2E4D11] text-xs font-black border border-[#70C04D]/50">
+            <span id="seasonStatusPill">🎉 Saison offiziell abgeschlossen</span>
+          </div>
+          <h2 id="awardsHeadingText" class="text-lg font-extrabold text-slate-900">Auszeichnungen</h2>
+          <p id="awardsHeadingSub" class="text-xs text-slate-600 max-w-xl">
+            Klicke auf eine Karte, um die Ehrenurkunde mit offiziellem Vereinsspruch aufzurufen und auszudrucken.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnRelockSeason" onclick="lockSeasonPrompt()" class="hidden px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold border border-[#A499A7] touch-btn shadow-sm" title="Auswertung wieder sperren">
+            <span>🔒 Wieder sperren</span>
+          </button>
+          <button onclick="startCeremony()" class="px-5 py-3 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs border-2 border-[#cfae2e] shadow-md touch-btn shrink-0 flex items-center gap-1.5">
+            <span>✨</span>
+            <span>Siegerehrung abspielen</span>
+          </button>
+        </div>
       </div>
 
       <!-- AWARDS GRID -->
@@ -179,13 +202,10 @@
             <span class="text-xs text-slate-700 font-bold">Sortieren:</span>
             <select id="table-sort-select" onchange="renderLeaderboard(this.value)" class="bg-white border-2 border-[#A499A7] text-xs rounded-xl px-3 py-1.5 font-bold text-slate-900 focus:outline-none focus:border-[#23548F]">
               <option value="average">Schnitt</option>
-              <option value="totalPins">Gesamtpins</option>
-              <option value="highGame">Höchstes Einzelspiel</option>
-              <option value="gamesPlayed">Einsätze</option>
-              <option value="totalBierframes">Bierframes</option>
-              <option value="totalRaeumfehler">Räumfehler</option>
-              <option value="totalDrilling">Drillinge</option>
-              <option value="totalGutterAnwurf">Gutter</option>
+              <option value="totalPins">Pins</option>
+              <option value="highGame">Höchstes Spiel</option>
+              <option value="lowGame">Low-Game</option>
+              <option value="gamesPlayed">Spieleinsätze</option>
             </select>
           </div>
         </div>
@@ -202,13 +222,7 @@
                 <th class="py-3 px-3 text-right">Pins</th>
                 <th class="py-3 px-3 text-right text-[#23548F]">Schnitt</th>
                 <th class="py-3 px-3 text-right text-[#70C04D]">High</th>
-                <th class="py-3 px-3 text-right">Low</th>
-                <th class="py-3 px-3 text-right text-[#E8C543]">Bier</th>
-                <th class="py-3 px-3 text-right text-[#DE4341]">Fehler</th>
-                <th class="py-3 px-3 text-right text-[#A62F8B]">Gutter</th>
-                <th class="py-3 px-3 text-right text-[#70C04D]">Turkey</th>
-                <th class="py-3 px-3 text-right text-[#23548F]">&gt;210</th>
-                <th class="py-3 px-3 text-right text-[#DE9090]">&lt;170</th>
+                <th class="py-3 px-3 text-right text-slate-600">Low</th>
               </tr>
             </thead>
             <tbody id="leaderboard-body" class="divide-y divide-[#A499A7]/40 font-medium">
@@ -263,8 +277,11 @@
             <div id="cert-title" class="text-xl font-black text-amber-800 uppercase tracking-wide">
               Der Bierframe-Baron
             </div>
-            <p id="cert-subtitle" class="text-xs font-semibold text-amber-900 italic">
+            <p id="cert-subtitle" class="text-xs font-bold text-amber-900">
               "Bierframe-König"
+            </p>
+            <p id="cert-spruch" class="text-xs italic text-amber-800 font-serif">
+              "Er spielt nicht auf Punkte, er sorgt für die Hydration des Teams."
             </p>
             <p id="cert-desc" class="text-xs text-amber-900/90 leading-relaxed px-4">
               Für überragenden Durstlöscher-Einsatz mit insgesamt 13 gesicherten Bierframes im bisherigen Saisonverlauf.
@@ -324,6 +341,10 @@
           </div>
         </div>
 
+        <p id="ceremony-spruch" class="text-xs sm:text-sm text-[#E8C543] italic font-serif py-1">
+          "Er spielt nicht auf Punkte, er sorgt für die Hydration des Teams."
+        </p>
+
         <p id="ceremony-desc" class="text-xs text-slate-400 max-w-md mx-auto pt-2 border-t border-slate-800">
           Der spendabelste Getränkespender, der die meisten Bierframes gesichert hat.
         </p>
@@ -339,6 +360,28 @@
         </span>
         <button id="ceremony-next-btn" onclick="nextCeremonyStep()" class="px-5 py-2.5 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 text-xs font-black touch-btn shadow-lg border-2 border-[#cfae2e]">
           <span>Nächster Award</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: ZEREMONIE GESPERRT HINWEIS                       -->
+  <!-- ======================================================= -->
+  <div id="modalCeremonyLockedNotice" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4 text-slate-900 text-center">
+      <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-600 flex items-center justify-center text-2xl shadow-inner">
+        🔒
+      </div>
+      <div class="space-y-1.5">
+        <h3 class="font-extrabold text-base text-slate-900">Zeremonie noch unter Verschluss</h3>
+        <p class="text-xs text-slate-700 leading-relaxed font-bold">
+          Die Zeremonie kann erst angesehen werden, wenn die Saison beendet wurde.
+        </p>
+      </div>
+      <div class="pt-2 border-t border-[#A499A7]/40 flex justify-center">
+        <button type="button" onclick="closeModal('modalCeremonyLockedNotice')" class="px-6 py-2.5 rounded-xl bg-[#23548F] hover:bg-[#1a4170] text-white font-black text-xs border-2 border-[#23548F] shadow-sm touch-btn">
+          Verstanden
         </button>
       </div>
     </div>
@@ -439,16 +482,29 @@
         playersData = calculatePlayerStatsForTeam(activeTeamId, appState);
       }
 
-      // Nicknames entfernen
-      playersData = playersData.map(p => ({
-        ...p,
-        displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim()
-      }));
+      // Spitznamen beibehalten & formatieren laut Claudias Wunsch
+      playersData = playersData.map(p => {
+        const playerObj = (appState.players || []).find(pl => pl.id === p.id);
+        const displayName = formatPlayerDisplayName(playerObj || p, true);
+        return {
+          ...p,
+          displayName: displayName || p.displayName
+        };
+      });
 
       populateSeasonDropdown();
       updateHeaderUI();
       renderAwards();
       renderLeaderboard();
+    }
+
+    function isTeamLocked() {
+      if (isClubWide) {
+        return (typeof areAllTeamsSeasonFinalized === 'function')
+          ? !areAllTeamsSeasonFinalized(appState, activeSeasonId)
+          : false;
+      }
+      return !isTeamSeasonFinalized(activeTeamId, appState);
     }
 
     function updateHeaderUI() {
@@ -458,6 +514,62 @@
       const scopeClubBtn = document.getElementById('scope-club-btn');
       const scopeDesc = document.getElementById('scopeDescriptionText');
       const select = document.getElementById('teamHeaderSelect');
+
+      const seasonLockBanner = document.getElementById('seasonLockBanner');
+      const seasonUnlockedBanner = document.getElementById('seasonUnlockedBanner');
+      const seasonStatusPill = document.getElementById('seasonStatusPill');
+      const btnRelockSeason = document.getElementById('btnRelockSeason');
+      const awardsHeadingText = document.getElementById('awardsHeadingText');
+      const awardsHeadingSub = document.getElementById('awardsHeadingSub');
+
+      const locked = isTeamLocked();
+
+      if (seasonLockBanner && seasonUnlockedBanner) {
+        if (locked) {
+          seasonLockBanner.classList.remove('hidden');
+          seasonUnlockedBanner.classList.add('hidden');
+
+          const bannerPill = seasonLockBanner.querySelector('.inline-flex span');
+          const bannerH2 = seasonLockBanner.querySelector('h2');
+          const bannerP = seasonLockBanner.querySelector('p');
+          const bannerBtn = seasonLockBanner.querySelector('button');
+
+          if (isClubWide) {
+            const finalizedCount = appState.teams.filter(t => isTeamSeasonFinalized(t.id, appState)).length;
+            const totalCount = appState.teams.length;
+            if (bannerPill) bannerPill.textContent = "🔒 Vereins-Auszeichnungen unter Verschluss";
+            if (bannerH2) bannerH2.textContent = "Vereins-Awards sind noch geheim!";
+            if (bannerP) bannerP.textContent = `Die vereinsweiten Auszeichnungen werden erst enthüllt, wenn alle Mannschaften (PB1 bis PB4) ihre Saison abgeschlossen und freigegeben haben. Aktuell freigegeben: ${finalizedCount} von ${totalCount} Mannschaften.`;
+          } else {
+            if (bannerPill) bannerPill.textContent = "🔒 Saisonhöhepunkt unter Verschluss";
+            if (bannerH2) bannerH2.textContent = "Awards & Strichlistenbilanz sind noch geheim!";
+            if (bannerP) bannerP.textContent = "Die Vergabe der Awards und die Strichlisten (Bierframes, Räumfehler etc.) werden traditionell erst zum feierlichen Saisonabschluss enthüllt. Die Freigabe erfolgt am letzten Spieltag oder im Hauptmenü durch den Schriftführer mit dem Mannschafts-Passwort.";
+          }
+        } else {
+          seasonLockBanner.classList.add('hidden');
+          seasonUnlockedBanner.classList.remove('hidden');
+          if (btnRelockSeason) {
+            if (!isClubWide) {
+              btnRelockSeason.classList.remove('hidden');
+            } else {
+              btnRelockSeason.classList.add('hidden');
+            }
+          }
+          if (seasonStatusPill) {
+            seasonStatusPill.innerText = isClubWide 
+              ? "👑 Vereinsübersicht: Alle Mannschaften abgeschlossen" 
+              : "🎉 Saison offiziell abgeschlossen";
+          }
+          if (awardsHeadingText) {
+            awardsHeadingText.innerText = isClubWide ? "Vereins-Auszeichnungen" : `Saison-Awards: ${currentTeam?.name || 'Mannschaft'}`;
+          }
+          if (awardsHeadingSub) {
+            awardsHeadingSub.innerText = isClubWide 
+              ? "Die Auszeichnungen und Bestwerte über alle Mannschaften hinweg (offizieller Saisonabschluss)." 
+              : "Klicke auf eine Karte, um die offizielle Ehrenurkunde aufzurufen und auszudrucken.";
+          }
+        }
+      }
 
       // Sync season selectors
       const mainSeasonSelect = document.getElementById('seasonSelect');
@@ -533,10 +645,15 @@
         playersData = calculatePlayerStatsForTeam(activeTeamId, appState);
       }
 
-      playersData = playersData.map(p => ({
-        ...p,
-        displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim()
-      }));
+      // Spitznamen beibehalten & formatieren laut Claudias Wunsch
+      playersData = playersData.map(p => {
+        const playerObj = (appState.players || []).find(pl => pl.id === p.id);
+        const displayName = formatPlayerDisplayName(playerObj || p, true);
+        return {
+          ...p,
+          displayName: displayName || p.displayName
+        };
+      });
 
       updateHeaderUI();
       renderAwards();
@@ -556,117 +673,153 @@
       }
     }
 
-    // Award-Katalog (12 Titel)
-    const awardsConfig = [
-      {
-        id: "award_saison_mvp",
-        title: "Saison-MVP",
-        subtitle: "Bester Saisonschnitt",
-        category: "sport",
-        metricKey: "average",
-        unit: "Schnitt",
-        desc: "Höchster Gesamtschnitt der Saison bei mindestens 5 absolvierten Einsätzen."
-      },
-      {
-        id: "award_high_game",
-        title: "High-Game-König",
-        subtitle: "Höchstes Einzelspiel",
-        category: "sport",
-        metricKey: "highGame",
-        unit: "Pins",
-        desc: "Die höchste erzielte Einzelspiel-Punktzahl."
-      },
-      {
-        id: "award_strike_maestro",
-        title: "Strike-Maestro",
-        subtitle: "Turkey-König",
-        category: "sport",
-        metricKey: "totalDrilling",
-        unit: "Drillinge",
-        desc: "Meiste Drillinge (3 Strikes in Folge) der Saison."
-      },
-      {
-        id: "award_pin_dominator",
-        title: "Pin-Dominator",
-        subtitle: "Spiele über 210 Pins",
-        category: "sport",
-        metricKey: "totalOver210",
-        unit: "Spiele >210",
-        desc: "Meiste Einzelspiele mit über 210 Pins."
-      },
-      {
-        id: "award_dauerbrenner",
-        title: "Der Dauerbrenner",
-        subtitle: "Einsatz-König",
-        category: "sport",
-        metricKey: "gamesPlayed",
-        unit: "Spiele",
-        desc: "Meiste absolvierte Spiele."
-      },
-      {
-        id: "award_bierframe_baron",
-        title: "Der Bierframe-Baron",
-        subtitle: "Bierframe-König",
-        category: "gaudi",
-        metricKey: "totalBierframes",
-        unit: "Bierframes",
-        desc: "Meiste gesicherte Bierframes im Saisonverlauf."
-      },
-      {
-        id: "award_goldene_rinne",
-        title: "Die Goldene Rinne",
-        subtitle: "Herr der Rinne",
-        category: "gaudi",
-        metricKey: "totalGutterAnwurf",
-        unit: "Pumps (1. Wurf)",
-        desc: "Meiste Gutter-Anwürfe beim ersten Wurf."
-      },
-      {
-        id: "award_raeumverweigerer",
-        title: "Der Räumverweigerer",
-        subtitle: "Räumfehler-König",
-        category: "gaudi",
-        metricKey: "totalRaeumfehler",
-        unit: "Räumfehler",
-        desc: "Meiste verfehlte einfache Räumbilder."
-      },
-      {
-        id: "award_silberner_split",
-        title: "Silberner Split",
-        subtitle: "Split-König",
-        category: "gaudi",
-        metricKey: "totalSplitUnder50",
-        unit: "Splits ungeräumt",
-        desc: "Meiste nicht geräumte Splits unter 50 %."
-      },
-      {
-        id: "award_offener_orden",
-        title: "Offener Orden",
-        subtitle: "9. Frame offen",
-        category: "gaudi",
-        metricKey: "totalNinthFrameOpen",
-        unit: "9. Frame offen",
-        desc: "Meiste offene Frames im 9. Frame."
-      },
-      {
-        id: "award_bahn_baendiger",
-        title: "Bahn-Bändiger",
-        subtitle: "Spiele unter 170 Pins",
-        category: "gaudi",
-        metricKey: "totalUnder170",
-        unit: "Spiele <170",
-        desc: "Meiste Spiele unter 170 Pins."
-      },
-      {
-        id: "award_schnapszahl_zauberer",
-        title: "Schnapszahl-Zauberer",
-        subtitle: "Magie der Ziffern",
-        category: "gaudi",
-        metricKey: "totalSchnapszahl",
-        unit: "Schnapszahlen",
-        desc: "Trifft magische Schnapszahlen wie 222 oder 111 Pins."
-      }
-    ];
+    // Offizielle Vereins- & Gaudi-Awards (2026/2027) laut Vereinsbeschluss
+    const awardsConfig = (typeof window.AWARD_DEFINITIONS !== 'undefined' && Array.isArray(window.AWARD_DEFINITIONS))
+      ? window.AWARD_DEFINITIONS.map(def => ({
+          id: def.id,
+          title: def.awardName,
+          subtitle: def.titel,
+          spruch: def.spruch,
+          category: def.category,
+          metricKey: def.metricKey,
+          unit: def.unit,
+          desc: def.erklaerung,
+          icon: def.icon || "🏆"
+        }))
+      : [
+          {
+            id: "award_saison_mvp",
+            title: "Saison-MVP",
+            subtitle: "Bester Saisonschnitt",
+            spruch: "Konstanz auf allerhöchstem Niveau.",
+            category: "sport",
+            metricKey: "average",
+            unit: "Schnitt",
+            desc: "Höchster Gesamtschnitt der Saison bei mindestens 5 absolvierten Einsätzen.",
+            icon: "👑"
+          },
+          {
+            id: "award_high_game",
+            title: "High-Game-König",
+            subtitle: "Höchstes Einzelspiel",
+            spruch: "Wenn der Knoten platzt und die Bahn brennt.",
+            category: "sport",
+            metricKey: "highGame",
+            unit: "Pins",
+            desc: "Die höchste erzielte Einzelspiel-Punktzahl der Saison.",
+            icon: "🎯"
+          },
+          {
+            id: "award_strike_maestro",
+            title: "Strike-Maestro",
+            subtitle: "Turkey-König",
+            spruch: "Er beherrscht Rhythmus, Technik und das Geräusch fallender Pins.",
+            category: "sport",
+            metricKey: "totalDrilling",
+            unit: "Drillinge",
+            desc: "Meiste Drillinge (3 Strikes in Folge) der Saison.",
+            icon: "🦃"
+          },
+          {
+            id: "award_pin_dominator",
+            title: "Pin-Dominator",
+            subtitle: "Highscore-Jäger",
+            spruch: "Er lässt kaum einen Pin stehen.",
+            category: "sport",
+            metricKey: "totalOver210",
+            unit: "Spiele > 210",
+            desc: "Meiste Einzelspiele mit über 210 Pins.",
+            icon: "🔥"
+          },
+          {
+            id: "award_dauerbrenner",
+            title: "Der Dauerbrenner",
+            subtitle: "Einsatz-König",
+            spruch: "Immer zur Stelle, wenn das Team ruft.",
+            category: "sport",
+            metricKey: "gamesPlayed",
+            unit: "Spiele",
+            desc: "Meiste absolvierte Spiele der Saison.",
+            icon: "🏃"
+          },
+          {
+            id: "award_bierframe_baron",
+            title: "Der Bierframe-Baron",
+            subtitle: "Bierframe-König",
+            spruch: "Er spielt nicht auf Punkte, er sorgt für die Hydration des Teams.",
+            category: "gaudi",
+            metricKey: "totalBierframes",
+            unit: "Bierframes",
+            desc: "Meiste gesicherte Bierframes im Saisonverlauf.",
+            icon: "🍺"
+          },
+          {
+            id: "award_goldene_rinne",
+            title: "Die Goldene Rinne",
+            subtitle: "Herr der Rinne",
+            spruch: "Warum die Mitte nehmen, wenn links und rechts so schöne Kanäle sind?",
+            category: "gaudi",
+            metricKey: "totalGutterAnwurf",
+            unit: "Pumps (1. Wurf)",
+            desc: "Meiste Gutter-Anwürfe direkt beim ersten Wurf.",
+            icon: "🎳"
+          },
+          {
+            id: "award_raeumverweigerer",
+            title: "Der Räumverweigerer",
+            subtitle: "Räumfehler-König",
+            spruch: "Ein Pin ist kein Pin – zumindest nach seiner Rechnung.",
+            category: "gaudi",
+            metricKey: "totalRaeumfehler",
+            unit: "Räumfehler",
+            desc: "Meiste verfehlte einfache Räumbilder.",
+            icon: "❌"
+          },
+          {
+            id: "award_silberner_split",
+            title: "Silberner Split",
+            subtitle: "Split-König",
+            spruch: "Was die Bahn trennt, soll der Mensch nicht wieder zusammenfügen.",
+            category: "gaudi",
+            metricKey: "totalSplitUnder50",
+            unit: "Offene Splits",
+            desc: "Meiste nicht geräumte Splits unter 50 %.",
+            icon: "⚡"
+          },
+          {
+            id: "award_dekorateur",
+            title: "Der Dekorateur",
+            subtitle: "Meister der offenen Enden",
+            spruch: "Warum abräumen, wenn man auch Dekoration stehen lassen kann?",
+            category: "gaudi",
+            metricKey: "totalNinthFrameOpen",
+            unit: "9. Frame offen",
+            desc: "Meiste offene Frames im 9. Frame.",
+            icon: "🎀"
+          },
+          {
+            id: "award_bahn_baendiger",
+            title: "Bahn-Bändiger",
+            subtitle: "Tiefstapler der Saison",
+            spruch: "Manchmal bändigt er die Bahn, manchmal sie ihn.",
+            category: "gaudi",
+            metricKey: "totalUnder170",
+            unit: "Spiele < 170",
+            desc: "Meiste Spiele unter 170 Pins.",
+            icon: "🎢"
+          },
+          {
+            id: "award_schnapszahl_zauberer",
+            title: "Schnapszahl-Zauberer",
+            subtitle: "Magier der Ziffern",
+            spruch: "Präzision ist kein Zufall, sondern eine Frage der richtigen Promille-Mathematik.",
+            category: "gaudi",
+            metricKey: "totalSchnapszahl",
+            unit: "Schnapszahlen",
+            desc: "Trifft magische Schnapszahlen wie 222 oder 111 Pins.",
+            icon: "✨"
+          }
+        ];
 
     function getAwardStandings(award) {
       if (!playersData || playersData.length === 0) {
@@ -713,64 +866,111 @@
         return a.category === currentFilter;
       });
 
+      const locked = isTeamLocked();
+
       filtered.forEach(award => {
         const card = document.createElement('div');
-        card.className = "bg-white border-2 border-[#A499A7] hover:border-[#23548F] rounded-2xl p-5 shadow-sm transition flex flex-col justify-between gap-4 cursor-pointer group";
-        card.onclick = () => openCertificate(award);
 
-        card.innerHTML = `
-          <div class="space-y-3">
-            <!-- Badge -->
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-800">
-                ${award.title}
-              </span>
-              <div class="flex flex-col items-end">
-                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                  award.category === 'sport' ? 'bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/40' : 'bg-[#E8C543]/20 text-slate-900 border border-[#E8C543]/50'
-                }">
-                  ${award.category === 'sport' ? 'Leistung' : 'Gaudi'}
+        if (locked) {
+          // Geheim / Mystery-Modus für nicht abgeschlossene Saisons
+          card.className = "bg-white/90 border-2 border-amber-300 rounded-2xl p-5 shadow-sm transition flex flex-col justify-between gap-4";
+
+          card.innerHTML = `
+            <div class="space-y-3">
+              <!-- Header -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span class="text-base">${award.icon || '🏆'}</span>
+                  <span>${award.title}</span>
                 </span>
-                ${award.isTie ? '<span class="text-[10px] text-[#23548F] font-bold mt-1">Geteilter 1. Platz</span>' : ''}
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                  🔒 Unter Verschluss
+                </span>
               </div>
-            </div>
 
-            <!-- Subtitle -->
-            <div>
-              <p class="text-xs text-slate-600 italic">
-                ${award.subtitle}
+              <!-- Spruch & Titel -->
+              <div>
+                <p class="text-xs text-amber-900 font-bold">${award.subtitle}</p>
+                <p class="text-xs text-slate-600 italic mt-0.5">${award.spruch ? `"${award.spruch}"` : ''}</p>
+              </div>
+
+              <!-- Führender / Gewinner Box (Verdeckt) -->
+              <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-center space-y-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Saisonhöhepunkt</span>
+                <div class="text-sm font-black text-amber-950 flex items-center justify-center gap-1.5">
+                  <span>🔒</span> <span>Geheim bis zum Saisonende</span>
+                </div>
+                <span class="text-[11px] text-amber-800 font-medium block">Freigabe durch Schriftführer</span>
+              </div>
+
+              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                ${award.desc}
+              </p>
+            </div>
+          `;
+        } else {
+          // Offen / Enthüllter Modus
+          card.className = "bg-white border-2 border-[#A499A7] hover:border-[#23548F] rounded-2xl p-5 shadow-sm transition flex flex-col justify-between gap-4 cursor-pointer group";
+          card.onclick = () => openCertificate(award);
+
+          card.innerHTML = `
+            <div class="space-y-3">
+              <!-- Badge -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span class="text-base">${award.icon || '🏆'}</span>
+                  <span>${award.title}</span>
+                </span>
+                <div class="flex flex-col items-end">
+                  <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                    award.category === 'sport' ? 'bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/40' : 'bg-[#E8C543]/20 text-slate-900 border border-[#E8C543]/50'
+                  }">
+                    ${award.category === 'sport' ? 'Leistung' : 'Gaudi'}
+                  </span>
+                  ${award.isTie ? '<span class="text-[10px] text-[#23548F] font-bold mt-1">Geteilter 1. Platz</span>' : ''}
+                </div>
+              </div>
+
+              <!-- Subtitle & Spruch -->
+              <div>
+                <p class="text-xs text-slate-900 font-bold">
+                  ${award.subtitle}
+                </p>
+                <p class="text-xs text-slate-600 italic">
+                  ${award.spruch ? `"${award.spruch}"` : ''}
+                </p>
+              </div>
+
+              <!-- Führender / Gewinner Box -->
+              <div class="bg-[#E4D7CF]/40 border border-[#A499A7]/60 rounded-xl p-3 space-y-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
+                  ${award.isTie ? 'Aktuelle Spitzenreiter:' : 'Gewinner / Führung:'}
+                </span>
+                <div class="text-sm font-black text-slate-900">
+                  ${award.winnerNames}
+                </div>
+                <div class="text-xs font-bold text-slate-700 flex items-center justify-between pt-0.5">
+                  <span>Bestwert:</span>
+                  <span class="text-[#23548F] font-extrabold">${award.score} ${award.unit}</span>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                ${award.desc}
               </p>
             </div>
 
-            <!-- Führender / Gewinner Box -->
-            <div class="bg-[#E4D7CF]/40 border border-[#A499A7]/60 rounded-xl p-3 space-y-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
-                ${award.isTie ? 'Aktuelle Spitzenreiter:' : 'Aktuell in Führung:'}
+            <!-- Bottom Action / Podium Teaser -->
+            <div class="pt-3 border-t border-[#A499A7]/50 flex items-center justify-between text-xs text-slate-600">
+              <span class="font-bold text-[#23548F] group-hover:underline">
+                Urkunde anzeigen
               </span>
-              <div class="text-sm font-black text-slate-900">
-                ${award.winnerNames}
-              </div>
-              <div class="text-xs font-bold text-slate-700 flex items-center justify-between pt-0.5">
-                <span>Bestwert:</span>
-                <span class="text-[#23548F] font-extrabold">${award.score} ${award.unit}</span>
-              </div>
+              <span class="text-[10px] text-slate-500 font-medium">
+                Top 3: ${award.podium.map(p => p.name.split(' ')[0] + ' (' + p.score + ')').join(', ')}
+              </span>
             </div>
-
-            <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">
-              ${award.desc}
-            </p>
-          </div>
-
-          <!-- Bottom Action / Podium Teaser -->
-          <div class="pt-3 border-t border-[#A499A7]/50 flex items-center justify-between text-xs text-slate-600">
-            <span class="font-bold text-[#23548F] group-hover:underline">
-              Urkunde anzeigen
-            </span>
-            <span class="text-[10px] text-slate-500 font-medium">
-              Top 3: ${award.podium.map(p => p.name.split(' ')[0] + ' (' + p.score + ')').join(', ')}
-            </span>
-          </div>
-        `;
+          `;
+        }
 
         container.appendChild(card);
       });
@@ -814,12 +1014,22 @@
       }
     }
 
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
     function renderLeaderboard(sortBy = 'average') {
       const tbody = document.getElementById('leaderboard-body');
       tbody.innerHTML = '';
 
       if (!playersData || playersData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="14" class="py-8 text-center text-slate-600 font-bold">Keine Spielerdaten vorhanden.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-600 font-bold">Keine Spielerdaten vorhanden.</td></tr>`;
         return;
       }
 
@@ -849,21 +1059,21 @@
           <td class="py-3 px-3 text-right font-black text-[#23548F] text-sm">${p.average.toFixed(2)}</td>
           <td class="py-3 px-3 text-right font-extrabold text-[#70C04D]">${p.highGame}</td>
           <td class="py-3 px-3 text-right text-slate-600">${p.lowGame}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#E8C543]">${p.totalBierframes}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#DE4341]">${p.totalRaeumfehler}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#A62F8B]">${p.totalGutterAnwurf}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#70C04D]">${p.totalDrilling}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#23548F]">${p.totalOver210}</td>
-          <td class="py-3 px-3 text-right font-bold text-[#DE9090]">${p.totalUnder170}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     function openCertificate(award) {
+      if (isTeamLocked()) {
+        openModal('modalCeremonyLockedNotice');
+        return;
+      }
       document.getElementById('cert-winner').textContent = award.winnerNames;
       document.getElementById('cert-title').textContent = award.title;
       document.getElementById('cert-subtitle').textContent = `"${award.subtitle}"`;
+      const spruchEl = document.getElementById('cert-spruch');
+      if (spruchEl) spruchEl.textContent = award.spruch ? `"${award.spruch}"` : '';
       document.getElementById('cert-desc').textContent = `${award.desc} Aktueller Bestwert: ${award.score} ${award.unit}.`;
 
       const teamEl = document.getElementById('certTeamName');
@@ -876,9 +1086,26 @@
       document.getElementById('certificate-modal').classList.add('hidden');
     }
 
+    function lockSeasonPrompt() {
+      const pw = prompt(`Mannschafts-Passwort eingeben, um die Saison-Auswertung für ${currentTeam?.name || 'das Team'} wieder zu sperren:`);
+      if (!pw) return;
+      const res = unfinalizeTeamSeason(activeTeamId, pw.trim(), appState);
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+      saveState();
+      loadAwardsData();
+      alert("Die Saison-Auswertung wurde wieder sicher unter Verschluss genommen.");
+    }
+
     let ceremonyStep = 0;
 
     function startCeremony() {
+      if (isTeamLocked()) {
+        openModal('modalCeremonyLockedNotice');
+        return;
+      }
       ceremonyStep = 0;
       calculatedAwards = awardsConfig.map(getAwardStandings);
       const sub = document.getElementById('ceremonyGalaSubtitle');
@@ -900,6 +1127,8 @@
       const award = calculatedAwards[ceremonyStep];
       document.getElementById('ceremony-step-award').textContent = award.title;
       document.getElementById('ceremony-step-subtitle').textContent = award.subtitle;
+      const spruchEl = document.getElementById('ceremony-spruch');
+      if (spruchEl) spruchEl.textContent = award.spruch ? `"${award.spruch}"` : '';
       document.getElementById('ceremony-winner').textContent = award.winnerNames;
       document.getElementById('ceremony-score').textContent = `Mit ${award.score} ${award.unit}!`;
       document.getElementById('ceremony-desc').textContent = award.desc;
@@ -971,6 +1200,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       loadAwardsData();
       renderAwards();
       renderLeaderboard('average');

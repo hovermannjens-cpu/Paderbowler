@@ -1,0 +1,3461 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Paderbowler Stats - Trainings-Center</title>
+  <link rel="icon" type="image/png" href="app-logo.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#23548F">
+  <!-- Firebase SDK (Compat) für Echtzeit-Cloud-Synchronisation -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- Shared Theme Engine & Stats -->
+  <script src="shared-stats.js"></script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .touch-btn:active { transform: scale(0.96); }
+    /* Pin-Deck Styles */
+    .pin-btn {
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+    }
+    .pin-btn.standing {
+      background-color: #ef4444 !important;
+      color: #ffffff !important;
+      border-color: #b91c1c !important;
+      transform: scale(1.08);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+      cursor: pointer;
+    }
+    .pin-btn.fallen {
+      background-color: #f1f5f9;
+      color: #475569;
+      border-color: #cbd5e1;
+      opacity: 0.95;
+      cursor: pointer;
+    }
+    html.dark .pin-btn.fallen {
+      background-color: #1e293b;
+      color: #94a3b8;
+      border-color: #334155;
+    }
+    .pin-btn.already-fallen {
+      background-color: #e2e8f0 !important;
+      color: #94a3b8 !important;
+      border-color: #cbd5e1 !important;
+      opacity: 0.35 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    html.dark .pin-btn.already-fallen {
+      background-color: #0f172a !important;
+      color: #475569 !important;
+      border-color: #1e293b !important;
+      opacity: 0.3 !important;
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col font-sans antialiased pb-24 bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="bg-[#A499A7] border-b-2 border-[#8e8292] sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-md flex flex-wrap items-center justify-between gap-2.5">
+    
+    <!-- Logo & Modus-Titel -->
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <img src="app-logo.png" alt="Paderbowler Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-md shrink-0 object-cover border border-[#3E8370]">
+      <div>
+        <h1 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+          Pader-Bowler-06 e.V.
+          <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-[#3E8370] text-white font-black shadow-sm">🎯 Training</span>
+        </h1>
+        <p class="text-[11px] sm:text-xs text-slate-800">Trainings-Center &bull; Pin-Analyse &bull; Ölbilder</p>
+      </div>
+      <!-- Cloud Sync Status Pill -->
+      <div id="cloudSyncStatusPill" class="ml-1 sm:ml-2"></div>
+    </div>
+
+    <!-- Modus-Umschaltung & Theme -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <!-- Dark Mode Switcher -->
+      <button id="btnToggleTheme" onclick="toggleTheme()" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/90 hover:bg-white text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm flex items-center gap-1.5" title="Dark Mode umschalten">
+        <span id="themeToggleIcon">🌙</span>
+        <span id="themeToggleText" class="hidden sm:inline">Dunkel</span>
+      </button>
+
+      <!-- Wechsel zum Liga-Betrieb -->
+      <a href="index.html?mode=liga" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-xs font-black text-white border-2 border-[#23548F] touch-btn shadow-md flex items-center gap-1.5" title="Zur Liga-Verwaltung wechseln">
+        <span>🏆 Liga-Betrieb</span>
+      </a>
+
+      <!-- Portalauswahl -->
+      <a href="index.html" onclick="sessionStorage.removeItem('paderbowler_active_mode')" class="px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm" title="Zur Portalauswahl">
+        <span>🔄 Modus</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- BEREICH 1: ANMELDE-KARTE ("WER BIST DU?") WENN NICHT ANGEMELDET -->
+    <section id="loginSection">
+      <div class="bg-white border-2 border-[#3E8370] rounded-3xl p-6 sm:p-8 shadow-xl max-w-md mx-auto space-y-5 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-[#3E8370]/10 text-[#3E8370] border-2 border-[#3E8370] flex items-center justify-center text-3xl mx-auto shadow-inner">
+          🎯
+        </div>
+        <div>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Wer bist du?</h2>
+          <p class="text-xs text-slate-600 mt-1">Wähle deinen Namen aus der Vereinsliste, um dein Trainings-Center zu betreten.</p>
+        </div>
+
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Vereinsmitglied wählen:</label>
+            <select id="loginPlayerSelect" class="w-full bg-white border-2 border-[#A499A7] rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#3E8370] shadow-sm">
+              <option value="">-- Bitte Spieler wählen --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Persönliches Passwort (5-stellig):</label>
+            <input type="password" id="loginPlayerPassword" maxlength="30" placeholder="z. B. 48291" class="w-full bg-white border-2 border-[#A499A7] rounded-xl p-2.5 text-xs text-slate-900 font-bold text-center tracking-widest focus:outline-none focus:border-[#3E8370] shadow-sm" onkeydown="if(event.key==='Enter') handleTrainingLogin()">
+            <p class="text-[11px] text-slate-500 mt-1">💡 Gib dein <strong>5-stelliges Passwort</strong> ein, das dir vom Verein mitgeteilt wurde.</p>
+          </div>
+
+          <button type="button" onclick="handleTrainingLogin()" class="w-full py-3 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white font-black text-sm shadow-md border-2 border-[#3E8370] touch-btn flex items-center justify-center gap-2">
+            <span>Anmelden &amp; Loslegen</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BEREICH 2: TRAININGSCENTER DES ANGEMELDETEN SPIELERS -->
+    <div id="trainingAppContent" class="hidden space-y-6">
+
+      <!-- Spieler-Willkommens-Leiste & Aktionen -->
+      <section class="bg-white border-2 border-[#A499A7] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div id="playerAvatarInitials" class="w-12 h-12 rounded-2xl bg-[#3E8370] text-white font-black text-lg flex items-center justify-center shadow-md border-2 border-[#326a5b]">
+            PB
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="playerNameGreeting" class="text-lg sm:text-xl font-black text-slate-900">Hallo, Spieler!</h2>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#3E8370]/10 text-[#3E8370] border border-[#3E8370]/30 font-bold">Angemeldet</span>
+            </div>
+            <p id="playerStatsSubline" class="text-xs text-slate-600 mt-0.5">Bereit für das nächste Training</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+          <button type="button" onclick="openStartTrainingModal()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white font-black text-xs border-2 border-[#3E8370] touch-btn shadow-md flex items-center justify-center gap-1.5">
+            <span>+ Trainingstag starten</span>
+          </button>
+          <button type="button" onclick="handleTrainingLogout()" class="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border-2 border-[#A499A7] touch-btn shadow-sm" title="Abmelden oder Spieler wechseln">
+            <span>Abmelden</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TABS: MEINE STATISTIK vs. VEREINSSTATISTIK -->
+      <div class="flex items-center border-b-2 border-[#A499A7]/40 gap-1 sm:gap-2 overflow-x-auto">
+        <button id="tabBtnPlayer" onclick="switchTrainingTab('player')" class="py-2.5 px-3 sm:px-4 font-black text-xs sm:text-sm border-b-4 border-[#3E8370] text-[#3E8370] transition flex items-center gap-1.5 shrink-0 touch-btn">
+          <span>🎯 Meine Spielerstatistik</span>
+        </button>
+        <button id="tabBtnClub" onclick="switchTrainingTab('club')" class="py-2.5 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-4 border-transparent text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 shrink-0 touch-btn">
+          <span>👥 Vereinsstatistik (Training)</span>
+        </button>
+      </div>
+
+      <!-- TAB-INHALT 1: MEINE SPIELERSTATISTIK -->
+      <section id="tabContentPlayer" class="space-y-6">
+        
+        <!-- Filter-Leiste (Ölbild-Filter & Zeitraum) -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-700">Ölbild-Filter:</span>
+            <select id="oilPatternFilter" onchange="renderPlayerStats()" class="bg-white border border-[#A499A7] rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#3E8370]">
+              <option value="all">Alle Ölbilder</option>
+              <option value="Hausölung (Standard)">Hausölung (Standard)</option>
+              <option value="PBA Shark (lang)">PBA Shark (lang)</option>
+              <option value="PBA Chameleon (mittel)">PBA Chameleon (mittel)</option>
+              <option value="PBA Cheetah (kurz)">PBA Cheetah (kurz)</option>
+              <option value="PBA Viper (mittel)">PBA Viper (mittel)</option>
+              <option value="Sportölung Flat (1:1)">Sportölung Flat (1:1)</option>
+            </select>
+          </div>
+          <span id="playerFilterSummaryBadge" class="text-xs font-bold text-slate-600 bg-[#E4D7CF]/60 px-2.5 py-1 rounded-full border border-[#A499A7]/50">
+            0 Trainingstage erfasst
+          </span>
+        </div>
+
+        <!-- Kacheln: Kern-Statistiken & Vergleich zu Liga -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- Trainingsschnitt -->
+          <div class="bg-white border-2 border-[#3E8370] rounded-2xl p-4 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-600 block">Trainingsschnitt</span>
+            <span id="statTrainingAvg" class="text-2xl sm:text-3xl font-black text-[#3E8370] block my-1">0.00</span>
+            <span id="statLeagueCompareBadge" class="text-[10px] font-bold text-slate-500 block">vs. Liga: -</span>
+          </div>
+
+          <!-- High Game / Low Game -->
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-600 block">High / Low Game</span>
+            <div class="text-lg sm:text-xl font-black text-slate-900 my-1">
+              <span id="statHighGame" class="text-[#70C04D]">-</span> / <span id="statLowGame" class="text-slate-500">-</span>
+            </div>
+            <span class="text-[10px] font-bold text-slate-500 block">Bestes &amp; Schwächstes</span>
+          </div>
+
+          <!-- Gesamtspiele & Pins -->
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-600 block">Spiele &bull; Gesamtpins</span>
+            <div class="text-lg sm:text-xl font-black text-slate-900 my-1">
+              <span id="statGamesCount">0</span> <span class="text-xs font-medium text-slate-500">Spiele</span>
+            </div>
+            <span id="statTotalPins" class="text-[11px] font-bold text-[#23548F] block">0 Pins</span>
+          </div>
+
+          <!-- Strikes & Turkeys -->
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm text-center">
+            <span class="text-xs font-bold text-slate-600 block">Strikes &bull; Längste Kette</span>
+            <div class="text-lg sm:text-xl font-black text-slate-900 my-1">
+              <span id="statStrikesCount" class="text-[#23548F]">-</span> <span class="text-xs font-medium text-slate-500">X</span>
+            </div>
+            <span id="statLongestChain" class="text-[10px] font-bold text-slate-600 block">Längste Kette: -</span>
+          </div>
+        </div>
+
+        <!-- Schwachstellen-Analyse: Single-Pin Räumquoten (Pin 7 & Pin 10) & Quoten -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Pin-Level Schwachstellen-Analyse -->
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-[#A499A7]/40 pb-2">
+              <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                <span>🎯 Schwachstellen-Analyse: Corner Pins &amp; Spares</span>
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E4D7CF] font-bold text-slate-700">Pin-Level</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <!-- Pin 10 Räumquote -->
+              <div>
+                <div class="flex justify-between font-bold mb-1">
+                  <span class="text-slate-800">10er-Pin (Eckpin rechts):</span>
+                  <span id="statPin10Rate" class="text-[#23548F]">Keine Daten</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                  <div id="statPin10Bar" class="bg-[#23548F] h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Pin 7 Räumquote -->
+              <div>
+                <div class="flex justify-between font-bold mb-1">
+                  <span class="text-slate-800">7er-Pin (Eckpin links):</span>
+                  <span id="statPin7Rate" class="text-[#70C04D]">Keine Daten</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                  <div id="statPin7Bar" class="bg-[#70C04D] h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Split Räumquote -->
+              <div>
+                <div class="flex justify-between font-bold mb-1">
+                  <span class="text-slate-800">Splits geräumt:</span>
+                  <span id="statSplitRate" class="text-[#DE4341]">Keine Daten</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                  <div id="statSplitBar" class="bg-[#DE4341] h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <p class="text-[10px] text-slate-500 pt-1 italic">
+                * Hinweis: Bei Schnelleingaben (nur Gesamtpins) wird hier automatisch „Keine Statistik vorhanden“ geführt.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quoten & Frame-Übersicht -->
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-[#A499A7]/40 pb-2">
+              <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                <span>📊 Quoten &amp; Frame-Verteilung</span>
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E4D7CF] font-bold text-slate-700">Wurf-Statistik</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center py-2">
+              <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+                <span class="text-[11px] font-bold text-slate-600 block">Strike-Quote</span>
+                <span id="statStrikeQuote" class="text-lg font-black text-[#23548F]">- %</span>
+              </div>
+              <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+                <span class="text-[11px] font-bold text-slate-600 block">Spare-Quote</span>
+                <span id="statSpareQuote" class="text-lg font-black text-[#70C04D]">- %</span>
+              </div>
+              <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+                <span class="text-[11px] font-bold text-slate-600 block">Offene Frames</span>
+                <span id="statOpenQuote" class="text-lg font-black text-[#DE4341]">- %</span>
+              </div>
+            </div>
+
+            <div class="text-xs text-slate-600 space-y-1 pt-1">
+              <div class="flex justify-between">
+                <span>Turkeys (3 Strikes in Folge):</span>
+                <strong id="statTurkeysCount" class="text-slate-900 font-black">0</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>Erfasste Frames mit Pin-Deck:</span>
+                <strong id="statDetailedFramesCount" class="text-slate-900 font-black">0 Frames</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 📈 Grafische Auswertung nach Ölbildern -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b border-[#A499A7]/40 pb-2">
+            <div>
+              <h3 class="font-black text-sm sm:text-base text-slate-900 flex items-center gap-2">
+                <span>📈 Grafische Auswertung nach Ölbildern</span>
+              </h3>
+              <p class="text-[11px] text-slate-600">Vergleich deiner Trainingsleistungen über alle gespielten Ölbilder</p>
+            </div>
+            <span class="text-[10px] px-2.5 py-1 rounded-full bg-[#3E8370]/10 font-bold text-[#3E8370] border border-[#3E8370]/30 shrink-0">Meine Ölbilder</span>
+          </div>
+
+          <!-- Platzhalter falls keine Trainingsdaten vorhanden sind -->
+          <div id="playerChartsEmptyNotice" class="hidden text-center py-6 text-slate-500 italic text-xs">
+            Noch keine Trainingstage vorhanden für grafische Diagramme. Trage ein Trainingsspiel ein, um deine Diagramme zu sehen!
+          </div>
+
+          <div id="playerChartsContent" class="space-y-6">
+            <!-- Grafik 1: Schnitt nach Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>🎳 Pin-Durchschnitt nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Pins / Spiel</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartPlayerOilAvg"></canvas>
+              </div>
+            </div>
+
+            <!-- Grafik 2: Strike-Quote nach Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>⚡ Strike-Quote (%) nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Anteil aller Frames</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartPlayerOilStrikes"></canvas>
+              </div>
+            </div>
+
+            <!-- Grafik 3: Räum-Quote nach Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>🎯 Räum-Quote (%) nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Spare-Quote in %</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartPlayerOilSpares"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historie: Gespielte Trainingstage -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-[#A499A7]/40 pb-2">
+            <div>
+              <h3 class="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                <span>📅 Historie der Trainingstage</span>
+              </h3>
+              <p class="text-[11px] text-slate-600">Übersicht aller gespielten Trainingstage mit Einzelfilter und Rangfolge</p>
+            </div>
+            <span id="historyCountBadge" class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-300">0 Einheiten</span>
+          </div>
+
+          <!-- Steuerung: Ölbild-Filter & Sortierung -->
+          <div class="space-y-2.5 bg-slate-50 border border-[#A499A7]/40 rounded-2xl p-3 shadow-2xs">
+            <!-- 1. Zeile: Ölbild-Auswahl -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-slate-700 flex items-center gap-1">
+                  <span>🎨</span>
+                  <span>Ölbild-Filter:</span>
+                </span>
+                <select id="historyOilFilter" onchange="renderHistoryList()" class="bg-white border-2 border-[#A499A7]/60 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#3E8370] shadow-xs">
+                  <option value="all">Alle Ölbilder</option>
+                  <option value="Hausölung (Standard)">Hausölung (Standard)</option>
+                  <option value="PBA Shark (lang)">PBA Shark (lang)</option>
+                  <option value="PBA Chameleon (mittel)">PBA Chameleon (mittel)</option>
+                  <option value="PBA Cheetah (kurz)">PBA Cheetah (kurz)</option>
+                  <option value="PBA Viper (mittel)">PBA Viper (mittel)</option>
+                  <option value="Sportölung Flat (1:1)">Sportölung Flat (1:1)</option>
+                </select>
+              </div>
+              <span id="historyOilFilterBadge" class="text-[11px] font-bold text-slate-500 self-start sm:self-auto">
+                Alle Ölbilder einbezogen
+              </span>
+            </div>
+
+            <!-- 2. Zeile: Sortier-Buttons (Datum, Schnitt, Bestes Spiel) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-200">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-bold text-slate-600 mr-1">Sortieren nach:</span>
+                <button type="button" id="btnSortHistoryDate" onclick="setHistorySort('date')" class="py-1.5 px-3 rounded-xl text-xs font-black border transition shadow-xs touch-btn flex items-center gap-1 bg-[#3E8370] text-white border-[#3E8370]">
+                  <span>📅 Datum</span>
+                </button>
+                <button type="button" id="btnSortHistoryAvg" onclick="setHistorySort('avg')" class="py-1.5 px-3 rounded-xl text-xs font-bold border transition shadow-xs touch-btn flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300">
+                  <span>🎳 Schnitt</span>
+                </button>
+                <button type="button" id="btnSortHistoryHigh" onclick="setHistorySort('high')" class="py-1.5 px-3 rounded-xl text-xs font-bold border transition shadow-xs touch-btn flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300">
+                  <span>⭐ Bestes Spiel</span>
+                </button>
+              </div>
+              <span id="historySortActiveBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#3E8370]/10 text-[#3E8370] border border-[#3E8370]/30 self-start sm:self-auto">
+                Neueste zuerst
+              </span>
+            </div>
+          </div>
+
+          <div id="trainingDaysHistoryList" class="space-y-2.5 text-xs">
+            <!-- Dynamisch befüllt -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB-INHALT 2: VEREINSSTATISTIK (TRAINING) -->
+      <section id="tabContentClub" class="hidden space-y-6">
+        
+        <!-- Vereins-Trainingsrangliste -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#A499A7]/40 pb-2 gap-2">
+            <div>
+              <h3 class="font-black text-base text-slate-900 flex items-center gap-1.5">
+                <span>👥 Vereins-Trainingsrangliste</span>
+              </h3>
+              <p class="text-[11px] text-slate-600">Alle Mitglieder mit mindestens einem absolvierten Trainingstag &bull; Klicke auf die Spalten zum Sortieren</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="clubSortActiveBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#3E8370]/10 text-[#3E8370] border border-[#3E8370]/30 shadow-sm">
+                Sortiert nach: Schnitt (absteigend)
+              </span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-[#E4D7CF]/60 text-slate-700 font-bold uppercase tracking-wider border-b border-[#A499A7]">
+                <tr>
+                  <th class="py-2.5 px-3 text-center">Platz</th>
+                  <th class="py-2.5 px-3">Spieler</th>
+                  <th id="thClubDays" onclick="setClubSort('daysCount')" class="py-2 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn" title="Nach Trainingstagen sortieren">Tage ⇅</th>
+                  <th id="thClubGames" onclick="setClubSort('gamesCount')" class="py-2 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn" title="Nach Spielen sortieren">Spiele ⇅</th>
+                  <th id="thClubPins" onclick="setClubSort('totalPins')" class="py-2 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn" title="Nach Gesamtpins sortieren">Pins ⇅</th>
+                  <th id="thClubAvg" onclick="setClubSort('average')" class="py-2 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn" title="Nach Schnitt sortieren">Schnitt ⇅</th>
+                  <th id="thClubHigh" onclick="setClubSort('highGame')" class="py-2 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn" title="Nach High Game sortieren">High ⇅</th>
+                </tr>
+              </thead>
+              <tbody id="clubTrainingLeaderboardBody" class="divide-y divide-slate-100">
+                <!-- Dynamisch befüllt -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Vereinsrekorde & Fleißtabelle -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+            <span class="text-xs font-bold text-slate-600 block">Höchstes Trainingsspiel</span>
+            <span id="clubRecordHighGame" class="text-2xl font-black text-[#70C04D] block my-1">-</span>
+            <span id="clubRecordHighHolder" class="text-xs text-slate-500 block">-</span>
+          </div>
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+            <span class="text-xs font-bold text-slate-600 block">Bester Schnitt</span>
+            <span id="clubRecordBestAvg" class="text-2xl font-black text-[#23548F] block my-1">-</span>
+            <span id="clubRecordAvgHolder" class="text-xs text-slate-500 block">-</span>
+          </div>
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
+            <span class="text-xs font-bold text-slate-600 block">Trainings-Fleißmeister</span>
+            <span id="clubRecordMostGames" class="text-2xl font-black text-[#3E8370] block my-1">- Spiele</span>
+            <span id="clubRecordGamesHolder" class="text-xs text-slate-500 block">-</span>
+          </div>
+        </div>
+
+        <!-- 📈 Grafische Vereins-Auswertung nach Ölbildern -->
+        <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-5 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#A499A7]/40 pb-2 gap-2">
+            <div>
+              <h3 class="font-black text-base text-slate-900 flex items-center gap-2">
+                <span>📈 Grafische Vereins-Auswertung nach Ölbildern</span>
+              </h3>
+              <p class="text-[11px] text-slate-600">Trainings-Entwicklung über die Spieltage und Vereinsvergleich je Ölbild</p>
+            </div>
+            <span class="text-[10px] px-2.5 py-1 rounded-full bg-[#23548F]/10 font-bold text-[#23548F] border border-[#23548F]/30 shrink-0 self-start sm:self-auto">Vereins-Statistik</span>
+          </div>
+
+          <!-- Platzhalter falls keine Trainingsdaten vorhanden sind -->
+          <div id="clubChartsEmptyNotice" class="hidden text-center py-6 text-slate-500 italic text-xs">
+            Noch keine Trainingstage im Verein erfasst für Diagramme.
+          </div>
+
+          <div id="clubChartsContent" class="space-y-6">
+            <!-- Liniendiagramm: Verlauf der Spieltage pro Ölbild -->
+            <div class="space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                    <span>📈 Verlauf der Trainingstage pro Ölbild</span>
+                  </h4>
+                  <p class="text-[10px] text-slate-500">Chronologischer Verlauf je Ölbild (1. Spieltag, 2. Spieltag, ...) im direkten Vergleich</p>
+                </div>
+                <!-- Anzeige: Schnitt / Spiel -->
+                <div class="flex items-center gap-1 self-start sm:self-auto">
+                  <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-[#3E8370]/10 text-[#3E8370] border border-[#3E8370]/30 shadow-xs flex items-center gap-1">
+                    <span>🎳</span>
+                    <span>Schnitt / Spiel</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Farblegende & Infobox -->
+              <div class="bg-[#E4D7CF]/40 border border-[#A499A7]/50 rounded-xl p-3">
+                <div class="flex items-center gap-1.5 mb-1.5">
+                  <span class="text-xs">ℹ️</span>
+                  <span class="text-[11px] font-black text-slate-800">Ölbild-Farblegende &amp; Trainingstage:</span>
+                </div>
+                <div id="clubOilLegendBox" class="flex flex-wrap gap-2 text-xs">
+                  <!-- Dynamisch befüllte Farbpills -->
+                </div>
+              </div>
+
+              <!-- Canvas Container -->
+              <div class="relative w-full h-64 sm:h-72 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartClubOilProgression"></canvas>
+              </div>
+            </div>
+
+            <!-- Vereins-Balkendiagramm 1: Schnitt aller Spieler pro Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>🎳 Vereins-Schnitt aller Spieler nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Pins-Durchschnitt</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartClubOilAvg"></canvas>
+              </div>
+            </div>
+
+            <!-- Vereins-Balkendiagramm 2: Strike-Quote nach Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>⚡ Vereins-Strike-Quote (%) nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Strike-Anteil</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartClubOilStrikes"></canvas>
+              </div>
+            </div>
+
+            <!-- Vereins-Balkendiagramm 3: Räum-Quote nach Ölbild -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                  <span>🎯 Vereins-Räum-Quote (%) nach Ölbild</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-bold">Räum-Anteil</span>
+              </div>
+              <div class="relative w-full h-56 sm:h-64 bg-slate-50/60 rounded-xl p-2 border border-slate-200">
+                <canvas id="chartClubOilSpares"></canvas>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: NEUEN TRAININGSTAG STARTEN                      -->
+  <!-- ======================================================= -->
+  <div id="modalStartTrainingDay" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#3E8370] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#3E8370]/40 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🎯</span>
+          <h3 class="font-black text-base text-slate-900">Trainingstag beginnen</h3>
+        </div>
+        <button onclick="closeModal('modalStartTrainingDay')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1">Datum:</label>
+          <input type="date" id="trainDateInput" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#3E8370]">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1">Bowling-Anlage:</label>
+          <select id="trainCenterInput" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#3E8370]">
+            <option value="PaderBowling (Heimatbahn)" selected>PaderBowling (Heimatbahn)</option>
+            <option value="Elite Bowling Center Bielefeld">Elite Bowling Center Bielefeld</option>
+            <option value="Skyline Bowling Detmold">Skyline Bowling Detmold</option>
+            <option value="Maxi Strike Hamm">Maxi Strike Hamm</option>
+            <option value="Bowltreff Münster">Bowltreff Münster</option>
+            <option value="Andere Anlage">Andere Anlage</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 uppercase tracking-wider mb-1">Ölbild:</label>
+          <select id="trainOilInput" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#3E8370]">
+            <option value="Hausölung (Standard)" selected>Hausölung (Standard)</option>
+            <option value="PBA Shark (lang)">PBA Shark (lang)</option>
+            <option value="PBA Chameleon (mittel)">PBA Chameleon (mittel)</option>
+            <option value="PBA Cheetah (kurz)">PBA Cheetah (kurz)</option>
+            <option value="PBA Viper (mittel)">PBA Viper (mittel)</option>
+            <option value="Sportölung Flat (1:1)">Sportölung Flat (1:1)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalStartTrainingDay')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="confirmStartTrainingDay()" class="px-5 py-2.5 rounded-lg bg-[#3E8370] hover:bg-[#326a5b] font-black text-xs text-white border-2 border-[#3E8370] shadow-md">Trainingstag starten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: TRAININGSSPIEL ERFASSEN (PIN-DECK & SCHNELL)     -->
+  <!-- ======================================================= -->
+  <div id="modalGameRecorder" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white border-2 border-[#3E8370] rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 text-slate-900 my-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-[#3E8370]/30 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-[#3E8370] text-white flex items-center justify-center font-black text-sm">
+            🎳
+          </div>
+          <div>
+            <h3 id="recorderGameTitle" class="font-black text-base text-slate-900 leading-tight">Spiel 1 erfassen</h3>
+            <p id="recorderMetaSubtitle" class="text-[11px] text-slate-500">PaderBowling &bull; Hausölung</p>
+          </div>
+        </div>
+
+        <!-- Modus-Wahl: Pin-Deck vs. Schnelleingabe -->
+        <div class="flex items-center bg-[#E4D7CF]/60 p-1 rounded-xl border border-[#A499A7]">
+          <button id="btnModePinDeck" type="button" onclick="setRecordingMode('pindeck')" class="px-2.5 py-1 rounded-lg text-xs font-black bg-white text-[#3E8370] shadow-sm">
+            10-Pin-Deck
+          </button>
+          <button id="btnModeQuick" type="button" onclick="setRecordingMode('quick')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">
+            Schnelleingabe
+          </button>
+        </div>
+      </div>
+
+      <!-- ANSICHT A: SCHNELLEINGABE -->
+      <div id="quickScoreSection" class="hidden py-6 text-center space-y-4">
+        <p class="text-xs text-slate-600">Trage hier unkompliziert die Gesamtholzzahl des Spiels ein:</p>
+        <div class="max-w-xs mx-auto">
+          <input type="number" id="quickScoreInput" min="0" max="300" placeholder="z. B. 195" class="w-full text-3xl font-black text-center bg-white border-2 border-[#3E8370] rounded-2xl p-4 text-[#3E8370] focus:outline-none shadow-inner" onkeydown="if(event.key==='Enter') saveCurrentGameAndNext()">
+        </div>
+        <p class="text-[11px] text-slate-500 italic">* Pin-spezifische Metriken werden als „Keine Statistik vorhanden“ geführt.</p>
+      </div>
+
+      <!-- ANSICHT B: DETAILLIERTES 10-PIN-DECK -->
+      <div id="pinDeckSection" class="space-y-4">
+        
+        <!-- Scoreboard (Frames 1 bis 10) -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px] font-bold px-1">
+            <span class="text-slate-700">Scoreboard (Frames 1–10)</span>
+            <span class="text-[#3E8370] flex items-center gap-1">💡 Klicke auf einen Frame zum Korrigieren</span>
+          </div>
+          <div class="overflow-x-auto pb-1">
+            <div class="grid grid-cols-10 gap-1 text-center min-w-[500px]" id="framesScoreboard">
+              <!-- Dynamisch generiert -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Aktueller Frame Status -->
+        <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-2.5 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-bold text-slate-700">Aktueller Wurf:</span>
+            <span id="currentRollIndicator" class="font-black text-[#3E8370]">Frame 1 &bull; 1. Wurf</span>
+            <button id="btnUndoRoll" type="button" onclick="undoCurrentRoll()" class="hidden text-[10px] text-[#23548F] hover:text-[#1a4270] underline font-black ml-1 touch-btn" title="Vorherigen Wurf in diesem Frame korrigieren">
+              ↺ Vorwurf korrigieren
+            </button>
+          </div>
+          <div>
+            <span class="font-bold text-slate-700">Zwischenstand:</span>
+            <span id="currentLiveScore" class="font-black text-slate-900 ml-1">0 Pins</span>
+          </div>
+        </div>
+
+        <!-- Pin-Deck (Vogelperspektive 10 Pins Dreieck) -->
+        <div class="bg-[#E4D7CF]/20 border-2 border-[#A499A7]/50 rounded-2xl p-4 sm:p-5 flex flex-col items-center space-y-3">
+          <p id="pinDeckHintText" class="text-[11px] text-slate-600 font-bold text-center">
+            Klicke die Pins an, die beim Wurf <span class="text-[#DE4341] uppercase underline">stehen geblieben</span> sind:
+          </p>
+
+          <!-- Reihe 4: Pins 7, 8, 9, 10 -->
+          <div class="flex items-center justify-center gap-3 sm:gap-5">
+            <button type="button" onclick="togglePin(7)" id="pin_7" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">7</button>
+            <button type="button" onclick="togglePin(8)" id="pin_8" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">8</button>
+            <button type="button" onclick="togglePin(9)" id="pin_9" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">9</button>
+            <button type="button" onclick="togglePin(10)" id="pin_10" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">10</button>
+          </div>
+
+          <!-- Reihe 3: Pins 4, 5, 6 -->
+          <div class="flex items-center justify-center gap-4 sm:gap-6">
+            <button type="button" onclick="togglePin(4)" id="pin_4" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">4</button>
+            <button type="button" onclick="togglePin(5)" id="pin_5" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">5</button>
+            <button type="button" onclick="togglePin(6)" id="pin_6" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">6</button>
+          </div>
+
+          <!-- Reihe 2: Pins 2, 3 -->
+          <div class="flex items-center justify-center gap-5 sm:gap-8">
+            <button type="button" onclick="togglePin(2)" id="pin_2" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">2</button>
+            <button type="button" onclick="togglePin(3)" id="pin_3" class="pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn">3</button>
+          </div>
+
+          <!-- Reihe 1: Pin 1 (Headpin) -->
+          <div class="flex items-center justify-center">
+            <button type="button" onclick="togglePin(1)" id="pin_1" class="pin-btn fallen w-11 h-11 sm:w-13 sm:h-13 rounded-full border-2 font-black text-sm flex items-center justify-center touch-btn">1</button>
+          </div>
+
+          <!-- Buttons: Wurf bestätigen & Schnellaktionen -->
+          <div class="flex items-center gap-2 pt-2 w-full max-w-sm">
+            <button type="button" onclick="confirmRoll()" class="flex-1 py-2.5 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white font-black text-xs border-2 border-[#3E8370] shadow-md touch-btn flex items-center justify-center gap-1.5">
+              <span>Wurf eintragen</span>
+              <span>&rarr;</span>
+            </button>
+            <button type="button" onclick="clearAllPinsStanding()" class="px-2.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border-2 border-[#A499A7] touch-btn shadow-sm" title="Alle stehenden Pins geräumt (Strike / Spare)">
+              <span>✨ Geräumt</span>
+            </button>
+            <button type="button" onclick="setAllEligiblePinsStanding()" class="px-2.5 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 font-bold text-xs border-2 border-rose-200 touch-btn shadow-sm" title="Keinen der Pins geräumt (Fehlwurf / 0 Pins)">
+              <span>❌ Fehlwurf</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer: Spiel abschließen / nächstes Spiel -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-3 border-t border-[#A499A7]/50">
+        <button type="button" onclick="closeModal('modalGameRecorder')" class="py-2 px-3 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50 text-center">
+          Abbrechen
+        </button>
+
+        <div class="flex items-center gap-2 justify-end">
+          <button type="button" onclick="saveCurrentGameAndNext()" class="py-2.5 px-4 rounded-xl bg-[#23548F] hover:bg-[#1a4270] text-white font-black text-xs border-2 border-[#23548F] shadow-md touch-btn">
+            💾 Spiel speichern &amp; Nächstes
+          </button>
+          <button type="button" onclick="finishTrainingDayPrompt()" class="py-2.5 px-4 rounded-xl bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs border-2 border-[#cfae2e] shadow-md touch-btn">
+            🏁 Trainingstag abschließen
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: TAGESABSCHLUSS-STATISTIK (SOEBEN GESPIELTER TAG)  -->
+  <!-- ======================================================= -->
+  <div id="modalDaySummary" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#E8C543] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 text-slate-900 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-[#E8C543] text-slate-950 flex items-center justify-center font-black text-3xl mx-auto shadow-md border-2 border-[#cfae2e]">
+        🏆
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Trainingstag abgeschlossen!</h2>
+        <p id="daySummarySubtitle" class="text-xs text-slate-600 mt-1">Hier ist deine Bilanz des heutigen Tages:</p>
+      </div>
+
+      <!-- Bilanz-Kacheln des Tages -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+        <div class="bg-[#E4D7CF]/40 p-3 rounded-xl border border-[#A499A7]/50">
+          <span class="text-xs font-bold text-slate-600 block">Schnitt</span>
+          <span id="daySummaryAvg" class="text-xl font-black text-[#3E8370]">0.00</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-3 rounded-xl border border-[#A499A7]/50">
+          <span class="text-xs font-bold text-slate-600 block">Gesamtpins</span>
+          <span id="daySummaryPins" class="text-xl font-black text-slate-900">0</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-3 rounded-xl border border-[#A499A7]/50">
+          <span class="text-xs font-bold text-slate-600 block">High / Low</span>
+          <span id="daySummaryHighLow" class="text-base font-black text-slate-900">- / -</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-3 rounded-xl border border-[#A499A7]/50">
+          <span class="text-xs font-bold text-slate-600 block">Spiele</span>
+          <span id="daySummaryGames" class="text-xl font-black text-[#23548F]">0</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="bg-white border border-[#A499A7] p-2 rounded-xl">
+          <span class="text-slate-500 block">Strikes</span>
+          <strong id="daySummaryStrikes" class="text-slate-900 font-black text-sm">0</strong>
+        </div>
+        <div class="bg-white border border-[#A499A7] p-2 rounded-xl">
+          <span class="text-slate-500 block">Turkeys</span>
+          <strong id="daySummaryTurkeys" class="text-slate-900 font-black text-sm">0</strong>
+        </div>
+        <div class="bg-white border border-[#A499A7] p-2 rounded-xl">
+          <span class="text-slate-500 block">Längste Kette</span>
+          <strong id="daySummaryChain" class="text-[#23548F] font-black text-sm">0</strong>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="button" onclick="closeDaySummaryAndShowDashboard()" class="w-full py-3 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white font-black text-sm shadow-md border-2 border-[#3E8370] touch-btn flex items-center justify-center gap-2">
+          <span>Weiter zur Gesamtauswertung</span>
+          <span>&rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: FRAME NACHTRÄGLICH BEARBEITEN / KORRIGIEREN      -->
+  <!-- ======================================================= -->
+  <div id="modalEditFrame" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white border-2 border-[#3E8370] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 text-slate-900 my-auto">
+      
+      <div class="flex items-center justify-between border-b border-[#3E8370]/30 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-[#3E8370] text-white flex items-center justify-center font-black text-sm">
+            ✏️
+          </div>
+          <div>
+            <h3 id="editFrameModalTitle" class="font-black text-base text-slate-900 leading-tight">Frame 1 korrigieren</h3>
+            <p class="text-[11px] text-slate-500">Ergebnis und Stehenbleiber für diesen Frame anpassen</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalEditFrame')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <!-- Wurf-Auswahl für diesen Frame -->
+      <div class="flex items-center justify-center gap-2 bg-[#E4D7CF]/40 p-1.5 rounded-xl border border-[#A499A7]">
+        <button id="btnEditRoll1" type="button" onclick="switchEditRoll(1)" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-black bg-[#3E8370] text-white shadow-sm">
+          1. Wurf
+        </button>
+        <button id="btnEditRoll2" type="button" onclick="switchEditRoll(2)" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900">
+          2. Wurf
+        </button>
+        <button id="btnEditRoll3" type="button" onclick="switchEditRoll(3)" class="hidden flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900">
+          3. Wurf
+        </button>
+      </div>
+
+      <!-- Pin-Deck zur Korrektur -->
+      <div class="bg-[#E4D7CF]/20 border-2 border-[#A499A7]/50 rounded-2xl p-4 flex flex-col items-center space-y-3">
+        <p id="editRollPrompt" class="text-[11px] text-slate-600 font-bold">Welche Pins sind beim <span class="text-[#3E8370]">1. Wurf</span> stehen geblieben?</p>
+
+        <!-- Pin Dreieck -->
+        <div class="flex items-center justify-center gap-3 sm:gap-4">
+          <button type="button" onclick="toggleEditPin(7)" id="edit_pin_7" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">7</button>
+          <button type="button" onclick="toggleEditPin(8)" id="edit_pin_8" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">8</button>
+          <button type="button" onclick="toggleEditPin(9)" id="edit_pin_9" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">9</button>
+          <button type="button" onclick="toggleEditPin(10)" id="edit_pin_10" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">10</button>
+        </div>
+        <div class="flex items-center justify-center gap-4 sm:gap-5">
+          <button type="button" onclick="toggleEditPin(4)" id="edit_pin_4" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">4</button>
+          <button type="button" onclick="toggleEditPin(5)" id="edit_pin_5" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">5</button>
+          <button type="button" onclick="toggleEditPin(6)" id="edit_pin_6" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">6</button>
+        </div>
+        <div class="flex items-center justify-center gap-5 sm:gap-6">
+          <button type="button" onclick="toggleEditPin(2)" id="edit_pin_2" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">2</button>
+          <button type="button" onclick="toggleEditPin(3)" id="edit_pin_3" class="pin-btn fallen w-10 h-10 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">3</button>
+        </div>
+        <div class="flex items-center justify-center">
+          <button type="button" onclick="toggleEditPin(1)" id="edit_pin_1" class="pin-btn fallen w-11 h-11 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn">1</button>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2 w-full max-w-xs">
+          <button type="button" onclick="setEditRollStrikeSpare()" class="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border-2 border-[#A499A7] touch-btn shadow-sm">
+            ✨ Alles geräumt
+          </button>
+          <button type="button" onclick="setEditRollAllStanding()" class="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-rose-50 text-rose-600 font-bold text-xs border-2 border-rose-200 touch-btn shadow-sm">
+            ❌ Alle stehen
+          </button>
+        </div>
+      </div>
+
+      <!-- Vorschau der aktuellen Korrektur für diesen Frame -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-slate-600 block">Korrektur-Vorschau:</span>
+          <span id="editFramePreviewRolls" class="font-black text-sm text-slate-900">-</span>
+        </div>
+        <div>
+          <span class="text-slate-600 block">Ergebnis:</span>
+          <span id="editFramePreviewType" class="font-bold text-[#3E8370]">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#A499A7]/40">
+        <button type="button" onclick="closeModal('modalEditFrame')" class="py-2 px-4 rounded-xl bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">
+          Abbrechen
+        </button>
+        <button type="button" onclick="saveEditedFrame()" class="py-2.5 px-5 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-white font-black text-xs border-2 border-[#3E8370] shadow-md touch-btn">
+          💾 Frame speichern
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: TRAININGSTAG DETAILS & SPIELE ANSEHEN            -->
+  <!-- ======================================================= -->
+  <div id="modalTrainingDayDetail" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white border-2 border-[#3E8370] rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 text-slate-900 my-auto max-h-[90vh] flex flex-col">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-[#3E8370]/30 pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-[#3E8370]/10 text-[#3E8370] border-2 border-[#3E8370] flex items-center justify-center text-xl font-black">
+            📅
+          </div>
+          <div>
+            <h3 id="dayDetailTitle" class="font-black text-base text-slate-900 leading-tight">Trainingstag Details</h3>
+            <p id="dayDetailMeta" class="text-xs text-slate-600">PaderBowling &bull; Hausölung</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalTrainingDayDetail')" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Bilanz des Tages -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center shrink-0">
+        <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+          <span class="text-[11px] font-bold text-slate-600 block">Schnitt</span>
+          <span id="dayDetailAvg" class="text-lg font-black text-[#3E8370]">0.00</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+          <span class="text-[11px] font-bold text-slate-600 block">Gesamtpins</span>
+          <span id="dayDetailTotalPins" class="text-lg font-black text-slate-900">0</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+          <span class="text-[11px] font-bold text-slate-600 block">High / Low</span>
+          <span id="dayDetailHighLow" class="text-base font-black text-slate-900">- / -</span>
+        </div>
+        <div class="bg-[#E4D7CF]/40 p-2.5 rounded-xl border border-[#A499A7]/50">
+          <span class="text-[11px] font-bold text-slate-600 block">Spiele</span>
+          <span id="dayDetailGamesCount" class="text-lg font-black text-[#23548F]">0</span>
+        </div>
+      </div>
+
+      <!-- Liste der Spiele mit Scoreboards -->
+      <div class="overflow-y-auto space-y-4 flex-1 pr-1" id="dayDetailGamesList">
+        <!-- Dynamisch befüllt mit allen Spielen und Scoreboards -->
+      </div>
+
+      <div class="pt-2 border-t border-[#A499A7]/40 flex items-center justify-between shrink-0">
+        <button id="btnDeleteDayFromDetail" type="button" class="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 touch-btn">
+          🗑️ Trainingstag löschen
+        </button>
+        <button type="button" onclick="closeModal('modalTrainingDayDetail')" class="py-2 px-5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-md touch-btn">
+          Schließen
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIK FÜR DAS TRAININGS-CENTER -->
+  <script>
+    let appState = null;
+    let currentUser = null;
+    let activeTab = 'player'; // 'player' | 'club'
+
+    // Sortierung für Vereins-Trainingsrangliste
+    let clubSortKey = 'average'; // 'daysCount' | 'gamesCount' | 'totalPins' | 'average' | 'highGame'
+    let clubSortDirection = 'desc'; // 'desc' | 'asc'
+
+    // Aktueller Zustand während eines Trainingstags
+    let currentDaySession = null; // { date, center, oilPattern, games: [] }
+    let currentRecordingMode = 'pindeck'; // 'pindeck' | 'quick'
+    let currentGameIndex = 1;
+    let currentFrameIndex = 1; // 1 bis 10
+    let currentRollIndex = 1; // 1, 2 (oder 3 im 10. Frame)
+    let standingPinsState = []; // Array von 1..10 Pins die markiert sind
+    let currentGameFrames = []; // 10 Frames Daten
+
+    // INIT
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      appState = getAppState();
+      initLoginDropdown();
+      checkAuthStatus();
+
+      // Echtzeit Cloud-Synchronisation Listener
+      window.addEventListener('paderbowler:cloud-sync', () => {
+        appState = getAppState();
+        initLoginDropdown();
+        if (currentUser) {
+          updateUserHeader();
+          renderPlayerStats();
+          renderClubStats();
+        }
+      });
+    });
+
+    function initLoginDropdown() {
+      const select = document.getElementById('loginPlayerSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Bitte Spieler wählen --</option>';
+
+      const sortedPlayers = [...(appState.players || [])].sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+      sortedPlayers.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = formatPlayerDisplayName(p);
+        select.appendChild(opt);
+      });
+    }
+
+    function checkAuthStatus() {
+      try {
+        currentUser = getLoggedInTrainingPlayer(appState);
+        const loginSec = document.getElementById('loginSection');
+        const appSec = document.getElementById('trainingAppContent');
+
+        if (!currentUser) {
+          if (loginSec) loginSec.classList.remove('hidden');
+          if (appSec) appSec.classList.add('hidden');
+        } else {
+          if (loginSec) loginSec.classList.add('hidden');
+          if (appSec) appSec.classList.remove('hidden');
+          updateUserHeader();
+          renderPlayerStats();
+          renderClubStats();
+        }
+      } catch (err) {
+        console.error("Fehler in checkAuthStatus:", err);
+      }
+    }
+
+    function handleTrainingLogin() {
+      const select = document.getElementById('loginPlayerSelect');
+      const pwInput = document.getElementById('loginPlayerPassword');
+      const playerId = select ? select.value : '';
+      const enteredPw = pwInput ? pwInput.value.trim() : '';
+
+      if (!playerId) {
+        alert("Bitte wähle deinen Namen aus der Liste aus.");
+        return;
+      }
+      if (!enteredPw) {
+        alert("Bitte gib dein 5-stelliges persönliches Passwort ein.");
+        return;
+      }
+
+      const res = validateTrainingLogin(playerId, enteredPw, appState);
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+
+      currentUser = res.player;
+      if (pwInput) pwInput.value = '';
+      checkAuthStatus();
+    }
+
+    function handleTrainingLogout() {
+      if (confirm("Möchtest du dich wirklich abmelden / den Spieler wechseln?")) {
+        logoutTrainingPlayer();
+        currentUser = null;
+        checkAuthStatus();
+      }
+    }
+
+    function updateUserHeader() {
+      if (!currentUser) return;
+      const playerName = currentUser.name || 'Spieler';
+      const initials = playerName.split(' ').filter(n => n.length > 0).map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'PB';
+      const initialsEl = document.getElementById('playerAvatarInitials');
+      if (initialsEl) initialsEl.textContent = initials;
+      const greetingEl = document.getElementById('playerNameGreeting');
+      if (greetingEl) greetingEl.textContent = `Hallo, ${formatPlayerDisplayName(currentUser)}! 🎳`;
+
+      const playerDays = (appState.trainingDays || []).filter(d => d.playerId === currentUser.id);
+      const totalGames = playerDays.reduce((acc, d) => acc + (d.games || []).length, 0);
+      const sublineEl = document.getElementById('playerStatsSubline');
+      if (sublineEl) sublineEl.textContent = `${playerDays.length} Trainingstage • ${totalGames} Spiele absolviert`;
+    }
+
+    function switchTrainingTab(tab) {
+      activeTab = tab;
+      const btnP = document.getElementById('tabBtnPlayer');
+      const btnC = document.getElementById('tabBtnClub');
+      const secP = document.getElementById('tabContentPlayer');
+      const secC = document.getElementById('tabContentClub');
+
+      const activeClass = "py-2.5 px-3 sm:px-4 font-black text-xs sm:text-sm border-b-4 border-[#3E8370] text-[#3E8370] transition flex items-center gap-1.5 shrink-0 touch-btn";
+      const inactiveClass = "py-2.5 px-3 sm:px-4 font-bold text-xs sm:text-sm border-b-4 border-transparent text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 shrink-0 touch-btn";
+
+      if (btnP) btnP.className = (tab === 'player') ? activeClass : inactiveClass;
+      if (btnC) btnC.className = (tab === 'club') ? activeClass : inactiveClass;
+
+      if (secP) secP.classList.toggle('hidden', tab !== 'player');
+      if (secC) secC.classList.toggle('hidden', tab !== 'club');
+
+      if (tab === 'player') {
+        renderPlayerStats();
+      } else if (tab === 'club') {
+        renderClubStats();
+      }
+    }
+
+    // ==========================================
+    // TRAININGSTAG STARTEN & RECORDING
+    // ==========================================
+    function openStartTrainingModal() {
+      const dateInp = document.getElementById('trainDateInput');
+      if (dateInp) dateInp.value = new Date().toISOString().split('T')[0];
+      openModal('modalStartTrainingDay');
+    }
+
+    function confirmStartTrainingDay() {
+      const dateVal = document.getElementById('trainDateInput').value || new Date().toISOString().split('T')[0];
+      const centerVal = document.getElementById('trainCenterInput').value || 'PaderBowling (Heimatbahn)';
+      const oilVal = document.getElementById('trainOilInput').value || 'Hausölung (Standard)';
+
+      currentDaySession = {
+        id: `train_${Date.now()}`,
+        playerId: currentUser.id,
+        date: dateVal,
+        center: centerVal,
+        oilPattern: oilVal,
+        games: []
+      };
+
+      closeModal('modalStartTrainingDay');
+      startNewGameInSession(1);
+    }
+
+    function startNewGameInSession(gameIdx) {
+      currentGameIndex = gameIdx;
+      currentFrameIndex = 1;
+      currentRollIndex = 1;
+      standingPinsState = [];
+      initEmptyFrames();
+
+      document.getElementById('recorderGameTitle').textContent = `Spiel ${currentGameIndex} erfassen`;
+      document.getElementById('recorderMetaSubtitle').textContent = `${currentDaySession.center} &bull; ${currentDaySession.oilPattern}`;
+
+      renderScoreboard();
+      updatePinDeckVisuals();
+      setRecordingMode(currentRecordingMode);
+      openModal('modalGameRecorder');
+    }
+
+    function setRecordingMode(mode) {
+      currentRecordingMode = mode;
+      const btnP = document.getElementById('btnModePinDeck');
+      const btnQ = document.getElementById('btnModeQuick');
+      const secP = document.getElementById('pinDeckSection');
+      const secQ = document.getElementById('quickScoreSection');
+
+      if (mode === 'pindeck') {
+        btnP.className = "px-2.5 py-1 rounded-lg text-xs font-black bg-white text-[#3E8370] shadow-sm";
+        btnQ.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900";
+        secP.classList.remove('hidden');
+        secQ.classList.add('hidden');
+      } else {
+        btnQ.className = "px-2.5 py-1 rounded-lg text-xs font-black bg-white text-[#3E8370] shadow-sm";
+        btnP.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900";
+        secQ.classList.remove('hidden');
+        secP.classList.add('hidden');
+        const qInp = document.getElementById('quickScoreInput');
+        if (qInp) { qInp.value = ''; setTimeout(() => qInp.focus(), 100); }
+      }
+    }
+
+    function initEmptyFrames() {
+      currentGameFrames = [];
+      for (let f = 1; f <= 10; f++) {
+        currentGameFrames.push({
+          frameNumber: f,
+          rolls: [], // Pins pro Wurf (z. B. [9, 1])
+          standingRolls: [], // Stehengebliebene Pin-Nummern pro Wurf
+          score: null,
+          isStrike: false,
+          isSpare: false,
+          isOpen: false
+        });
+      }
+    }
+
+    function getEligiblePinsForLiveRoll() {
+      if (currentFrameIndex > 10) return [];
+      const frame = currentGameFrames[currentFrameIndex - 1];
+      if (!frame) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+      if (currentFrameIndex < 10) {
+        if (currentRollIndex === 1) {
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        } else {
+          // 2. Wurf: Nur die Pins, die nach dem 1. Wurf stehen geblieben sind!
+          return frame.standingRolls?.[0] ? [...frame.standingRolls[0]] : [];
+        }
+      } else {
+        // 10. Frame
+        if (currentRollIndex === 1) {
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        } else if (currentRollIndex === 2) {
+          if (frame.rolls[0] === 10) {
+            // Nach Strike im 1. Wurf: Volles neues Deck
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+          } else {
+            // Nach Anwurf: Nur die Pins, die nach Wurf 1 stehen geblieben sind
+            return frame.standingRolls?.[0] ? [...frame.standingRolls[0]] : [];
+          }
+        } else if (currentRollIndex === 3) {
+          if (frame.rolls[0] === 10 && frame.rolls[1] === 10) {
+            // Strike + Strike: Volles neues Deck
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+          } else if (frame.rolls[0] !== 10 && (frame.rolls[0] + frame.rolls[1] === 10)) {
+            // Spare in 1+2: Volles neues Deck für Bonuswurf
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+          } else if (frame.rolls[0] === 10 && frame.rolls[1] < 10) {
+            // Strike in 1, aber kein Strike in 2: Pins, die nach Wurf 2 stehen blieben
+            return frame.standingRolls?.[1] ? [...frame.standingRolls[1]] : [];
+          }
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        }
+      }
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    }
+
+    function togglePin(pinNum) {
+      const eligible = getEligiblePinsForLiveRoll();
+      if (!eligible.includes(pinNum)) {
+        return; // Im Vorwurf bereits gefallen -> nicht mehr auswählbar!
+      }
+      const idx = standingPinsState.indexOf(pinNum);
+      if (idx >= 0) {
+        standingPinsState.splice(idx, 1);
+      } else {
+        standingPinsState.push(pinNum);
+      }
+      updatePinDeckVisuals();
+    }
+
+    function clearAllPinsStanding() {
+      // Alle Pins geräumt (Strike oder Spare)
+      standingPinsState = [];
+      updatePinDeckVisuals();
+    }
+
+    function setAllEligiblePinsStanding() {
+      // Fehlwurf / Pudel: Alle verbliebenen Pins stehen geblieben
+      const eligible = getEligiblePinsForLiveRoll();
+      standingPinsState = [...eligible];
+      updatePinDeckVisuals();
+    }
+
+    function undoCurrentRoll() {
+      const frame = currentGameFrames[currentFrameIndex - 1];
+      if (!frame || currentRollIndex === 1) return;
+
+      if (currentFrameIndex < 10) {
+        if (currentRollIndex === 2) {
+          frame.rolls.pop();
+          const r1Standing = frame.standingRolls?.pop() || [];
+          currentRollIndex = 1;
+          standingPinsState = [...r1Standing];
+        }
+      } else {
+        // 10. Frame
+        if (currentRollIndex === 2) {
+          frame.rolls.pop();
+          const r1Standing = frame.standingRolls?.pop() || [];
+          currentRollIndex = 1;
+          standingPinsState = [...r1Standing];
+        } else if (currentRollIndex === 3) {
+          frame.rolls.pop();
+          const r2Standing = frame.standingRolls?.pop() || [];
+          currentRollIndex = 2;
+          standingPinsState = [...r2Standing];
+        }
+      }
+
+      computeBowlingScores();
+      renderScoreboard();
+      updatePinDeckVisuals();
+    }
+
+    function updatePinDeckVisuals() {
+      const eligiblePins = getEligiblePinsForLiveRoll();
+
+      for (let p = 1; p <= 10; p++) {
+        const btn = document.getElementById(`pin_${p}`);
+        if (!btn) continue;
+
+        const isEligible = eligiblePins.includes(p);
+
+        if (!isEligible) {
+          // Bereits im vorherigen Wurf gefallen -> grau hinterlegt & nicht mehr auswählbar
+          btn.disabled = true;
+          btn.className = "pin-btn already-fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center";
+          btn.title = `Pin ${p} ist im 1. Wurf bereits gefallen`;
+        } else {
+          // Steht noch -> aktiv & auswählbar mit Standardfarben
+          btn.disabled = false;
+          if (standingPinsState.includes(p)) {
+            btn.className = "pin-btn standing w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn";
+            btn.title = `Pin ${p} (als stehen geblieben markiert)`;
+          } else {
+            btn.className = "pin-btn fallen w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 font-black text-xs sm:text-sm flex items-center justify-center touch-btn";
+            btn.title = `Pin ${p} (klicken zum Markieren)`;
+          }
+        }
+      }
+
+      const rollInd = document.getElementById('currentRollIndicator');
+      if (rollInd) {
+        rollInd.textContent = `Frame ${currentFrameIndex} • ${currentRollIndex}. Wurf`;
+      }
+
+      const undoBtn = document.getElementById('btnUndoRoll');
+      if (undoBtn) {
+        undoBtn.classList.toggle('hidden', currentRollIndex === 1);
+      }
+
+      const hintEl = document.getElementById('pinDeckHintText');
+      if (hintEl) {
+        if (currentRollIndex === 1) {
+          hintEl.innerHTML = 'Klicke die Pins an, die beim <span class="text-[#DE4341] uppercase underline">1. Wurf stehen geblieben</span> sind (oder „✨ Geräumt“ bei Strike):';
+        } else {
+          hintEl.innerHTML = `Klicke die Pins an, die beim <span class="text-[#DE4341] uppercase underline">${currentRollIndex}. Wurf noch stehen</span> (graue Pins fielen im Vorwurf, „✨ Geräumt“ für Spare):`;
+        }
+      }
+    }
+
+    function confirmRoll() {
+      const frame = currentGameFrames[currentFrameIndex - 1];
+      const standing = [...standingPinsState];
+      frame.standingRolls = frame.standingRolls || [];
+      frame.standingRolls.push(standing);
+
+      // Berechnung gefallene Pins
+      let pinsDownThisRoll = 0;
+      if (currentFrameIndex < 10) {
+        if (currentRollIndex === 1) {
+          pinsDownThisRoll = 10 - standing.length;
+          frame.rolls.push(pinsDownThisRoll);
+
+          if (pinsDownThisRoll === 10) {
+            // STRIKE!
+            frame.isStrike = true;
+            standingPinsState = [];
+            currentFrameIndex++;
+            currentRollIndex = 1;
+          } else {
+            // Weiter zu Wurf 2
+            currentRollIndex = 2;
+            standingPinsState = []; // Reset, sodass der Spieler im 2. Wurf die noch stehenden Pins anklickt
+          }
+        } else {
+          // 2. Wurf
+          const firstRollPins = frame.rolls[0] || 0;
+          const pinsLeftBeforeSecond = 10 - firstRollPins;
+          pinsDownThisRoll = pinsLeftBeforeSecond - standing.length;
+          if (pinsDownThisRoll < 0) pinsDownThisRoll = 0;
+          frame.rolls.push(pinsDownThisRoll);
+
+          if (firstRollPins + pinsDownThisRoll === 10) {
+            frame.isSpare = true;
+          } else {
+            frame.isOpen = true;
+          }
+          standingPinsState = [];
+          currentFrameIndex++;
+          currentRollIndex = 1;
+        }
+      } else {
+        // 10. FRAME SPEZIAL-LOGIK
+        handleTenthFrameRoll(standing);
+      }
+
+      computeBowlingScores();
+      renderScoreboard();
+      updatePinDeckVisuals();
+
+      if (currentFrameIndex > 10) {
+        alert("🎉 Spiel komplett erfasst! Du kannst nun das Spiel speichern oder ein weiteres Spiel erfassen.");
+      }
+    }
+
+    function handleTenthFrameRoll(standing) {
+      const frame = currentGameFrames[9];
+      const rollNum = currentRollIndex;
+
+      if (rollNum === 1) {
+        const down = 10 - standing.length;
+        frame.rolls.push(down);
+        if (down === 10) {
+          frame.isStrike = true;
+          standingPinsState = []; // Volles Deck für Wurf 2
+          currentRollIndex = 2;
+        } else {
+          currentRollIndex = 2;
+          standingPinsState = []; // Reset für Wurf 2 Spare-Versuch
+        }
+      } else if (rollNum === 2) {
+        if (frame.rolls[0] === 10) {
+          // Erster war Strike -> Wurf 2 auf volles Deck
+          const down = 10 - standing.length;
+          frame.rolls.push(down);
+          if (down === 10) {
+            standingPinsState = []; // Nochmal Strike -> Volles Deck für Wurf 3
+          } else {
+            standingPinsState = []; // Für Wurf 3 Spare-Versuch auf Rack 2
+          }
+          currentRollIndex = 3;
+        } else {
+          // Erster war kein Strike -> Spare Chance auf Rack 1
+          const firstDown = frame.rolls[0];
+          const leftBefore = 10 - firstDown;
+          const down = leftBefore - standing.length;
+          frame.rolls.push(down >= 0 ? down : 0);
+
+          if (firstDown + down === 10) {
+            frame.isSpare = true;
+            standingPinsState = []; // Spare geschafft -> Volles Deck für Wurf 3
+            currentRollIndex = 3;
+          } else {
+            frame.isOpen = true;
+            standingPinsState = [];
+            currentFrameIndex = 11; // Spiel beendet (kein Bonuswurf)
+          }
+        }
+      } else if (rollNum === 3) {
+        if (frame.rolls[0] === 10 && frame.rolls[1] < 10) {
+          // Spare-Versuch auf Rack 2
+          const secondDown = frame.rolls[1];
+          const leftBefore = 10 - secondDown;
+          const down = leftBefore - standing.length;
+          frame.rolls.push(down >= 0 ? down : 0);
+        } else {
+          // Wurf 3 auf volles Deck (nach Doppel-Strike oder Spare)
+          const down = 10 - standing.length;
+          frame.rolls.push(down);
+        }
+        standingPinsState = [];
+        currentFrameIndex = 11; // Spiel beendet!
+      }
+    }
+
+    // ==========================================
+    // BOWLING SCORING & SCOREBOARD RENDERING
+    // ==========================================
+    function computeScoresForFrames(frames) {
+      if (!frames || !Array.isArray(frames)) return 0;
+      let runningTotal = 0;
+      for (let i = 0; i < 10; i++) {
+        const f = frames[i];
+        if (!f || !f.rolls || f.rolls.length === 0) {
+          if (f) f.score = null;
+          continue;
+        }
+
+        const rolls = f.rolls || [];
+        if (i < 9) {
+          if (f.isStrike || rolls[0] === 10) {
+            const next1 = frames[i+1]?.rolls?.[0];
+            let next2 = null;
+            if (frames[i+1]?.rolls?.[0] === 10 && i < 8) {
+              next2 = frames[i+2]?.rolls?.[0];
+            } else {
+              next2 = frames[i+1]?.rolls?.[1];
+            }
+            if (next1 !== undefined && next2 !== undefined) {
+              runningTotal += 10 + next1 + next2;
+              f.score = runningTotal;
+            } else {
+              f.score = null;
+            }
+          } else if (f.isSpare || (rolls.length >= 2 && (rolls[0] + rolls[1] === 10))) {
+            const next1 = frames[i+1]?.rolls?.[0];
+            if (next1 !== undefined) {
+              runningTotal += 10 + next1;
+              f.score = runningTotal;
+            } else {
+              f.score = null;
+            }
+          } else {
+            runningTotal += (rolls[0] || 0) + (rolls[1] || 0);
+            f.score = runningTotal;
+          }
+        } else {
+          // 10. Frame
+          const sum10 = rolls.reduce((a, b) => a + b, 0);
+          runningTotal += sum10;
+          f.score = runningTotal;
+        }
+      }
+
+      let lastScore = null;
+      for (let i = 9; i >= 0; i--) {
+        if (frames[i]?.score !== null && frames[i]?.score !== undefined) {
+          lastScore = frames[i].score;
+          break;
+        }
+      }
+      const rawPinsSum = frames.reduce((acc, f) => acc + (f.rolls ? f.rolls.reduce((a,b)=>a+b, 0) : 0), 0);
+      return lastScore !== null ? lastScore : rawPinsSum;
+    }
+
+    function computeBowlingScores() {
+      const totalPins = computeScoresForFrames(currentGameFrames);
+      const scoreEl = document.getElementById('currentLiveScore');
+      if (scoreEl) scoreEl.textContent = `${totalPins} Pins`;
+      return totalPins;
+    }
+
+    function renderScoreboard() {
+      const container = document.getElementById('framesScoreboard');
+      if (!container) return;
+      container.innerHTML = '';
+
+      currentGameFrames.forEach(f => {
+        const col = document.createElement('div');
+        const isActive = (f.frameNumber === currentFrameIndex);
+        col.className = `border rounded-xl p-1 bg-white flex flex-col justify-between cursor-pointer hover:border-[#3E8370] hover:shadow-md transition touch-btn select-none ${isActive ? 'border-2 border-[#3E8370] bg-[#3E8370]/10 ring-2 ring-[#3E8370]/30' : 'border-[#A499A7]/50'}`;
+        col.title = `Klicke hier, um Frame ${f.frameNumber} nachträglich zu bearbeiten`;
+        col.onclick = () => openEditFrameModal(f.frameNumber);
+
+        let r1 = f.rolls[0] !== undefined ? (f.rolls[0] === 10 ? 'X' : (f.rolls[0] === 0 ? '-' : f.rolls[0])) : '';
+        let r2 = f.rolls[1] !== undefined ? (f.isSpare ? '/' : (f.rolls[1] === 10 ? 'X' : (f.rolls[1] === 0 ? '-' : f.rolls[1]))) : '';
+        let r3 = f.rolls[2] !== undefined ? (f.rolls[2] === 10 ? 'X' : (f.rolls[2] === 0 ? '-' : f.rolls[2])) : '';
+
+        col.innerHTML = `
+          <div class="text-[10px] font-bold text-slate-500 border-b border-slate-100 pb-0.5 flex items-center justify-between px-0.5">
+            <span>${f.frameNumber}</span>
+            <span class="text-[9px] text-[#3E8370] opacity-80">✏️</span>
+          </div>
+          <div class="flex items-center justify-center gap-1 my-1 font-black text-xs">
+            <span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>
+            <span class="${r2 === '/' ? 'text-[#70C04D]' : (r2 === 'X' ? 'text-[#23548F]' : 'text-slate-800')}">${r2}</span>
+            ${f.frameNumber === 10 ? `<span class="${r3 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r3}</span>` : ''}
+          </div>
+          <div class="text-[11px] font-black text-slate-900 pt-0.5 border-t border-slate-100">${f.score !== null && f.score !== undefined ? f.score : '-'}</div>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    // ==========================================
+    // FRAME EDITING (LIVE & PAST GAMES)
+    // ==========================================
+    let editingTarget = {
+      isPastGame: false,
+      dayId: null,
+      gameIndex: null,
+      frameNumber: 1
+    };
+    let editingRollIndex = 1;
+    let editingFrameData = null;
+
+    function openEditFrameModal(frameNum) {
+      if (frameNum < 1 || frameNum > 10) return;
+      editingTarget = {
+        isPastGame: false,
+        dayId: null,
+        gameIndex: null,
+        frameNumber: frameNum
+      };
+
+      const target = currentGameFrames[frameNum - 1] || {
+        frameNumber: frameNum,
+        rolls: [],
+        standingRolls: [],
+        isStrike: false,
+        isSpare: false,
+        isOpen: false,
+        score: null
+      };
+
+      editingFrameData = {
+        frameNumber: frameNum,
+        rolls: [...(target.rolls || [])],
+        standingRolls: (target.standingRolls || []).map(r => [...r]),
+        isStrike: !!target.isStrike,
+        isSpare: !!target.isSpare,
+        isOpen: !!target.isOpen
+      };
+
+      while (editingFrameData.standingRolls.length < (frameNum === 10 ? 3 : 2)) {
+        editingFrameData.standingRolls.push([]);
+      }
+
+      const titleEl = document.getElementById('editFrameModalTitle');
+      if (titleEl) titleEl.textContent = `Frame ${frameNum} korrigieren`;
+
+      const btn3 = document.getElementById('btnEditRoll3');
+      if (btn3) {
+        if (frameNum === 10) btn3.classList.remove('hidden');
+        else btn3.classList.add('hidden');
+      }
+
+      switchEditRoll(1);
+      openModal('modalEditFrame');
+    }
+
+    function openEditPastFrameModal(dayId, gameIndex, frameNum) {
+      alert("Frames bei bereits eingetragenen Spieltagen können nicht nachträglich geändert werden. Die Korrigier-Funktion ist ausschließlich während der laufenden Erfassung erlaubt.");
+    }
+
+    function switchEditRoll(rollIdx) {
+      if (rollIdx < 1 || rollIdx > 3) return;
+      if (editingFrameData && editingFrameData.frameNumber < 10 && rollIdx > 2) return;
+      editingRollIndex = rollIdx;
+
+      const b1 = document.getElementById('btnEditRoll1');
+      const b2 = document.getElementById('btnEditRoll2');
+      const b3 = document.getElementById('btnEditRoll3');
+
+      [b1, b2, b3].forEach((b, i) => {
+        if (!b) return;
+        if (i + 1 === rollIdx) {
+          b.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-black bg-[#3E8370] text-white shadow-sm";
+        } else {
+          b.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-slate-700 hover:text-slate-900";
+        }
+      });
+
+      const prompt = document.getElementById('editRollPrompt');
+      if (prompt) {
+        prompt.innerHTML = `Welche Pins sind beim <span class="text-[#3E8370] font-black">${rollIdx}. Wurf</span> stehen geblieben?`;
+      }
+
+      updateEditPinDeckVisuals();
+      updateEditFramePreview();
+    }
+
+    function getEligiblePinsForEditRoll() {
+      if (!editingFrameData) return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      const fNum = editingFrameData.frameNumber;
+      if (editingRollIndex === 1) {
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      } else if (editingRollIndex === 2) {
+        const r1Standing = editingFrameData.standingRolls[0] || [];
+        const r1Down = 10 - r1Standing.length;
+        if (fNum === 10 && r1Down === 10) {
+          // Erster war Strike -> Wurf 2 auf volles Deck
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        }
+        return [...r1Standing];
+      } else if (editingRollIndex === 3) {
+        const r1Standing = editingFrameData.standingRolls[0] || [];
+        const r1Down = 10 - r1Standing.length;
+        const r2Standing = editingFrameData.standingRolls[1] || [];
+        let r2Down = (r1Down === 10) ? (10 - r2Standing.length) : Math.max(0, (10 - r1Down) - r2Standing.length);
+
+        if (r1Down === 10 && r2Down === 10) {
+          // Strike + Strike -> Volles Deck
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        } else if (r1Down < 10 && (r1Down + r2Down === 10)) {
+          // Spare in 1+2 -> Volles Deck
+          return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        } else if (r1Down === 10 && r2Down < 10) {
+          // Strike in 1, aber Wurf 2 kein Strike -> Stehengebliebene aus Wurf 2
+          return [...r2Standing];
+        }
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      }
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    }
+
+    function updateEditPinDeckVisuals() {
+      if (!editingFrameData) return;
+      const eligible = getEligiblePinsForEditRoll();
+      // Sicherstellen, dass nur noch stehende Pins in standingRolls bleiben
+      if (editingRollIndex > 1) {
+        editingFrameData.standingRolls[editingRollIndex - 1] = (editingFrameData.standingRolls[editingRollIndex - 1] || []).filter(p => eligible.includes(p));
+      }
+      const currentStanding = editingFrameData.standingRolls[editingRollIndex - 1] || [];
+
+      for (let p = 1; p <= 10; p++) {
+        const btn = document.getElementById(`edit_pin_${p}`);
+        if (!btn) continue;
+        const isEligible = eligible.includes(p);
+        if (!isEligible) {
+          btn.disabled = true;
+          btn.className = "pin-btn already-fallen w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 font-black text-xs flex items-center justify-center";
+          btn.title = `Pin ${p} ist im vorherigen Wurf bereits gefallen`;
+        } else {
+          btn.disabled = false;
+          if (currentStanding.includes(p)) {
+            btn.className = "pin-btn standing w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn";
+            btn.title = `Pin ${p} (steht noch)`;
+          } else {
+            btn.className = "pin-btn fallen w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 font-black text-xs flex items-center justify-center touch-btn";
+            btn.title = `Pin ${p} (geräumt / klicken zum Markieren)`;
+          }
+        }
+      }
+    }
+
+    function toggleEditPin(pinNum) {
+      if (!editingFrameData) return;
+      const eligible = getEligiblePinsForEditRoll();
+      if (!eligible.includes(pinNum)) return; // Im Vorwurf bereits gefallen
+
+      let list = editingFrameData.standingRolls[editingRollIndex - 1];
+      if (!list) {
+        list = [];
+        editingFrameData.standingRolls[editingRollIndex - 1] = list;
+      }
+      const idx = list.indexOf(pinNum);
+      if (idx >= 0) {
+        list.splice(idx, 1);
+      } else {
+        list.push(pinNum);
+      }
+      updateEditPinDeckVisuals();
+      recalculateEditedFrameRolls();
+      updateEditFramePreview();
+    }
+
+    function setEditRollStrikeSpare() {
+      if (!editingFrameData) return;
+      editingFrameData.standingRolls[editingRollIndex - 1] = [];
+      updateEditPinDeckVisuals();
+      recalculateEditedFrameRolls();
+      updateEditFramePreview();
+    }
+
+    function setEditRollAllStanding() {
+      if (!editingFrameData) return;
+      const eligible = getEligiblePinsForEditRoll();
+      editingFrameData.standingRolls[editingRollIndex - 1] = [...eligible];
+      updateEditPinDeckVisuals();
+      recalculateEditedFrameRolls();
+      updateEditFramePreview();
+    }
+
+    function recalculateEditedFrameRolls() {
+      if (!editingFrameData) return;
+      const fNum = editingFrameData.frameNumber;
+
+      if (fNum < 10) {
+        const r1Standing = editingFrameData.standingRolls[0] || [];
+        const r1Down = 10 - r1Standing.length;
+
+        if (r1Down === 10) {
+          editingFrameData.rolls = [10];
+          editingFrameData.isStrike = true;
+          editingFrameData.isSpare = false;
+          editingFrameData.isOpen = false;
+          editingFrameData.standingRolls[1] = [];
+        } else {
+          editingFrameData.isStrike = false;
+          const r2Standing = editingFrameData.standingRolls[1] || [];
+          const pinsLeft = 10 - r1Down;
+          const r2Down = Math.max(0, pinsLeft - r2Standing.length);
+          editingFrameData.rolls = [r1Down, r2Down];
+
+          if (r1Down + r2Down === 10) {
+            editingFrameData.isSpare = true;
+            editingFrameData.isOpen = false;
+          } else {
+            editingFrameData.isSpare = false;
+            editingFrameData.isOpen = true;
+          }
+        }
+      } else {
+        // 10th Frame
+        const r1Standing = editingFrameData.standingRolls[0] || [];
+        const r1Down = 10 - r1Standing.length;
+        const r2Standing = editingFrameData.standingRolls[1] || [];
+        let r2Down = 0;
+
+        if (r1Down === 10) {
+          r2Down = 10 - r2Standing.length;
+        } else {
+          const pinsLeft = 10 - r1Down;
+          r2Down = Math.max(0, pinsLeft - r2Standing.length);
+        }
+
+        const rolls = [r1Down, r2Down];
+        editingFrameData.isStrike = (r1Down === 10);
+        editingFrameData.isSpare = (r1Down < 10 && (r1Down + r2Down === 10));
+
+        if (r1Down === 10 || (r1Down + r2Down === 10)) {
+          const r3Standing = editingFrameData.standingRolls[2] || [];
+          let r3Down = 0;
+          if (r1Down === 10 && r2Down < 10) {
+            const pinsLeft3 = 10 - r2Down;
+            r3Down = Math.max(0, pinsLeft3 - r3Standing.length);
+          } else {
+            r3Down = 10 - r3Standing.length;
+          }
+          rolls.push(r3Down);
+          editingFrameData.isOpen = false;
+        } else {
+          editingFrameData.isOpen = true;
+        }
+
+        editingFrameData.rolls = rolls;
+      }
+    }
+
+    function updateEditFramePreview() {
+      if (!editingFrameData) return;
+      const rolls = editingFrameData.rolls || [];
+      let displayArr = [];
+
+      if (editingFrameData.frameNumber < 10) {
+        if (rolls[0] === 10) {
+          displayArr = ['X'];
+        } else {
+          displayArr.push(rolls[0] === 0 ? '-' : (rolls[0] !== undefined ? rolls[0] : ''));
+          if (rolls[1] !== undefined) {
+            if (rolls[0] + rolls[1] === 10) displayArr.push('/');
+            else if (rolls[1] === 0) displayArr.push('-');
+            else displayArr.push(rolls[1]);
+          }
+        }
+      } else {
+        // 10th frame
+        if (rolls[0] === 10) displayArr.push('X');
+        else displayArr.push(rolls[0] === 0 ? '-' : (rolls[0] !== undefined ? rolls[0] : ''));
+
+        if (rolls[1] !== undefined) {
+          if (rolls[0] === 10 && rolls[1] === 10) displayArr.push('X');
+          else if (rolls[0] < 10 && rolls[0] + rolls[1] === 10) displayArr.push('/');
+          else displayArr.push(rolls[1] === 0 ? '-' : rolls[1]);
+        }
+
+        if (rolls[2] !== undefined) {
+          if (rolls[2] === 10) displayArr.push('X');
+          else if (rolls[0] === 10 && rolls[1] < 10 && rolls[1] + rolls[2] === 10) displayArr.push('/');
+          else displayArr.push(rolls[2] === 0 ? '-' : rolls[2]);
+        }
+      }
+
+      let typeStr = '-';
+      if (editingFrameData.frameNumber < 10) {
+        if (editingFrameData.isStrike) typeStr = 'Strike (X) • 10 Pins';
+        else if (editingFrameData.isSpare) typeStr = 'Spare (/) • 10 Pins';
+        else if (editingFrameData.isOpen) typeStr = `Offen • ${(rolls[0]||0) + (rolls[1]||0)} Pins`;
+      } else {
+        const sum = rolls.reduce((a,b)=>a+b, 0);
+        typeStr = `10. Frame • ${sum} Pins`;
+      }
+
+      const pRolls = document.getElementById('editFramePreviewRolls');
+      const pType = document.getElementById('editFramePreviewType');
+      if (pRolls) pRolls.textContent = displayArr.join(' ') || '-';
+      if (pType) pType.textContent = typeStr;
+    }
+
+    function saveEditedFrame() {
+      if (!editingTarget || !editingFrameData) return;
+      if (editingTarget.isPastGame) {
+        alert("Frames bei bereits eingetragenen Spieltagen können nicht nachträglich geändert werden. Die Korrigier-Funktion ist ausschließlich während der laufenden Eintragung erlaubt.");
+        closeModal('modalEditFrame');
+        return;
+      }
+      recalculateEditedFrameRolls();
+
+      const idx = editingTarget.frameNumber - 1;
+      currentGameFrames[idx].rolls = [...editingFrameData.rolls];
+      currentGameFrames[idx].standingRolls = editingFrameData.standingRolls.map(r => [...r]);
+      currentGameFrames[idx].isStrike = editingFrameData.isStrike;
+      currentGameFrames[idx].isSpare = editingFrameData.isSpare;
+      currentGameFrames[idx].isOpen = editingFrameData.isOpen;
+
+      computeBowlingScores();
+      renderScoreboard();
+      if (currentFrameIndex === editingTarget.frameNumber) {
+        updatePinDeckVisuals();
+      }
+      autoSaveActiveSession();
+
+      closeModal('modalEditFrame');
+    }
+
+    function autoSaveActiveSession() {
+      if (!currentDaySession) return;
+      try {
+        localStorage.setItem('paderbowler_active_training_draft', JSON.stringify(currentDaySession));
+      } catch(e) {}
+    }
+
+    // ==========================================
+    // SPIEL SPEICHERN & SESSION ABSCHLIESSEN
+    // ==========================================
+    function saveCurrentGameAndNext() {
+      let finalGamePins = 0;
+      if (currentRecordingMode === 'quick') {
+        const val = parseInt(document.getElementById('quickScoreInput').value, 10);
+        if (isNaN(val) || val < 0 || val > 300) {
+          alert("Bitte eine gültige Holzzahl zwischen 0 und 300 eingeben.");
+          return;
+        }
+        finalGamePins = val;
+      } else {
+        finalGamePins = computeBowlingScores();
+      }
+
+      currentDaySession.games.push({
+        gameNumber: currentGameIndex,
+        mode: currentRecordingMode,
+        totalPins: finalGamePins,
+        frames: currentRecordingMode === 'pindeck' ? JSON.parse(JSON.stringify(currentGameFrames)) : null
+      });
+
+      autoSaveActiveSession();
+
+      alert(`✅ Spiel ${currentGameIndex} mit ${finalGamePins} Pins gespeichert! Weiter zu Spiel ${currentGameIndex + 1}.`);
+      startNewGameInSession(currentGameIndex + 1);
+    }
+
+    function finishTrainingDayPrompt() {
+      if (currentRecordingMode === 'quick') {
+        const rawVal = document.getElementById('quickScoreInput').value.trim();
+        if (rawVal) {
+          const val = parseInt(rawVal, 10);
+          if (!isNaN(val) && val >= 0 && val <= 300) {
+            currentDaySession.games.push({
+              gameNumber: currentGameIndex,
+              mode: 'quick',
+              totalPins: val,
+              frames: null
+            });
+          }
+        }
+      } else {
+        const hasRolls = currentGameFrames.some(f => f.rolls.length > 0);
+        if (hasRolls) {
+          const finalGamePins = computeBowlingScores();
+          currentDaySession.games.push({
+            gameNumber: currentGameIndex,
+            mode: 'pindeck',
+            totalPins: finalGamePins,
+            frames: JSON.parse(JSON.stringify(currentGameFrames))
+          });
+        }
+      }
+
+      if (!currentDaySession || currentDaySession.games.length === 0) {
+        alert("Es wurde noch kein Spiel eingetragen.");
+        return;
+      }
+
+      closeModal('modalGameRecorder');
+
+      // Trainingstag in globalen State speichern
+      appState.trainingDays = appState.trainingDays || [];
+      appState.trainingDays.push(currentDaySession);
+      saveAppState(appState);
+
+      // Draft löschen
+      try {
+        localStorage.removeItem('paderbowler_active_training_draft');
+      } catch(e) {}
+
+      // Tagesabschluss-Modal anzeigen
+      showDaySummaryModal(currentDaySession);
+    }
+
+    function showDaySummaryModal(daySession) {
+      const games = daySession.games || [];
+      const totalPins = games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+      const avg = games.length > 0 ? (totalPins / games.length).toFixed(2) : '0.00';
+      const pinScores = games.map(g => g.totalPins);
+      const high = pinScores.length > 0 ? Math.max(...pinScores) : 0;
+      const low = pinScores.length > 0 ? Math.min(...pinScores) : 0;
+
+      // Strikes & Turkeys auswerten
+      let strikesCount = 0;
+      let turkeysCount = 0;
+      let maxChain = 0;
+
+      games.forEach(g => {
+        if (g.frames && Array.isArray(g.frames)) {
+          let currentChain = 0;
+          g.frames.forEach(f => {
+            const rolls = f.rolls || [];
+            if (f.frameNumber === 10) {
+              rolls.forEach(r => {
+                if (r === 10) {
+                  strikesCount++;
+                  currentChain++;
+                  if (currentChain > maxChain) maxChain = currentChain;
+                  if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+                } else {
+                  currentChain = 0;
+                }
+              });
+            } else {
+              if (f.isStrike || rolls[0] === 10) {
+                strikesCount++;
+                currentChain++;
+                if (currentChain > maxChain) maxChain = currentChain;
+                if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+              } else {
+                currentChain = 0;
+              }
+            }
+          });
+        }
+      });
+
+      document.getElementById('daySummaryAvg').textContent = avg;
+      document.getElementById('daySummaryPins').textContent = totalPins.toLocaleString('de-DE');
+      document.getElementById('daySummaryHighLow').textContent = `${high} / ${low}`;
+      document.getElementById('daySummaryGames').textContent = games.length;
+
+      document.getElementById('daySummaryStrikes').textContent = strikesCount > 0 ? strikesCount : '-';
+      document.getElementById('daySummaryTurkeys').textContent = turkeysCount > 0 ? turkeysCount : '-';
+      document.getElementById('daySummaryChain').textContent = maxChain > 0 ? `${maxChain} in Folge` : '-';
+
+      openModal('modalDaySummary');
+    }
+
+    function closeDaySummaryAndShowDashboard() {
+      closeModal('modalDaySummary');
+      currentDaySession = null;
+      renderPlayerStats();
+      if (activeTab === 'history') renderDedicatedHistoryTab();
+      renderClubStats();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // STATISTIKEN RENDERN
+    // ==========================================
+    function renderPlayerStats() {
+      if (!currentUser) return;
+      const oilFilter = document.getElementById('oilPatternFilter') ? document.getElementById('oilPatternFilter').value : 'all';
+
+      let playerDays = (appState.trainingDays || []).filter(d => d.playerId === currentUser.id);
+      if (oilFilter !== 'all') {
+        playerDays = playerDays.filter(d => d.oilPattern === oilFilter);
+      }
+
+      const summaryBadge = document.getElementById('playerFilterSummaryBadge');
+      if (summaryBadge) {
+        summaryBadge.textContent = `${playerDays.length} ${playerDays.length === 1 ? 'Trainingstag erfasst' : 'Trainingstage erfasst'}`;
+      }
+
+      let allGames = [];
+      playerDays.forEach(d => {
+        (d.games || []).forEach(g => allGames.push({ ...g, date: d.date, oilPattern: d.oilPattern }));
+      });
+
+      const totalPins = allGames.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+      const avg = allGames.length > 0 ? (totalPins / allGames.length).toFixed(2) : '0.00';
+      const pinScores = allGames.map(g => g.totalPins);
+      const high = pinScores.length > 0 ? Math.max(...pinScores) : '-';
+      const low = pinScores.length > 0 ? Math.min(...pinScores) : '-';
+
+      document.getElementById('statTrainingAvg').textContent = avg;
+      document.getElementById('statHighGame').textContent = high;
+      document.getElementById('statLowGame').textContent = low;
+      document.getElementById('statGamesCount').textContent = allGames.length;
+      document.getElementById('statTotalPins').textContent = `${totalPins.toLocaleString('de-DE')} Pins`;
+
+      // Vergleich mit Ligaschnitt
+      let leagueAvg = null;
+      try {
+        const clubStats = calculateClubWidePlayerStats('all', appState);
+        const leaguePlayer = (clubStats || []).find(p => p.id === currentUser.id);
+        if (leaguePlayer && leaguePlayer.gamesPlayed > 0) {
+          leagueAvg = leaguePlayer.average;
+        }
+      } catch(e) {
+        console.warn("Ligaschnitt-Vergleich konnte nicht berechnet werden", e);
+      }
+      const compBadge = document.getElementById('statLeagueCompareBadge');
+      if (compBadge) {
+        if (leagueAvg && allGames.length > 0) {
+          const diff = (parseFloat(avg) - leagueAvg).toFixed(2);
+          const sign = diff >= 0 ? '+' : '';
+          compBadge.textContent = `Liga: ${leagueAvg.toFixed(2)} (${sign}${diff})`;
+          compBadge.className = diff >= 0 ? "text-[10px] font-bold text-emerald-600 block" : "text-[10px] font-bold text-rose-600 block";
+        } else {
+          compBadge.textContent = "vs. Liga: Keine Ligadaten";
+          compBadge.className = "text-[10px] font-bold text-slate-500 block";
+        }
+      }
+
+      // Pin-Level Schwachstellen-Analyse & Quoten
+      let detailedFramesCount = 0;
+      let strikesCount = 0;
+      let sparesCount = 0;
+      let openCount = 0;
+      let turkeysCount = 0;
+      let longestChain = 0;
+
+      let pin10Chances = 0;
+      let pin10Converted = 0;
+
+      let pin7Chances = 0;
+      let pin7Converted = 0;
+
+      let splitChances = 0;
+      let splitConverted = 0;
+
+      allGames.forEach(g => {
+        if (g.frames && Array.isArray(g.frames)) {
+          let currentChain = 0;
+          g.frames.forEach(f => {
+            detailedFramesCount++;
+            const rolls = f.rolls || [];
+
+            // Strike / Spare / Open Auswertung
+            if (f.frameNumber === 10) {
+              if (rolls[0] === 10) {
+                strikesCount++;
+                currentChain++;
+                if (currentChain > longestChain) longestChain = currentChain;
+                if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+
+                if (rolls[1] === 10) {
+                  strikesCount++;
+                  currentChain++;
+                  if (currentChain > longestChain) longestChain = currentChain;
+                  if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+
+                  if (rolls[2] === 10) {
+                    strikesCount++;
+                    currentChain++;
+                    if (currentChain > longestChain) longestChain = currentChain;
+                    if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+                  } else {
+                    currentChain = 0;
+                  }
+                } else {
+                  currentChain = 0;
+                  if (rolls[1] !== undefined && rolls[2] !== undefined && (rolls[1] + rolls[2] === 10)) {
+                    sparesCount++;
+                  }
+                }
+              } else {
+                currentChain = 0;
+                if (rolls.length >= 2 && (rolls[0] + rolls[1] === 10)) {
+                  sparesCount++;
+                  if (rolls[2] === 10) {
+                    strikesCount++;
+                    currentChain = 1;
+                    if (currentChain > longestChain) longestChain = currentChain;
+                  }
+                } else if (rolls.length >= 2) {
+                  openCount++;
+                }
+              }
+            } else {
+              // Frames 1-9
+              if (f.isStrike || rolls[0] === 10) {
+                strikesCount++;
+                currentChain++;
+                if (currentChain > longestChain) longestChain = currentChain;
+                if (currentChain >= 3 && currentChain % 3 === 0) turkeysCount++;
+              } else {
+                currentChain = 0;
+                if (f.isSpare || (rolls.length >= 2 && (rolls[0] + rolls[1] === 10))) {
+                  sparesCount++;
+                } else if (f.isOpen || rolls.length >= 2) {
+                  openCount++;
+                }
+              }
+            }
+
+            // Pin 10, Pin 7 und Split Analyse
+            const rollsStanding = f.standingRolls || [];
+            if (rollsStanding.length > 0) {
+              const r1Standing = rollsStanding[0] || [];
+              const isSpareConverted = f.isSpare || (rolls.length >= 2 && (rolls[0] + rolls[1] === 10));
+
+              // 10er-Pin Single-Pin Chance
+              if (r1Standing.length === 1 && r1Standing[0] === 10) {
+                pin10Chances++;
+                if (isSpareConverted) pin10Converted++;
+              }
+              // 7er-Pin Single-Pin Chance
+              if (r1Standing.length === 1 && r1Standing[0] === 7) {
+                pin7Chances++;
+                if (isSpareConverted) pin7Converted++;
+              }
+              // Split Erkennung
+              const isSplit = (!r1Standing.includes(1) && r1Standing.length >= 2 && (
+                (r1Standing.includes(7) && r1Standing.includes(10)) ||
+                (r1Standing.includes(4) && r1Standing.includes(6)) ||
+                (r1Standing.includes(5) && r1Standing.includes(7)) ||
+                (r1Standing.includes(5) && r1Standing.includes(10)) ||
+                (r1Standing.includes(3) && r1Standing.includes(10)) ||
+                (r1Standing.includes(2) && r1Standing.includes(7))
+              ));
+              if (isSplit) {
+                splitChances++;
+                if (isSpareConverted) splitConverted++;
+              }
+            }
+          });
+        }
+      });
+
+      document.getElementById('statDetailedFramesCount').textContent = `${detailedFramesCount} Frames`;
+      document.getElementById('statStrikesCount').textContent = strikesCount;
+      document.getElementById('statLongestChain').textContent = longestChain > 0 ? `Längste Kette: ${longestChain} in Folge` : 'Längste Kette: -';
+      document.getElementById('statTurkeysCount').textContent = turkeysCount;
+
+      const strikeRate = detailedFramesCount > 0 ? ((strikesCount / detailedFramesCount) * 100).toFixed(1) : '-';
+      const spareRate = detailedFramesCount > 0 ? ((sparesCount / detailedFramesCount) * 100).toFixed(1) : '-';
+      const openRate = detailedFramesCount > 0 ? ((openCount / detailedFramesCount) * 100).toFixed(1) : '-';
+
+      document.getElementById('statStrikeQuote').textContent = strikeRate !== '-' ? `${strikeRate} %` : '- %';
+      document.getElementById('statSpareQuote').textContent = spareRate !== '-' ? `${spareRate} %` : '- %';
+      document.getElementById('statOpenQuote').textContent = openRate !== '-' ? `${openRate} %` : '- %';
+
+      // Pin 10
+      const p10Rate = pin10Chances > 0 ? `${((pin10Converted / pin10Chances) * 100).toFixed(1)} % (${pin10Converted}/${pin10Chances})` : 'Keine Statistik vorhanden';
+      document.getElementById('statPin10Rate').textContent = p10Rate;
+      document.getElementById('statPin10Bar').style.width = pin10Chances > 0 ? `${(pin10Converted / pin10Chances) * 100}%` : '0%';
+
+      // Pin 7
+      const p7Rate = pin7Chances > 0 ? `${((pin7Converted / pin7Chances) * 100).toFixed(1)} % (${pin7Converted}/${pin7Chances})` : 'Keine Statistik vorhanden';
+      document.getElementById('statPin7Rate').textContent = p7Rate;
+      document.getElementById('statPin7Bar').style.width = pin7Chances > 0 ? `${(pin7Converted / pin7Chances) * 100}%` : '0%';
+
+      // Split
+      const splitRate = splitChances > 0 ? `${((splitConverted / splitChances) * 100).toFixed(1)} % (${splitConverted}/${splitChances})` : 'Keine Statistik vorhanden';
+      document.getElementById('statSplitRate').textContent = splitRate;
+      document.getElementById('statSplitBar').style.width = splitChances > 0 ? `${(splitConverted / splitChances) * 100}%` : '0%';
+
+      // Historie der Trainingstage aktualisieren
+      renderHistoryList();
+      renderPlayerCharts();
+    }
+
+    let historySortField = 'date'; // 'date' | 'avg' | 'high'
+
+    function setHistorySort(field) {
+      historySortField = field;
+      updateHistorySortButtonsUI();
+      renderHistoryList();
+    }
+
+    function updateHistorySortButtonsUI() {
+      const btnDate = document.getElementById('btnSortHistoryDate');
+      const btnAvg = document.getElementById('btnSortHistoryAvg');
+      const btnHigh = document.getElementById('btnSortHistoryHigh');
+      const badge = document.getElementById('historySortActiveBadge');
+
+      const config = [
+        { btn: btnDate, field: 'date', label: 'Neueste zuerst' },
+        { btn: btnAvg, field: 'avg', label: 'Höchster Schnitt zuerst' },
+        { btn: btnHigh, field: 'high', label: 'Bestes Spiel zuerst' }
+      ];
+
+      config.forEach(c => {
+        if (!c.btn) return;
+        if (historySortField === c.field) {
+          c.btn.className = "py-1.5 px-3 rounded-xl text-xs font-black border transition shadow-xs touch-btn flex items-center gap-1 bg-[#3E8370] text-white border-[#3E8370]";
+          if (badge) badge.textContent = c.label;
+        } else {
+          c.btn.className = "py-1.5 px-3 rounded-xl text-xs font-bold border transition shadow-xs touch-btn flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300";
+        }
+      });
+    }
+
+    function renderHistoryList() {
+      if (!currentUser) return;
+      const container = document.getElementById('trainingDaysHistoryList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const oilFilterEl = document.getElementById('historyOilFilter');
+      const oilFilter = oilFilterEl ? oilFilterEl.value : 'all';
+
+      let playerDays = (appState.trainingDays || []).filter(d => d.playerId === currentUser.id);
+
+      if (oilFilter !== 'all') {
+        playerDays = playerDays.filter(d => d.oilPattern === oilFilter);
+      }
+
+      const badge = document.getElementById('historyCountBadge');
+      if (badge) badge.textContent = `${playerDays.length} ${playerDays.length === 1 ? 'Einheit' : 'Einheiten'}`;
+
+      const filterBadge = document.getElementById('historyOilFilterBadge');
+      if (filterBadge) {
+        filterBadge.textContent = oilFilter === 'all' ? 'Alle Ölbilder einbezogen' : `Gefiltert: ${oilFilter}`;
+      }
+
+      if (playerDays.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic p-4 text-center bg-slate-50 rounded-xl border border-dashed border-[#A499A7]">Keine Trainingstage für das ausgewählte Ölbild vorhanden.</p>';
+        return;
+      }
+
+      // Daten aufbereiten
+      const prepared = playerDays.map(d => {
+        const games = d.games || [];
+        const pins = games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+        const avg = games.length > 0 ? (pins / games.length) : 0;
+        const scores = games.map(g => (typeof g.totalPins === 'number' ? g.totalPins : 0));
+        const high = scores.length > 0 ? Math.max(...scores) : 0;
+        const timestamp = d.date ? new Date(d.date).getTime() || 0 : 0;
+        return { day: d, games, pins, avg, high, timestamp };
+      });
+
+      // Sortierung anwenden: Beste Ergebnisse jeweils oben
+      if (historySortField === 'avg') {
+        prepared.sort((a, b) => (b.avg - a.avg) || (b.high - a.high) || (b.timestamp - a.timestamp));
+      } else if (historySortField === 'high') {
+        prepared.sort((a, b) => (b.high - a.high) || (b.avg - a.avg) || (b.timestamp - a.timestamp));
+      } else {
+        // 'date': neueste zuerst
+        prepared.sort((a, b) => (b.timestamp - a.timestamp) || (b.avg - a.avg));
+      }
+
+      prepared.forEach(item => {
+        const d = item.day;
+        const games = item.games;
+        const pins = item.pins;
+        const avgStr = item.avg.toFixed(2);
+        const highStr = item.high > 0 ? item.high : '-';
+
+        const card = document.createElement('div');
+        card.className = "p-3.5 rounded-2xl bg-white hover:bg-[#3E8370]/5 border-2 border-[#A499A7]/60 hover:border-[#3E8370] flex items-center justify-between cursor-pointer transition shadow-xs touch-btn gap-2";
+        card.title = "Klicke hier, um alle gespielten Spiele und Scoreboards anzusehen";
+        card.onclick = () => openTrainingDayDetailModal(d.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <strong class="text-slate-900 font-bold">${formatDate(d.date)}</strong>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 border border-[#A499A7] text-slate-700 font-bold">${d.oilPattern}</span>
+            </div>
+            <div class="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5 flex-wrap">
+              <span>${d.center} &bull; ${games.length} ${games.length === 1 ? 'Spiel' : 'Spiele'}</span>
+              <span class="font-bold text-[#70C04D] bg-[#70C04D]/10 px-1.5 py-0.5 rounded border border-[#70C04D]/30">High: ${highStr}</span>
+            </div>
+          </div>
+          <div class="text-right flex items-center gap-2 sm:gap-3 shrink-0">
+            <div>
+              <span class="text-sm font-black text-[#3E8370] block">${avgStr} Schnitt</span>
+              <span class="text-[10px] font-bold text-slate-600">${pins.toLocaleString('de-DE')} Pins</span>
+            </div>
+            <span class="text-xs text-[#3E8370] font-black hidden sm:inline">&rarr;</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // REITER: HISTORIE ALLER TRAININGSTAGE
+    // ==========================================
+    function renderDedicatedHistoryTab() {
+      if (!currentUser) return;
+      const oilFilter = document.getElementById('dedicatedHistoryOilFilter') ? document.getElementById('dedicatedHistoryOilFilter').value : 'all';
+      let playerDays = (appState.trainingDays || []).filter(d => d.playerId === currentUser.id);
+
+      if (oilFilter !== 'all') {
+        playerDays = playerDays.filter(d => d.oilPattern === oilFilter);
+      }
+
+      const container = document.getElementById('trainingHistoryDedicatedList');
+      const badge = document.getElementById('dedicatedHistoryCountBadge');
+      if (badge) badge.textContent = `${playerDays.length} ${playerDays.length === 1 ? 'Einheit' : 'Einheiten'}`;
+
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (playerDays.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-[#A499A7]">
+            <p class="text-sm font-bold text-slate-700 mb-1">Keine Trainingstage gefunden</p>
+            <p class="text-xs text-slate-500 mb-4">Für die gewählten Kriterien sind noch keine Einheiten vorhanden.</p>
+            <button type="button" onclick="openStartTrainingModal()" class="py-2 px-4 rounded-xl bg-[#3E8370] text-white font-black text-xs shadow-sm touch-btn">
+              + Jetzt Trainingstag starten
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      [...playerDays].reverse().forEach(d => {
+        const games = d.games || [];
+        const pins = games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+        const avg = games.length > 0 ? (pins / games.length).toFixed(2) : '0.00';
+        const scores = games.map(g => g.totalPins);
+        const high = scores.length > 0 ? Math.max(...scores) : '-';
+        const low = scores.length > 0 ? Math.min(...scores) : '-';
+
+        const card = document.createElement('div');
+        card.className = "p-4 rounded-2xl bg-white hover:bg-[#3E8370]/5 border-2 border-[#A499A7]/60 hover:border-[#3E8370] flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition shadow-sm touch-btn";
+        card.title = "Klicke hier, um alle Spiele und Scoreboards anzusehen";
+        card.onclick = () => openTrainingDayDetailModal(d.id);
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#3E8370]/10 text-[#3E8370] border border-[#3E8370]/30 flex items-center justify-center font-black text-lg shrink-0">
+              🎳
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <strong class="text-sm font-black text-slate-900">${formatDate(d.date)}</strong>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E4D7CF]/60 text-slate-800 font-bold border border-[#A499A7]/50">${d.oilPattern}</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">${d.center} &bull; ${games.length} ${games.length === 1 ? 'Spiel' : 'Spiele'} &bull; High: <span class="font-bold text-[#70C04D]">${high}</span> / Low: <span class="font-bold text-slate-600">${low}</span></p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+            <div class="text-left sm:text-right">
+              <span class="text-base font-black text-[#3E8370] block leading-tight">${avg} Schnitt</span>
+              <span class="text-[11px] font-bold text-slate-600">${pins.toLocaleString('de-DE')} Pins</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#3E8370] hover:text-white text-slate-700 font-bold text-xs flex items-center gap-1 border border-slate-200 transition">
+              <span>Spiele &amp; Frames</span>
+              <span>&rarr;</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // DETAIL-MODAL: SPIELE & SCOREBOARDS ANSEHEN
+    // ==========================================
+    function openTrainingDayDetailModal(dayId) {
+      const day = (appState.trainingDays || []).find(d => d.id === dayId);
+      if (!day) {
+        alert("Trainingstag nicht gefunden.");
+        return;
+      }
+
+      document.getElementById('dayDetailTitle').textContent = `Trainingstag vom ${formatDate(day.date)}`;
+      document.getElementById('dayDetailMeta').textContent = `${day.center || 'PaderBowling (Heimatbahn)'} • Ölbild: ${day.oilPattern || 'Hausölung'}`;
+
+      const games = day.games || [];
+      const totalPins = games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+      const avg = games.length > 0 ? (totalPins / games.length).toFixed(2) : '0.00';
+      const pinScores = games.map(g => g.totalPins);
+      const high = pinScores.length > 0 ? Math.max(...pinScores) : '-';
+      const low = pinScores.length > 0 ? Math.min(...pinScores) : '-';
+
+      document.getElementById('dayDetailAvg').textContent = avg;
+      document.getElementById('dayDetailTotalPins').textContent = totalPins.toLocaleString('de-DE');
+      document.getElementById('dayDetailHighLow').textContent = `${high} / ${low}`;
+      document.getElementById('dayDetailGamesCount').textContent = games.length;
+
+      const container = document.getElementById('dayDetailGamesList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (games.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic p-3 text-center">Keine Spiele in dieser Trainingseinheit erfasst.</p>';
+      } else {
+        games.forEach((g, gIdx) => {
+          const gCard = document.createElement('div');
+          gCard.className = "bg-white border-2 border-[#A499A7]/60 rounded-2xl p-3 sm:p-4 shadow-sm space-y-2.5";
+
+          const isPinDeck = (g.mode === 'pindeck' || (g.frames && g.frames.length > 0));
+          const modeBadge = isPinDeck
+            ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold">📍 Pin-Deck Erfassung</span>'
+            : '<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-bold">⚡ Schnelleingabe</span>';
+
+          let framesHtml = '';
+          if (isPinDeck && g.frames) {
+            framesHtml = `
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 px-1">
+                  <span>Scoreboard (Frames 1–10)</span>
+                  <span class="text-slate-400 font-normal">🔒 Gespeichert (Schreibgeschützt)</span>
+                </div>
+                <div class="overflow-x-auto pb-1">
+                  <div class="grid grid-cols-10 gap-1 text-center min-w-[520px] bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                    ${g.frames.map((f, fIdx) => {
+                      let r1 = f.rolls[0] !== undefined ? (f.rolls[0] === 10 ? 'X' : (f.rolls[0] === 0 ? '-' : f.rolls[0])) : '';
+                      let r2 = f.rolls[1] !== undefined ? (f.isSpare ? '/' : (f.rolls[1] === 10 ? 'X' : (f.rolls[1] === 0 ? '-' : f.rolls[1]))) : '';
+                      let r3 = f.rolls[2] !== undefined ? (f.rolls[2] === 10 ? 'X' : (f.rolls[2] === 0 ? '-' : f.rolls[2])) : '';
+
+                      return `
+                        <div class="border border-[#A499A7]/40 rounded-lg p-1 bg-white flex flex-col justify-between select-none cursor-default"
+                             title="Frame ${f.frameNumber || fIdx + 1} (${r1} ${r2} ${r3})">
+                          <div class="text-[10px] font-bold text-slate-500 border-b border-slate-100 pb-0.5 flex items-center justify-center px-0.5">
+                            <span>${f.frameNumber || fIdx + 1}</span>
+                          </div>
+                          <div class="flex items-center justify-center gap-1 my-1 font-black text-xs">
+                            <span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>
+                            <span class="${r2 === '/' ? 'text-[#70C04D]' : (r2 === 'X' ? 'text-[#23548F]' : 'text-slate-800')}">${r2}</span>
+                            ${(f.frameNumber === 10 || fIdx === 9) ? `<span class="${r3 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r3}</span>` : ''}
+                          </div>
+                          <div class="text-[11px] font-black text-slate-900 pt-0.5 border-t border-slate-100">${f.score !== null && f.score !== undefined ? f.score : '-'}</div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            framesHtml = `
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                Gesamtergebnis wurde per Schnelleingabe erfasst: <strong class="text-slate-900">${g.totalPins} Pins</strong>. Keine Frame-Details vorhanden.
+              </div>
+            `;
+          }
+
+          gCard.innerHTML = `
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-[#23548F] text-white flex items-center justify-center font-black text-xs">${g.gameNumber || gIdx + 1}</span>
+                <strong class="text-sm font-black text-slate-900">Spiel ${g.gameNumber || gIdx + 1}</strong>
+                ${modeBadge}
+              </div>
+              <div class="text-right">
+                <span class="text-base font-black text-[#3E8370]">${g.totalPins} Pins</span>
+              </div>
+            </div>
+            ${framesHtml}
+          `;
+
+          container.appendChild(gCard);
+        });
+      }
+
+      const delBtn = document.getElementById('btnDeleteDayFromDetail');
+      if (delBtn) {
+        delBtn.onclick = () => deleteTrainingDay(day.id);
+      }
+
+      openModal('modalTrainingDayDetail');
+    }
+
+    function deleteTrainingDay(dayId) {
+      if (confirm("Möchtest du diesen Trainingstag wirklich unwiderruflich löschen?")) {
+        appState.deletedTrainingDayIds = appState.deletedTrainingDayIds || [];
+        if (!appState.deletedTrainingDayIds.includes(dayId)) {
+          appState.deletedTrainingDayIds.push(dayId);
+        }
+        appState.trainingDays = (appState.trainingDays || []).filter(d => d.id !== dayId);
+        saveAppState(appState);
+        closeModal('modalTrainingDayDetail');
+        renderPlayerStats();
+        if (activeTab === 'history') renderDedicatedHistoryTab();
+        renderClubStats();
+        alert("Trainingstag wurde gelöscht.");
+      }
+    }
+
+    function renderClubStats() {
+      const allDays = appState.trainingDays || [];
+      const playerMap = {};
+
+      allDays.forEach(d => {
+        if (!playerMap[d.playerId]) {
+          const p = (appState.players || []).find(x => x.id === d.playerId);
+          playerMap[d.playerId] = {
+            id: d.playerId,
+            name: p ? formatPlayerDisplayName(p) : 'Unbekannt',
+            daysCount: 0,
+            gamesCount: 0,
+            totalPins: 0,
+            highGame: 0,
+            longestChain: 0
+          };
+        }
+        playerMap[d.playerId].daysCount++;
+        (d.games || []).forEach(g => {
+          playerMap[d.playerId].gamesCount++;
+          playerMap[d.playerId].totalPins += (g.totalPins || 0);
+          if (g.totalPins > playerMap[d.playerId].highGame) {
+            playerMap[d.playerId].highGame = g.totalPins;
+          }
+        });
+      });
+
+      const leaderList = Object.values(playerMap).map(p => ({
+        ...p,
+        average: p.gamesCount > 0 ? (p.totalPins / p.gamesCount) : 0
+      }));
+
+      // Sortierung anhand gewählter Spalte und Richtung
+      leaderList.sort((a, b) => {
+        let valA = a[clubSortKey];
+        let valB = b[clubSortKey];
+        if (valA === undefined) valA = 0;
+        if (valB === undefined) valB = 0;
+
+        if (valA !== valB) {
+          return (clubSortDirection === 'desc') ? (valB - valA) : (valA - valB);
+        }
+        // Sekundärer Tie-Breaker: Schnitt, dann Gesamtpins
+        return (b.average - a.average) || (b.totalPins - a.totalPins);
+      });
+
+      // Spaltenköpfe hervorheben & Indikatoren aktualisieren
+      const sortHeaders = [
+        { id: 'thClubDays', key: 'daysCount', label: 'Tage' },
+        { id: 'thClubGames', key: 'gamesCount', label: 'Spiele' },
+        { id: 'thClubPins', key: 'totalPins', label: 'Pins' },
+        { id: 'thClubAvg', key: 'average', label: 'Schnitt' },
+        { id: 'thClubHigh', key: 'highGame', label: 'High' }
+      ];
+
+      const arrow = clubSortDirection === 'desc' ? '▼' : '▲';
+      sortHeaders.forEach(sh => {
+        const th = document.getElementById(sh.id);
+        if (!th) return;
+        const isActive = (sh.key === clubSortKey);
+        if (isActive) {
+          th.className = "py-2.5 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn bg-[#3E8370] text-white font-black shadow-md border-b-2 border-[#2b5d4f]";
+          th.innerHTML = `${sh.label} <span class="text-xs text-white">${arrow}</span>`;
+        } else {
+          th.className = "py-2.5 px-3 text-right cursor-pointer select-none rounded-xl transition touch-btn text-slate-700 hover:bg-[#3E8370]/10 hover:text-[#3E8370] font-bold";
+          th.innerHTML = `${sh.label} <span class="text-[10px] text-slate-400 opacity-60">⇅</span>`;
+        }
+      });
+
+      // Aktiven Sortier-Hinweis aktualisieren
+      const activeHeaderObj = sortHeaders.find(sh => sh.key === clubSortKey);
+      const activeLabel = activeHeaderObj ? activeHeaderObj.label : 'Schnitt';
+      const dirText = clubSortDirection === 'desc' ? 'absteigend' : 'aufsteigend';
+      const badge = document.getElementById('clubSortActiveBadge');
+      if (badge) {
+        badge.innerHTML = `Sortiert nach: <strong class="underline text-[#3E8370] font-black">${activeLabel}</strong> (${dirText})`;
+      }
+
+      const tbody = document.getElementById('clubTrainingLeaderboardBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (leaderList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-500 italic">Noch keine Trainingstage im Verein erfasst.</td></tr>';
+        } else {
+          leaderList.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+            // Farblich abgesetzte Zelle für die aktive Sortierung
+            const tdDays = `<td class="py-2.5 px-3 text-right ${clubSortKey === 'daysCount' ? 'bg-[#3E8370]/10 font-black text-[#3E8370] border-x border-[#3E8370]/20' : 'text-slate-700'}">${p.daysCount}</td>`;
+            const tdGames = `<td class="py-2.5 px-3 text-right ${clubSortKey === 'gamesCount' ? 'bg-[#3E8370]/10 font-black text-[#3E8370] border-x border-[#3E8370]/20' : 'text-slate-700'}">${p.gamesCount}</td>`;
+            const tdPins = `<td class="py-2.5 px-3 text-right ${clubSortKey === 'totalPins' ? 'bg-[#3E8370]/10 font-black text-[#23548F] border-x border-[#3E8370]/20' : 'text-slate-900 font-bold'}">${p.totalPins.toLocaleString('de-DE')}</td>`;
+            const tdAvg = `<td class="py-2.5 px-3 text-right ${clubSortKey === 'average' ? 'bg-[#3E8370]/10 font-black text-[#3E8370] border-x border-[#3E8370]/20' : 'font-black text-[#3E8370]'}">${p.average.toFixed(2)}</td>`;
+            const tdHigh = `<td class="py-2.5 px-3 text-right ${clubSortKey === 'highGame' ? 'bg-[#3E8370]/10 font-black text-[#70C04D] border-x border-[#3E8370]/20' : 'font-bold text-[#70C04D]'}">${p.highGame}</td>`;
+
+            tr.innerHTML = `
+              <td class="py-2.5 px-3 text-center font-black ${idx === 0 ? 'text-[#E8C543]' : (idx === 1 ? 'text-slate-400' : (idx === 2 ? 'text-amber-700' : 'text-slate-600'))}">
+                ${idx + 1}
+              </td>
+              <td class="py-2.5 px-3 font-bold text-slate-900">${p.name}</td>
+              ${tdDays}
+              ${tdGames}
+              ${tdPins}
+              ${tdAvg}
+              ${tdHigh}
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+
+      // Rekorde
+      if (leaderList.length > 0) {
+        const sortedByHigh = [...leaderList].sort((a,b) => b.highGame - a.highGame);
+        document.getElementById('clubRecordHighGame').textContent = sortedByHigh[0].highGame;
+        document.getElementById('clubRecordHighHolder').textContent = sortedByHigh[0].name;
+
+        const sortedByGames = [...leaderList].sort((a,b) => b.gamesCount - a.gamesCount);
+        document.getElementById('clubRecordMostGames').textContent = `${sortedByGames[0].gamesCount} Spiele`;
+        document.getElementById('clubRecordGamesHolder').textContent = sortedByGames[0].name;
+
+        const sortedByAvg = [...leaderList].filter(p => p.gamesCount > 0).sort((a,b) => b.average - a.average || b.totalPins - a.totalPins);
+        if (sortedByAvg.length > 0) {
+          document.getElementById('clubRecordBestAvg').textContent = sortedByAvg[0].average.toFixed(2);
+          document.getElementById('clubRecordAvgHolder').textContent = `${sortedByAvg[0].name} (${sortedByAvg[0].gamesCount} Spiele)`;
+        }
+      }
+      renderClubCharts();
+    }
+
+    function setClubSort(key) {
+      if (clubSortKey === key) {
+        clubSortDirection = (clubSortDirection === 'desc') ? 'asc' : 'desc';
+      } else {
+        clubSortKey = key;
+        clubSortDirection = 'desc';
+      }
+      renderClubStats();
+    }
+
+    // Modal Helpers
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    // ==========================================
+    // GRAFISCHE AUSWERTUNGEN & DIAGRAMME (CHART.JS)
+    // ==========================================
+    let chartPlayerOilAvg = null;
+    let chartPlayerOilStrikes = null;
+    let chartPlayerOilSpares = null;
+    let chartClubOilProgression = null;
+    let chartClubOilAvg = null;
+    let chartClubOilStrikes = null;
+    let chartClubOilSpares = null;
+    let clubProgressionMetric = 'pins'; // 'pins' oder 'avg'
+
+    const OIL_PATTERN_COLORS = {
+      'Hausölung (Standard)': '#3E8370',
+      'PBA Shark (lang)': '#23548F',
+      'PBA Chameleon (mittel)': '#E8C543',
+      'PBA Cheetah (kurz)': '#DE4341',
+      'PBA Viper (mittel)': '#8E44AD',
+      'Sportölung Flat (1:1)': '#D35400'
+    };
+    const FALLBACK_OIL_COLORS = ['#0284c7', '#059669', '#d946ef', '#6366f1', '#14b8a6', '#f59e0b', '#ec4899'];
+
+    function getOilPatternColor(patternName, index = 0) {
+      if (patternName && OIL_PATTERN_COLORS[patternName]) {
+        return OIL_PATTERN_COLORS[patternName];
+      }
+      return FALLBACK_OIL_COLORS[index % FALLBACK_OIL_COLORS.length];
+    }
+
+    function getChartTextColor() {
+      return document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a';
+    }
+    function getChartSubtextColor() {
+      return document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#334155';
+    }
+    function getChartGridColor() {
+      return document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)';
+    }
+
+    function calculateFrameMetrics(games) {
+      let detailedFramesCount = 0;
+      let strikesCount = 0;
+      let sparesCount = 0;
+      let openCount = 0;
+
+      (games || []).forEach(g => {
+        if (g.frames && Array.isArray(g.frames)) {
+          g.frames.forEach(f => {
+            detailedFramesCount++;
+            const rolls = f.rolls || [];
+            if (f.frameNumber === 10) {
+              if (rolls[0] === 10) {
+                strikesCount++;
+                if (rolls[1] === 10) strikesCount++;
+                if (rolls[2] === 10) strikesCount++;
+                if (rolls[1] !== 10 && rolls[1] !== undefined && rolls[2] !== undefined && (rolls[1] + rolls[2] === 10)) {
+                  sparesCount++;
+                }
+              } else {
+                if (rolls.length >= 2 && (rolls[0] + rolls[1] === 10)) {
+                  sparesCount++;
+                  if (rolls[2] === 10) strikesCount++;
+                } else if (rolls.length >= 2) {
+                  openCount++;
+                }
+              }
+            } else {
+              if (f.isStrike || rolls[0] === 10) {
+                strikesCount++;
+              } else if (f.isSpare || (rolls.length >= 2 && (rolls[0] + rolls[1] === 10))) {
+                sparesCount++;
+              } else if (f.isOpen || rolls.length >= 2) {
+                openCount++;
+              }
+            }
+          });
+        }
+      });
+
+      const strikeRate = detailedFramesCount > 0 ? Number(((strikesCount / detailedFramesCount) * 100).toFixed(1)) : 0;
+      const spareRate = detailedFramesCount > 0 ? Number(((sparesCount / detailedFramesCount) * 100).toFixed(1)) : 0;
+      const openRate = detailedFramesCount > 0 ? Number(((openCount / detailedFramesCount) * 100).toFixed(1)) : 0;
+
+      return {
+        detailedFramesCount,
+        strikesCount,
+        sparesCount,
+        openCount,
+        strikeRate,
+        spareRate,
+        openRate
+      };
+    }
+
+    function renderPlayerCharts() {
+      if (!currentUser) return;
+      const secP = document.getElementById('tabContentPlayer');
+      if (secP && secP.classList.contains('hidden')) return;
+
+      const playerDays = (appState.trainingDays || []).filter(d => d.playerId === currentUser.id);
+      const emptyNotice = document.getElementById('playerChartsEmptyNotice');
+      const content = document.getElementById('playerChartsContent');
+
+      if (playerDays.length === 0) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (content) content.classList.add('hidden');
+        return;
+      }
+      if (emptyNotice) emptyNotice.classList.add('hidden');
+      if (content) content.classList.remove('hidden');
+
+      // Gruppierung aller gespielten Ölbilder des Spielers
+      const patternMap = {};
+      playerDays.forEach(d => {
+        const pattern = d.oilPattern || 'Hausölung (Standard)';
+        if (!patternMap[pattern]) {
+          patternMap[pattern] = {
+            name: pattern,
+            games: [],
+            daysCount: 0
+          };
+        }
+        patternMap[pattern].daysCount++;
+        (d.games || []).forEach(g => patternMap[pattern].games.push(g));
+      });
+
+      const patterns = Object.values(patternMap).map((p, idx) => {
+        const totalPins = p.games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+        const avg = p.games.length > 0 ? Number((totalPins / p.games.length).toFixed(2)) : 0;
+        const metrics = calculateFrameMetrics(p.games);
+        return {
+          name: p.name,
+          color: getOilPatternColor(p.name, idx),
+          gamesCount: p.games.length,
+          daysCount: p.daysCount,
+          totalPins,
+          average: avg,
+          ...metrics
+        };
+      });
+
+      patterns.sort((a, b) => b.gamesCount - a.gamesCount || a.name.localeCompare(b.name));
+
+      const labels = patterns.map(p => p.name);
+      const colors = patterns.map(p => p.color);
+      const textColor = getChartTextColor();
+      const subtextColor = getChartSubtextColor();
+      const gridColor = getChartGridColor();
+
+      // 1. Chart: Pin-Durchschnitt
+      const ctxAvg = document.getElementById('chartPlayerOilAvg');
+      if (ctxAvg && typeof Chart !== 'undefined') {
+        if (chartPlayerOilAvg) chartPlayerOilAvg.destroy();
+        chartPlayerOilAvg = new Chart(ctxAvg, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Schnitt (Pins)',
+              data: patterns.map(p => p.average),
+              backgroundColor: colors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    return `${item.average} Pins Schnitt (${item.gamesCount} Spiele, ${item.totalPins.toLocaleString('de-DE')} Pins)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                suggestedMin: 120,
+                suggestedMax: 220,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' },
+                  callback: (v) => `${v}`
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Schnitt (Pins / Spiel)', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Chart: Strike-Quote
+      const ctxStrikes = document.getElementById('chartPlayerOilStrikes');
+      if (ctxStrikes && typeof Chart !== 'undefined') {
+        if (chartPlayerOilStrikes) chartPlayerOilStrikes.destroy();
+        chartPlayerOilStrikes = new Chart(ctxStrikes, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Strike-Quote (%)',
+              data: patterns.map(p => p.strikeRate),
+              backgroundColor: colors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    if (item.detailedFramesCount === 0) return 'Keine Pin-Deck Daten vorhanden';
+                    return `${item.strikeRate}% Strike-Quote (${item.strikesCount} von ${item.detailedFramesCount} Frames)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  callback: v => `${v}%`,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' }
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Strike-Quote in %', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Chart: Räum-Quote
+      const ctxSpares = document.getElementById('chartPlayerOilSpares');
+      if (ctxSpares && typeof Chart !== 'undefined') {
+        if (chartPlayerOilSpares) chartPlayerOilSpares.destroy();
+        chartPlayerOilSpares = new Chart(ctxSpares, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Räum-Quote (%)',
+              data: patterns.map(p => p.spareRate),
+              backgroundColor: colors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    if (item.detailedFramesCount === 0) return 'Keine Pin-Deck Daten vorhanden';
+                    return `${item.spareRate}% Räum-Quote (${item.sparesCount} von ${item.detailedFramesCount} Frames)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  callback: v => `${v}%`,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' }
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Räum-Quote in %', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function setClubProgressionMetric(metric) {
+      clubProgressionMetric = metric;
+      const btnPins = document.getElementById('btnProgressionPins');
+      const btnAvg = document.getElementById('btnProgressionAvg');
+      if (btnPins && btnAvg) {
+        if (metric === 'pins') {
+          btnPins.className = "px-2.5 py-1 rounded-lg text-[10px] font-black transition bg-[#23548F] text-white shadow-sm";
+          btnAvg.className = "px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-600 hover:text-slate-900 transition";
+        } else {
+          btnAvg.className = "px-2.5 py-1 rounded-lg text-[10px] font-black transition bg-[#23548F] text-white shadow-sm";
+          btnPins.className = "px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-600 hover:text-slate-900 transition";
+        }
+      }
+      renderClubCharts();
+    }
+
+    function renderClubCharts() {
+      const secC = document.getElementById('tabContentClub');
+      if (secC && secC.classList.contains('hidden')) return;
+
+      const allDays = appState.trainingDays || [];
+      const emptyNotice = document.getElementById('clubChartsEmptyNotice');
+      const content = document.getElementById('clubChartsContent');
+
+      if (allDays.length === 0) {
+        if (emptyNotice) emptyNotice.classList.remove('hidden');
+        if (content) content.classList.add('hidden');
+        return;
+      }
+      if (emptyNotice) emptyNotice.classList.add('hidden');
+      if (content) content.classList.remove('hidden');
+
+      // Gruppierung aller Trainingstage nach Ölbild
+      const patternMap = {};
+      allDays.forEach(d => {
+        const pattern = d.oilPattern || 'Hausölung (Standard)';
+        if (!patternMap[pattern]) {
+          patternMap[pattern] = {
+            name: pattern,
+            days: []
+          };
+        }
+        patternMap[pattern].days.push(d);
+      });
+
+      const patterns = Object.values(patternMap).map((p, idx) => {
+        const sortedDays = [...p.days].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+        // Gruppierung nach Trainingstermin/Datum
+        const sessionsByDate = {};
+        sortedDays.forEach(day => {
+          const dKey = day.date || 'Unbekannt';
+          if (!sessionsByDate[dKey]) {
+            sessionsByDate[dKey] = {
+              date: dKey,
+              games: [],
+              playerIds: new Set()
+            };
+          }
+          sessionsByDate[dKey].playerIds.add(day.playerId);
+          (day.games || []).forEach(g => sessionsByDate[dKey].games.push(g));
+        });
+
+        const sessions = Object.values(sessionsByDate).map(s => {
+          const totalPins = s.games.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+          const avg = s.games.length > 0 ? Number((totalPins / s.games.length).toFixed(2)) : 0;
+          return {
+            date: s.date,
+            totalPins,
+            avg,
+            gamesCount: s.games.length,
+            playersCount: s.playerIds.size,
+            games: s.games
+          };
+        });
+
+        let allPatternGames = [];
+        sessions.forEach(s => (s.games || []).forEach(g => allPatternGames.push(g)));
+        const totalPinsAll = allPatternGames.reduce((acc, g) => acc + (g.totalPins || 0), 0);
+        const avgAll = allPatternGames.length > 0 ? Number((totalPinsAll / allPatternGames.length).toFixed(2)) : 0;
+        const metricsAll = calculateFrameMetrics(allPatternGames);
+
+        return {
+          name: p.name,
+          color: getOilPatternColor(p.name, idx),
+          sessions: sessions,
+          totalPins: totalPinsAll,
+          average: avgAll,
+          gamesCount: allPatternGames.length,
+          ...metricsAll
+        };
+      });
+
+      patterns.sort((a, b) => b.gamesCount - a.gamesCount || a.name.localeCompare(b.name));
+
+      const textColor = getChartTextColor();
+      const subtextColor = getChartSubtextColor();
+      const gridColor = getChartGridColor();
+
+      // 1. Farblegende & Infobox
+      const legendBox = document.getElementById('clubOilLegendBox');
+      if (legendBox) {
+        legendBox.innerHTML = '';
+        patterns.forEach(p => {
+          const pill = document.createElement('div');
+          pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-xs";
+          pill.innerHTML = `
+            <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${p.color}"></span>
+            <span class="font-bold text-slate-800 text-xs">${p.name}</span>
+            <span class="text-[10px] text-slate-500 font-semibold">(${p.sessions.length} ${p.sessions.length === 1 ? 'Spieltag' : 'Spieltage'}, ${p.totalPins.toLocaleString('de-DE')} Pins)</span>
+          `;
+          legendBox.appendChild(pill);
+        });
+      }
+
+      // 2. Liniendiagramm: Verlauf der Spieltage pro Ölbild
+      // X-Achse enthält Spieltag 1, Spieltag 2... je Ölbild (1, 2, 3...)
+      const maxSessions = Math.max(...patterns.map(p => p.sessions.length), 1);
+      const progressionLabels = Array.from({ length: maxSessions }, (_, i) => `${i + 1}`);
+
+      const lineDatasets = patterns.map(p => {
+        const dataPoints = progressionLabels.map((_, i) => {
+          const sess = p.sessions[i];
+          return sess ? sess.avg : null;
+        });
+
+        return {
+          label: p.name,
+          data: dataPoints,
+          borderColor: p.color,
+          backgroundColor: p.color,
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          pointBackgroundColor: p.color,
+          tension: 0.2,
+          spanGaps: false
+        };
+      });
+
+      const ctxProg = document.getElementById('chartClubOilProgression');
+      if (ctxProg && typeof Chart !== 'undefined') {
+        if (chartClubOilProgression) chartClubOilProgression.destroy();
+        chartClubOilProgression = new Chart(ctxProg, {
+          type: 'line',
+          data: {
+            labels: progressionLabels,
+            datasets: lineDatasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  color: textColor,
+                  font: { size: 11, weight: 'bold' },
+                  boxWidth: 14,
+                  usePointStyle: true
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  title: (tooltipItems) => {
+                    const idx = tooltipItems[0].dataIndex;
+                    return `${idx + 1}. Spieltag auf dem jeweiligen Ölbild`;
+                  },
+                  label: (ctx) => {
+                    const p = patterns[ctx.datasetIndex];
+                    const s = p.sessions[ctx.dataIndex];
+                    if (!s) return `${ctx.dataset.label}: Kein Spieltag`;
+                    return `${p.name}: ${s.avg.toFixed(2)} Schnitt (${s.totalPins.toLocaleString('de-DE')} Pins • ${s.gamesCount} Spiele • ${formatDate(s.date)})`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                suggestedMin: 140,
+                suggestedMax: 220,
+                ticks: {
+                  display: true,
+                  stepSize: 10,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' },
+                  callback: (v) => `${Math.round(v)}`
+                },
+                grid: { color: gridColor },
+                title: {
+                  display: true,
+                  text: 'Schnitt (Pins / Spiel)',
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' }
+                }
+              },
+              x: {
+                ticks: {
+                  color: textColor,
+                  font: { weight: 'bold', size: 12 }
+                },
+                grid: { color: gridColor },
+                title: {
+                  display: true,
+                  text: 'Gespielte Spieltage',
+                  align: 'center',
+                  color: textColor,
+                  font: { size: 12, weight: 'bold' },
+                  padding: { top: 8 }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Vereins-Balkendiagramm 1: Schnitt aller Spieler pro Ölbild
+      const barLabels = patterns.map(p => p.name);
+      const barColors = patterns.map(p => p.color);
+
+      const ctxAvg = document.getElementById('chartClubOilAvg');
+      if (ctxAvg && typeof Chart !== 'undefined') {
+        if (chartClubOilAvg) chartClubOilAvg.destroy();
+        chartClubOilAvg = new Chart(ctxAvg, {
+          type: 'bar',
+          data: {
+            labels: barLabels,
+            datasets: [{
+              label: 'Vereinsschnitt (Pins)',
+              data: patterns.map(p => p.average),
+              backgroundColor: barColors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: barColors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    return `Vereinsschnitt: ${item.average} Pins (${item.gamesCount} Spiele, ${item.totalPins.toLocaleString('de-DE')} Pins)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                suggestedMin: 120,
+                suggestedMax: 220,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' },
+                  callback: (v) => `${v}`
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Vereinsschnitt (Pins / Spiel)', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 4. Vereins-Balkendiagramm 2: Strike-Quote nach Ölbild
+      const ctxStrikes = document.getElementById('chartClubOilStrikes');
+      if (ctxStrikes && typeof Chart !== 'undefined') {
+        if (chartClubOilStrikes) chartClubOilStrikes.destroy();
+        chartClubOilStrikes = new Chart(ctxStrikes, {
+          type: 'bar',
+          data: {
+            labels: barLabels,
+            datasets: [{
+              label: 'Vereins-Strike-Quote (%)',
+              data: patterns.map(p => p.strikeRate),
+              backgroundColor: barColors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: barColors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    if (item.detailedFramesCount === 0) return 'Keine Pin-Deck Frames erfasst';
+                    return `Vereins-Strike-Quote: ${item.strikeRate}% (${item.strikesCount} von ${item.detailedFramesCount} Frames)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  callback: v => `${v}%`,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' }
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Strike-Quote in %', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 5. Vereins-Balkendiagramm 3: Räum-Quote nach Ölbild
+      const ctxSpares = document.getElementById('chartClubOilSpares');
+      if (ctxSpares && typeof Chart !== 'undefined') {
+        if (chartClubOilSpares) chartClubOilSpares.destroy();
+        chartClubOilSpares = new Chart(ctxSpares, {
+          type: 'bar',
+          data: {
+            labels: barLabels,
+            datasets: [{
+              label: 'Vereins-Räum-Quote (%)',
+              data: patterns.map(p => p.spareRate),
+              backgroundColor: barColors,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: barColors
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const item = patterns[ctx.dataIndex];
+                    if (item.detailedFramesCount === 0) return 'Keine Pin-Deck Frames erfasst';
+                    return `Vereins-Räum-Quote: ${item.spareRate}% (${item.sparesCount} von ${item.detailedFramesCount} Frames)`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                  display: true,
+                  stepSize: 20,
+                  callback: v => `${v}%`,
+                  color: subtextColor,
+                  font: { size: 11, weight: 'bold' }
+                },
+                grid: { color: gridColor },
+                title: { display: true, text: 'Räum-Quote in %', color: subtextColor, font: { size: 10, weight: 'bold' } }
+              },
+              x: {
+                ticks: { color: textColor, font: { weight: 'bold', size: 11 } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function renderActiveCharts() {
+      if (activeTab === 'player') {
+        renderPlayerCharts();
+      } else if (activeTab === 'club') {
+        renderClubCharts();
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      const origToggleTheme = window.toggleTheme;
+      window.toggleTheme = function() {
+        const next = origToggleTheme ? origToggleTheme() : 'light';
+        renderActiveCharts();
+        return next;
+      };
+      window.addEventListener('paderbowler-theme-changed', renderActiveCharts);
+    }
+  </script>
+</body>
+</html>

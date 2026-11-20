@@ -91,6 +91,70 @@
       box-sizing: border-box;
     }
     .touch-btn:active { transform: scale(0.96); }
+
+    /* Dark Mode: Hintergrund & Buttons dunkel, A4 Druckseite behält Original-Design */
+    html.dark body {
+      background-color: #0f172a !important;
+    }
+    html.dark .a4-page {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #475569 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75) !important;
+    }
+    html.dark .a4-page * {
+      color: inherit;
+    }
+    html.dark .a4-page .bg-white {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
+    html.dark .a4-page .bg-slate-50,
+    html.dark .a4-page .bg-slate-100 {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    html.dark .a4-page .text-slate-900,
+    html.dark .a4-page .text-slate-950 {
+      color: #0f172a !important;
+    }
+    html.dark .a4-page .text-slate-800 {
+      color: #1e293b !important;
+    }
+    html.dark .a4-page .text-slate-700 {
+      color: #334155 !important;
+    }
+    html.dark .a4-page .text-slate-600 {
+      color: #475569 !important;
+    }
+    html.dark .a4-page .text-slate-500 {
+      color: #64748b !important;
+    }
+    html.dark .a4-page .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    html.dark .a4-page .text-blue-700 {
+      color: #1d4ed8 !important;
+    }
+    html.dark .a4-page .text-emerald-700 {
+      color: #047857 !important;
+    }
+    html.dark .a4-page .text-amber-700 {
+      color: #b45309 !important;
+    }
+    html.dark .a4-page .text-red-700 {
+      color: #b91c1c !important;
+    }
+    html.dark .a4-page .text-purple-700 {
+      color: #7e22ce !important;
+    }
+    html.dark .a4-page .border-slate-200,
+    html.dark .a4-page .border-slate-300 {
+      border-color: #e2e8f0 !important;
+    }
+    html.dark .a4-page .border-slate-900 {
+      border-color: #0f172a !important;
+    }
   </style>
 </head>
 <body class="min-h-full flex flex-col font-sans antialiased bg-[#E4D7CF] text-slate-900 overflow-x-hidden w-full max-w-full">
@@ -148,6 +212,12 @@
         <!-- Drucken Button -->
         <button onclick="window.print()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border-2 border-[#A499A7] shadow-sm touch-btn">
           <span>Drucken</span>
+        </button>
+
+        <!-- Dark Mode Toggle Button -->
+        <button id="btnToggleTheme" onclick="toggleTheme()" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/90 hover:bg-white text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm flex items-center gap-1.5" title="Dark Mode umschalten">
+          <span id="themeToggleIcon">🌙</span>
+          <span id="themeToggleText" class="hidden sm:inline">Dunkel</span>
         </button>
 
         <!-- Navigation zu anderen Modulen -->
@@ -653,6 +723,7 @@
           .filter(t => !t.seasonId || t.seasonId === activeSeasonId)
           .map(t => `<option value="${t.id}" ${t.id === currentTeam.id ? 'selected' : ''}>${t.name} (${t.league})</option>`)
           .join('');
+        select.value = currentTeam.id;
       }
 
       const linkInput = document.getElementById('navLinkInput');
@@ -940,6 +1011,10 @@
     // 5. RENDERN DER SAISONÜBERSICHT (SEITE 2)
     function renderSeasonReport() {
       const stats = calculatePlayerStatsForTeam(currentTeam.id, appState);
+      const isFinalized = (typeof isTeamSeasonFinalized === 'function')
+        ? isTeamSeasonFinalized(currentTeam.id, appState)
+        : false;
+
       const tbody = document.getElementById('season-table-body');
       tbody.innerHTML = '';
 
@@ -957,18 +1032,23 @@
           const tr = document.createElement('tr');
           tr.className = idx < 3 && p.gamesPlayed > 0 ? 'bg-slate-50/80 font-semibold' : '';
           const rankMedal = `${idx + 1}.`;
+          const pObj = appState.players.find(x => x.id === p.id);
+          const playerName = (typeof formatPlayerDisplayName === 'function' && pObj)
+            ? formatPlayerDisplayName(pObj, true)
+            : (p.displayName || p.name);
+
           tr.innerHTML = `
             <td class="py-1.5 px-2 text-center font-bold ${idx === 0 ? 'text-amber-600' : 'text-slate-500'}">${rankMedal}</td>
-            <td class="py-1.5 px-2 font-bold text-slate-900">${p.displayName || p.name}</td>
+            <td class="py-1.5 px-2 font-bold text-slate-900">${playerName}</td>
             <td class="py-1.5 px-2 text-center text-slate-700">${p.gamesPlayed}</td>
             <td class="py-1.5 px-2 text-right font-black text-slate-900">${p.totalPins.toLocaleString('de-DE')}</td>
             <td class="py-1.5 px-2 text-right font-black text-blue-700">${p.average.toFixed(2).replace('.', ',')}</td>
             <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${p.highGame}</td>
             <td class="py-1.5 px-2 text-center text-slate-400">${p.lowGame}</td>
-            <td class="py-1.5 px-2 text-center font-bold text-amber-700">${p.totalBierframes}</td>
-            <td class="py-1.5 px-2 text-center font-bold text-red-700">${p.totalRaeumfehler}</td>
-            <td class="py-1.5 px-2 text-center font-bold text-purple-700">${p.totalGutterAnwurf}</td>
-            <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${p.totalDrilling}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-amber-700">${isFinalized ? p.totalBierframes : '🔒'}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-red-700">${isFinalized ? p.totalRaeumfehler : '🔒'}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-purple-700">${isFinalized ? p.totalGutterAnwurf : '🔒'}</td>
+            <td class="py-1.5 px-2 text-center font-bold text-emerald-700">${isFinalized ? p.totalDrilling : '🔒'}</td>
             <td class="py-1.5 px-2 text-center font-bold text-blue-700">${p.totalOver210}x</td>
           `;
           tbody.appendChild(tr);
@@ -994,7 +1074,7 @@
       const kpiPins = document.getElementById('season-kpi-pins');
       if (kpiPins) kpiPins.textContent = totalPins.toLocaleString('de-DE');
       const kpiBier = document.getElementById('season-kpi-bier');
-      if (kpiBier) kpiBier.textContent = totalBier;
+      if (kpiBier) kpiBier.textContent = isFinalized ? totalBier : '🔒 Geheim';
       const kpiHigh = document.getElementById('season-kpi-high');
       if (kpiHigh) kpiHigh.textContent = `${highGame} Pins`;
 
@@ -1088,18 +1168,34 @@
       if (!awardsGrid) return;
       awardsGrid.innerHTML = '';
 
-      const defs = [
-        { code: "MVP", title: "Saison-MVP", key: "average", unit: "Schnitt", minGames: 3 },
-        { code: "HG", title: "High-Game-König", key: "highGame", unit: "Pins" },
-        { code: "TR", title: "Strike-Maestro", key: "totalDrilling", unit: "Turkeys" },
-        { code: "PD", title: "Pin-Dominator", key: "totalOver210", unit: "x >210 Pins" },
-        { code: "BF", title: "Der Bierframe-Baron", key: "totalBierframes", unit: "Bierframes" },
-        { code: "GR", title: "Die Goldene Rinne", key: "totalGutterAnwurf", unit: "Pumps" },
-        { code: "RV", title: "Der Räumverweigerer", key: "totalRaeumfehler", unit: "Räumfehler" },
-        { code: "SP", title: "Silberner Split", key: "totalSplitUnder50", unit: "Splits" },
-        { code: "9O", title: "Offener Orden", key: "totalNinthFrameOpen", unit: "x 9. offen" },
-        { code: "SZ", title: "Schnapszahl-Zauberer", key: "totalSchnapszahl", unit: "Schnapszahlen" }
-      ];
+      const isFinalized = (typeof isTeamSeasonFinalized === 'function')
+        ? isTeamSeasonFinalized(currentTeam.id, appState)
+        : false;
+
+      const defs = (typeof window.AWARD_DEFINITIONS !== 'undefined' && Array.isArray(window.AWARD_DEFINITIONS))
+        ? window.AWARD_DEFINITIONS.map(d => ({
+            code: d.id.replace('award_', '').toUpperCase().slice(0, 2),
+            title: d.awardName,
+            subtitle: d.titel,
+            category: d.category,
+            key: d.metricKey,
+            unit: d.unit,
+            minGames: d.minGames || (d.metricKey === 'average' ? 3 : 0)
+          }))
+        : [
+            { code: "MVP", title: "Saison-MVP", key: "average", unit: "Schnitt", minGames: 3, category: "sport" },
+            { code: "HG", title: "High-Game-König", key: "highGame", unit: "Pins", category: "sport" },
+            { code: "SM", title: "Strike-Maestro", key: "totalDrilling", unit: "Drillinge", category: "sport" },
+            { code: "PD", title: "Pin-Dominator", key: "totalOver210", unit: ">210 Pins", category: "sport" },
+            { code: "DB", title: "Der Dauerbrenner", key: "gamesPlayed", unit: "Spiele", category: "sport" },
+            { code: "BF", title: "Der Bierframe-Baron", key: "totalBierframes", unit: "Bierframes", category: "gaudi" },
+            { code: "GR", title: "Die Goldene Rinne", key: "totalGutterAnwurf", unit: "Pumps", category: "gaudi" },
+            { code: "RV", title: "Der Räumverweigerer", key: "totalRaeumfehler", unit: "Räumfehler", category: "gaudi" },
+            { code: "SP", title: "Silberner Split", key: "totalSplitUnder50", unit: "Splits", category: "gaudi" },
+            { code: "DK", title: "Der Dekorateur", key: "totalNinthFrameOpen", unit: "9. Frame offen", category: "gaudi" },
+            { code: "BB", title: "Bahn-Bändiger", key: "totalUnder170", unit: "<170 Pins", category: "gaudi" },
+            { code: "SZ", title: "Schnapszahl-Zauberer", key: "totalSchnapszahl", unit: "Schnapszahlen", category: "gaudi" }
+          ];
 
       defs.forEach(def => {
         let sorted = [...stats];
@@ -1110,9 +1206,20 @@
         let winnerName = "Noch offen";
         let scoreStr = "-";
 
-        if (bestScore > 0) {
+        const isLocked = !isFinalized && def.category === 'gaudi';
+
+        if (isLocked) {
+          winnerName = "🔒 Unter Verschluss";
+          scoreStr = "Freigabe Saisonende";
+        } else if (bestScore > 0) {
           const winners = sorted.filter(p => (p[def.key] || 0) === bestScore);
-          winnerName = winners.map(w => (w.displayName || w.name).split(' ')[0]).join(' & ');
+          winnerName = winners.map(w => {
+            const pObj = appState.players.find(x => x.id === w.id);
+            return (typeof formatPlayerDisplayName === 'function' && pObj)
+              ? formatPlayerDisplayName(pObj, true)
+              : (w.displayName || w.name);
+          }).join(' & ');
+
           if (def.key === 'average') {
             scoreStr = `${bestScore.toFixed(2).replace('.', ',')} ${def.unit}`;
           } else {
@@ -1123,14 +1230,14 @@
         const card = document.createElement('div');
         card.className = "flex items-center justify-between p-1.5 rounded bg-slate-50 border border-slate-200";
         card.innerHTML = `
-          <div class="flex items-center space-x-1.5">
-            <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">${def.code}</span>
-            <div>
-              <span class="font-bold text-slate-900 block leading-tight">${def.title}</span>
-              <span class="text-[9px] text-slate-600">${winnerName}</span>
+          <div class="flex items-center space-x-1.5 min-w-0">
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${isLocked ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-800'} shrink-0">${isLocked ? '🔒' : def.code}</span>
+            <div class="min-w-0">
+              <span class="font-bold text-slate-900 block leading-tight truncate">${def.title}</span>
+              <span class="text-[9px] ${isLocked ? 'text-amber-700 font-semibold' : 'text-slate-600'} truncate block">${winnerName}</span>
             </div>
           </div>
-          <span class="font-extrabold text-slate-800 text-[9px]">${scoreStr}</span>
+          <span class="font-extrabold ${isLocked ? 'text-amber-800' : 'text-slate-800'} text-[9px] shrink-0 ml-1">${scoreStr}</span>
         `;
         awardsGrid.appendChild(card);
       });
@@ -1387,9 +1494,9 @@
       if (!teamId) return;
       activeTeamId = teamId;
       localStorage.setItem('paderbowler_active_team', teamId);
-      if (window.history.pushState) {
+      if (window.history.replaceState) {
         const newUrl = `pdf-report.html?team=${teamId}&season=${activeSeasonId}`;
-        window.history.pushState({ path: newUrl }, '', newUrl);
+        window.history.replaceState({ path: newUrl }, '', newUrl);
       }
       initReport(teamId, activeSeasonId);
     }
@@ -1397,6 +1504,7 @@
     // INIT
     document.addEventListener('DOMContentLoaded', () => {
       initReport();
+      if (typeof initTheme === 'function') initTheme();
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});
       }

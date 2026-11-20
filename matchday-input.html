@@ -98,6 +98,10 @@
       <a href="pdf-report.html" id="navLinkPdf" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
         <span>PDF</span>
       </a>
+      <button type="button" id="btnToggleTheme" onclick="toggleTheme()" class="theme-toggle-btn px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm flex items-center gap-1" title="Design wechseln (Hell/Dunkel)">
+        <span class="theme-toggle-icon">🌙</span>
+        <span class="theme-toggle-label hidden md:inline">Dunkel</span>
+      </button>
       <button onclick="openModal('modalWbuImport')" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
         <span>WBU Import</span>
       </button>
@@ -107,8 +111,8 @@
       <button onclick="openModal('modalPlayer')" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
         <span>Spieler</span>
       </button>
-      <button onclick="finishSeasonPrompt()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#43447D] hover:bg-[#343563] text-xs text-white border-2 border-[#43447D] touch-btn font-bold shadow-sm">
-        <span>Abschluss</span>
+      <button id="btnFinishSeasonHeader" onclick="openFinishSeasonModal()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#43447D] hover:bg-[#343563] text-xs text-white border-2 border-[#43447D] touch-btn font-bold shadow-sm">
+        <span>🏆 Saison beenden</span>
       </button>
     </div>
   </header>
@@ -208,47 +212,80 @@
 
     <!-- 2. FENSTER: AUFSTELLUNG (Kartenfenster mit Teal-Akzenten) -->
     <div id="windowLineup" class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b-2 border-slate-200 pb-3">
         <div class="flex items-center gap-2.5">
-          <h2 class="text-base font-black text-slate-950">Aufstellung</h2>
+          <h2 class="text-base font-black text-slate-950">Aufstellung Spiel <span id="lineupCurrentGameBadge">1</span></h2>
           <span id="lineupCounterBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-[#23548F]/15 text-[#23548F] border border-[#23548F]/30 font-bold">4 von 4</span>
         </div>
-        <button onclick="openModal('modalPlayer')" class="px-3.5 py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm">
-          <span>+ Ersatzspieler</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="openSubstitutePlayerModal()" class="px-3.5 py-2 rounded-xl bg-[#3E8370] hover:bg-[#326a5b] text-xs font-bold text-white border-2 border-[#3E8370] touch-btn shadow-sm flex items-center gap-1.5">
+            <span>🔄</span>
+            <span>+ Ersatzspieler aus Vereinsliste</span>
+          </button>
+        </div>
       </div>
 
       <!-- Schnellauswahl-Pills für alle Kader-Spieler -->
-      <div class="flex flex-wrap gap-2.5" id="squadLineupPills">
-        <!-- Dynamisch -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-600 block">Kaderspieler für dieses Spiel anwählen (genau 4 auswählen):</span>
+          <span class="text-[11px] text-[#23548F] font-bold">Klick wechselt Status</span>
+        </div>
+        <div class="flex flex-wrap gap-2.5" id="squadLineupPills">
+          <!-- Dynamisch -->
+        </div>
       </div>
 
-      <!-- PINS DER 4 AKTIVEN SPIELER -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1" id="activePlayerPinCards">
-        <!-- Dynamisch -->
+      <!-- PINS DER 4 AKTIVEN SPIELER MIT POSITIONEN & PFEILEN -->
+      <div class="space-y-2 pt-2 border-t-2 border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <span class="text-xs font-black uppercase text-slate-700 tracking-wider">Aktive Aufstellung (Position 1 - 4 &amp; Pfeile ⬆️/⬇️)</span>
+          <span class="text-[11px] text-slate-500 font-bold">Positionen mit ⬆️ / ⬇️ tauschen &bull; Klick auf Spieler oder "Strichliste" öffnet Popup</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="activePlayerPinCards">
+          <!-- Dynamisch -->
+        </div>
+      </div>
+
+      <!-- WEITERE KADERSPIELER (BANK / AUSSETZER) FÜR STRICHE -->
+      <div id="inactiveSquadSection" class="border-t-2 border-slate-200 pt-3 space-y-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <span class="text-xs font-black uppercase text-slate-700 tracking-wider">Weitere Kaderspieler (Aussetzer / Bank)</span>
+          <span class="text-[11px] text-slate-500 font-bold">Klicke auf einen Spieler für Striche (z.B. Bierframes)</span>
+        </div>
+        <div class="flex flex-wrap gap-2" id="inactiveSquadTallyList">
+          <!-- Dynamisch -->
+        </div>
       </div>
     </div>
 
     <!-- 3. FENSTER: STRICHLISTE & SUMMEN -->
     <div id="windowTallies" class="space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-black text-slate-950 tracking-tight">Strichliste</h2>
+        <h2 class="text-xl font-black text-slate-950 tracking-tight">Strichliste &amp; Summen</h2>
       </div>
 
       <!-- Summen-Kasten: Palette-Farben für die einzelnen Kennzahlen -->
       <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm">
         <div class="flex items-center justify-between mb-2.5">
-          <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Summen</span>
-          <span class="text-xs font-bold text-slate-500">Spieltag</span>
+          <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Summen des Spieltags</span>
+          <span class="text-xs font-bold text-slate-500">Alle Spiele</span>
         </div>
         <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5" id="matchdaySummaryTiles">
           <!-- Dynamische Summen-Kacheln -->
         </div>
       </div>
 
-      <!-- DIE SPIELER KARTEN: Name größer und zentriert, Metriken größer und zentriert, Tasten größer -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="playerTallyCards">
-        <!-- Dynamisch -->
+      <!-- Kompakter Hinweis statt der 36 Button-Flut -->
+      <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#E8C543]/20 border border-[#E8C543] flex items-center justify-center text-xl shrink-0">
+            💡
+          </div>
+          <p class="text-xs text-slate-700 font-bold">
+            Striche (Bierframe, Räumfehler, etc.) können jetzt direkt per Klick auf die Spieler oben im Aufstellungs-Fenster eingetragen werden – sowohl für die 4 spielenden Spieler als auch für die Aussetzer auf der Bank.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -311,8 +348,8 @@
           </div>
         </div>
         <div>
-          <label class="block text-slate-700 mb-1 font-bold">E-Mail</label>
-          <input type="email" id="newPlayerEmail" placeholder="michi@paderbowler.de" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+          <label class="block text-slate-700 mb-1 font-bold">Spitzname (optional)</label>
+          <input type="text" id="newPlayerNick" placeholder="z. B. Michi" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
         </div>
         <div class="flex items-center gap-2 pt-1">
           <input type="checkbox" id="newPlayerRegular" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
@@ -322,6 +359,132 @@
       <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
         <button onclick="closeModal('modalPlayer')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
         <button onclick="saveNewPlayer()" class="px-4 py-2 rounded-lg bg-[#70C04D] hover:bg-[#5ea83e] font-bold text-xs text-white border-2 border-[#5ea83e] shadow-sm">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ersatzspieler aus Vereinsspielerliste (Pulldown-Menü) hinzufügen -->
+  <div id="modalSubstitutePlayer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#A499A7]/50 pb-3">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <span>🔄</span>
+          <span>Ersatzspieler hinzufügen</span>
+        </h3>
+        <button onclick="closeModal('modalSubstitutePlayer')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-700 mb-1.5 font-bold">Vereinsmitglied auswählen (Pulldown-Menü)</label>
+          <select id="substitutePlayerSelect" class="w-full bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl p-2.5 text-slate-900 font-bold focus:outline-none focus:border-[#23548F]">
+            <!-- Dynamisch gefüllt mit Vereinsmitgliedern -->
+          </select>
+        </div>
+
+        <div class="p-3 bg-[#E4D7CF]/30 rounded-xl border border-[#A499A7] space-y-2">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="substituteTemporaryOnly" checked class="w-4 h-4 rounded text-[#23548F] border-[#A499A7]">
+            <label for="substituteTemporaryOnly" class="text-slate-900 font-black cursor-pointer">
+              Nur als Aushilfe für diesen Spieltag (gehört nicht fest zum Kader)
+            </label>
+          </div>
+          <p class="text-[11px] text-slate-600 pl-6">
+            Ergebnisse und Striche des Ersatzspielers fließen voll in die Spieltagsstatistik und Formkurve dieser Mannschaft ein, ohne den Stammkader dauerhaft zu verändern.
+          </p>
+        </div>
+
+        <!-- Neuer Spieler anlegen falls noch nicht im System -->
+        <div class="border-t border-[#A499A7]/40 pt-2">
+          <button type="button" onclick="toggleNewClubPlayerSubForm()" class="text-xs font-bold text-[#23548F] hover:underline flex items-center gap-1">
+            <span>+ Nicht in der Liste? Neuen Vereinsspieler anlegen</span>
+          </button>
+          <div id="newClubPlayerSubForm" class="hidden mt-2 space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="newSubFirst" placeholder="Vorname *" class="bg-white border rounded-lg p-2 font-bold text-slate-900 text-xs">
+              <input type="text" id="newSubLast" placeholder="Nachname *" class="bg-white border rounded-lg p-2 font-bold text-slate-900 text-xs">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="newSubNick" placeholder="Spitzname (optional)" class="bg-white border rounded-lg p-2 font-bold text-slate-900 text-xs">
+              <input type="text" id="newSubEdv" placeholder="EDV (optional)" class="bg-white border rounded-lg p-2 font-bold text-slate-900 text-xs">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalSubstitutePlayer')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="saveSubstitutePlayer()" class="px-5 py-2.5 rounded-lg bg-[#3E8370] hover:bg-[#326a5b] font-black text-xs text-white border-2 border-[#3E8370] shadow-sm">Als Ersatzspieler hinzufügen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Spieler-fokussierte Strichliste & Ergebnisse (Kompakt für einen Spieler) -->
+  <div id="modalPlayerTally" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white border-2 border-[#A499A7] rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-4 text-slate-900 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-[#23548F] text-white flex items-center justify-center font-black text-lg">
+            🎳
+          </div>
+          <div>
+            <h3 id="tallyModalPlayerName" class="font-black text-lg text-slate-950">Spieler</h3>
+            <p id="tallyModalSubtitle" class="text-xs text-slate-600 font-bold">Strichliste &bull; Spieltag</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalPlayerTally')" class="text-slate-500 hover:text-slate-900 text-2xl font-black">&times;</button>
+      </div>
+
+      <!-- Pin Eingabe für diesen Spieler falls im aktuellen Spiel aufgestellt -->
+      <div id="tallyModalPinSection" class="p-3 bg-[#E4D7CF]/30 rounded-xl border-2 border-[#A499A7]">
+        <!-- Dynamisch -->
+      </div>
+
+      <!-- Die 6 Strichlisten-Metriken mit großen Touch-Buttons -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700">Striche für diesen Spieltag (Tippe auf +1 / -1)</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="tallyModalMetricGrid">
+          <!-- Dynamisch -->
+        </div>
+      </div>
+
+      <div class="pt-2 border-t-2 border-slate-200 flex justify-end">
+        <button onclick="closeModal('modalPlayerTally')" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#70C04D] hover:bg-[#5ea83e] font-black text-sm text-white border-2 border-[#5ea83e] shadow-md touch-btn">
+          ✓ Bestätigen &amp; Schließen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Saison abschließen & freigeben -->
+  <div id="modalFinishSeason" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#E8C543] rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-slate-900">
+      <div class="flex items-center justify-between border-b border-[#E8C543]/40 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-[#E8C543] text-slate-950 flex items-center justify-center font-black text-lg">
+            🏆
+          </div>
+          <h3 class="font-black text-base text-slate-900">Saison offiziell beenden</h3>
+        </div>
+        <button onclick="closeModal('modalFinishSeason')" class="text-slate-500 hover:text-slate-900 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-700 leading-relaxed">
+          Möchtest du die Saison für <strong id="finishSeasonTeamName" class="text-slate-950 font-black"></strong> jetzt offiziell abschließen?
+        </p>
+        <div class="bg-[#E4D7CF]/30 p-3 rounded-xl border border-[#A499A7] space-y-1.5">
+          <p class="text-[11px] text-slate-600">
+            Dadurch wird der <strong>Saisonhöhepunkt</strong> enthüllt: Die Strichlistenbilanz und alle finalen Team-Awards werden feierlich freigegeben!
+          </p>
+          <label class="block text-slate-700 font-bold text-xs uppercase tracking-wider pt-1">Mannschafts-Passwort:</label>
+          <input type="password" id="finishSeasonPasswordInput" placeholder="Passwort eingeben" class="w-full bg-white border-2 border-[#A499A7] rounded-lg p-2.5 text-slate-900 font-bold text-center focus:outline-none focus:border-[#23548F]" onkeydown="if(event.key==='Enter') confirmFinishSeason()">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#A499A7]/50">
+        <button onclick="closeModal('modalFinishSeason')" class="px-4 py-2 rounded-lg bg-white border border-[#A499A7] text-xs text-slate-700 font-bold hover:bg-slate-50">Abbrechen</button>
+        <button onclick="confirmFinishSeason()" class="px-5 py-2.5 rounded-lg bg-[#E8C543] hover:bg-[#d8b535] font-black text-xs text-slate-950 border-2 border-[#cfae2e] shadow-md">Saison beenden &amp; Enthüllen</button>
       </div>
     </div>
   </div>
@@ -481,6 +644,15 @@
           </div>
         </div>
 
+        <!-- Sortierung nach Vorname oder Nachname -->
+        <div class="flex items-center justify-between bg-slate-100 p-2 rounded-xl border border-slate-200">
+          <span class="text-xs font-bold text-slate-700">Sortieren nach:</span>
+          <div class="flex gap-1.5">
+            <button type="button" id="btnSortSquadLast" onclick="changeSquadSort('last')" class="px-2.5 py-1 rounded-lg text-xs font-black bg-[#23548F] text-white border border-[#23548F] shadow-sm">Nachname (A-Z)</button>
+            <button type="button" id="btnSortSquadFirst" onclick="changeSquadSort('first')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300">Vorname (A-Z)</button>
+          </div>
+        </div>
+
         <!-- Spielerliste mit Checkboxen -->
         <div id="assignSquadPlayersList" class="bg-[#E4D7CF]/20 border-2 border-[#A499A7] rounded-xl p-3 max-h-72 overflow-y-auto space-y-2">
           <!-- Dynamisch per JS befüllt -->
@@ -609,7 +781,7 @@
       const assigned = (currentTeam.playerIds || [])
         .map(id => appState.players.find(p => p.id === id))
         .filter(Boolean);
-      allPlayers = assigned.map(p => ({ id: p.id, name: p.name, isRegular: true }));
+      allPlayers = assigned.map(p => ({ id: p.id, name: p.name, nickname: p.nickname || '', isRegular: true }));
 
       // Spieltagsdaten dieser Mannschaft laden
       const teamDataKey = `paderbowler_matchdays_${currentTeam.id}`;
@@ -618,6 +790,23 @@
       if (storedMatchdays) {
         try {
           matchdaysData = JSON.parse(storedMatchdays);
+          // Etwaige zuvor aufgestellte Ersatzspieler ebenfalls in allPlayers übernehmen
+          Object.values(matchdaysData).forEach(md => {
+            for (let g = 1; g <= 5; g++) {
+              (md.gameLineups?.[g] || []).forEach(pId => {
+                if (!allPlayers.some(p => p.id === pId)) {
+                  const pObj = appState.players.find(p => p.id === pId);
+                  allPlayers.push({
+                    id: pId,
+                    name: pObj ? pObj.name : pId,
+                    nickname: pObj?.nickname || '',
+                    isRegular: false,
+                    isSubstitute: true
+                  });
+                }
+              });
+            }
+          });
         } catch(e) {
           console.error("Fehler beim Parsen von matchdaysData", e);
         }
@@ -979,6 +1168,7 @@
       } else {
         currentMatchday = null;
         showMatchdayContent(false);
+        updateFinishSeasonButtonVisibility();
       }
     }
 
@@ -1002,6 +1192,26 @@
       }
     }
 
+    function isCurrentMatchdayLast() {
+      const keys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
+      const maxDay = keys.length > 0 ? keys[keys.length - 1] : (currentTeam?.matchdaysCount || 5);
+      return currentMatchday === maxDay;
+    }
+
+    function updateFinishSeasonButtonVisibility() {
+      const btn = document.getElementById('btnFinishSeasonHeader');
+      if (!btn) return;
+      const isFinalized = (typeof isTeamSeasonFinalized === 'function') 
+        ? isTeamSeasonFinalized(activeTeamId, appState) 
+        : false;
+      const isLast = isCurrentMatchdayLast();
+      if (isLast && !isFinalized) {
+        btn.classList.remove('hidden');
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
+
     function changeMatchday(num) {
       currentMatchday = parseInt(num);
       const md = getActiveMatchday();
@@ -1011,6 +1221,7 @@
       if (select) select.value = md.centerId || "";
       const mdSelect = document.getElementById('selectedMatchday');
       if (mdSelect) mdSelect.value = currentMatchday;
+      updateFinishSeasonButtonVisibility();
       selectGame(1);
     }
 
@@ -1428,14 +1639,15 @@
 
       container.innerHTML = allPlayers.map(p => {
         const isSelected = activeIds.includes(p.id);
-        const cleanPlayerName = p.name.replace(/\s*\([^)]*\)/g, '').trim();
+        const dispName = (typeof formatPlayerDisplayName === 'function') ? formatPlayerDisplayName(p) : p.name;
         return `
-          <button onclick="togglePlayerInLineup('${p.id}')" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-1.5 touch-btn border-2 ${
+          <button onclick="togglePlayerInLineup('${p.id}')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-1.5 touch-btn border-2 ${
             isSelected 
               ? 'bg-[#23548F] text-white border-[#23548F] shadow-sm' 
               : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
           }">
-            <span>${cleanPlayerName}</span>
+            <span>${dispName}</span>
+            ${p.isSubstitute ? `<span class="text-[10px] px-1.5 py-0.5 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'} font-bold">Ersatz</span>` : ''}
           </button>
         `;
       }).join('');
@@ -1474,6 +1686,8 @@
       updateGameState();
     }
 
+    let activeTallyPlayerId = null;
+
     function renderActivePlayerPinCards() {
       const container = document.getElementById('activePlayerPinCards');
       const md = getActiveMatchday();
@@ -1486,6 +1700,7 @@
             Noch keine Spieler aufgestellt. Wähle oben bis zu 4 Spieler für Spiel ${currentGame} aus.
           </div>
         `;
+        renderInactiveSquadList();
         return;
       }
 
@@ -1493,8 +1708,9 @@
 
       container.innerHTML = activeIds.map((pId, idx) => {
         const playerObj = allPlayers.find(p => p.id === pId);
-        const rawName = playerObj ? playerObj.name : pId;
-        const cleanPlayerName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
+        const displayName = (typeof formatPlayerDisplayName === 'function') 
+          ? formatPlayerDisplayName(playerObj) 
+          : (playerObj ? playerObj.name : pId);
         const pins = md.gamePlayerPins[currentGame]?.[pId] ?? 0;
 
         let badgesHtml = '';
@@ -1504,35 +1720,226 @@
           if (checkSchnapszahl(pins)) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#A62F8B]/20 text-[#A62F8B] border border-[#A62F8B]">Schnaps</span>';
         }
 
+        const isSeasonFinalized = (typeof isTeamSeasonFinalized === 'function') 
+          ? isTeamSeasonFinalized(activeTeamId, appState) 
+          : false;
+
+        const t = md.matchdayTallies?.[pId] || {};
+        let tallyBadges = '';
+        // Strichlisten unter den Namen an Spieltagen bis zum Saisonende verbergen
+        if (isSeasonFinalized) {
+          if (t.bier > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#E8C543]/20 text-[#85650d] border border-[#E8C543]">🍺 ${t.bier}</span>`;
+          if (t.miss > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#DE4341]/15 text-[#DE4341] border border-[#DE4341]">❌ ${t.miss}</span>`;
+          if (t.gutter > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#A62F8B]/15 text-[#A62F8B] border border-[#A62F8B]">🎳 ${t.gutter}</span>`;
+          if (t.split > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#9D5A47]/15 text-[#9D5A47] border border-[#9D5A47]">⚡ ${t.split}</span>`;
+          if (t.open9 > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#ED755D]/15 text-[#c24e37] border border-[#ED755D]">🎀 ${t.open9}</span>`;
+          if (t.turkey > 0) tallyBadges += `<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#70C04D]/20 text-[#2E4D11] border border-[#70C04D]">🦃 ${t.turkey}</span>`;
+        }
+
         let controlsHtml = '';
         if (isLocked) {
           controlsHtml = `
-            <div class="px-5 py-2.5 bg-slate-100 border-2 border-slate-300 rounded-xl text-center">
-              <span class="text-xs text-slate-500 font-bold block uppercase tracking-wider">Pins</span>
-              <span class="text-2xl font-black text-slate-950">${pins}</span>
+            <div class="px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-xl text-center shrink-0">
+              <span class="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">Pins</span>
+              <span class="text-xl font-black text-slate-950">${pins}</span>
             </div>
           `;
         } else {
           controlsHtml = `
-            <div class="flex items-center justify-center sm:justify-end w-full sm:w-auto">
-              <button type="button" onclick="stepPlayerPin('${pId}', -1)" class="w-12 sm:w-14 h-12 sm:h-14 rounded-l-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-xl border-y-2 border-l-2 border-[#A499A7] touch-btn shrink-0 flex items-center justify-center select-none">-1</button>
-              <input type="number" min="0" max="300" id="pinInput_${pId}" value="${pins}" oninput="setPlayerPin('${pId}', this.value)" class="w-20 sm:w-24 min-w-0 h-12 sm:h-14 text-center font-black bg-white border-2 border-[#A499A7] text-2xl text-slate-950 focus:outline-none focus:border-[#23548F]">
-              <button type="button" onclick="stepPlayerPin('${pId}', 1)" class="w-12 sm:w-14 h-12 sm:h-14 rounded-r-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-xl border-y-2 border-r-2 border-[#A499A7] touch-btn shadow-sm shrink-0 flex items-center justify-center select-none">+1</button>
+            <div class="flex items-center justify-center sm:justify-end shrink-0">
+              <button type="button" onclick="stepPlayerPin('${pId}', -1)" class="w-10 sm:w-12 h-11 sm:h-12 rounded-l-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-lg border-y-2 border-l-2 border-[#A499A7] touch-btn shrink-0 flex items-center justify-center select-none">-1</button>
+              <input type="number" min="0" max="300" id="pinInput_${pId}" value="${pins}" oninput="setPlayerPin('${pId}', this.value)" class="w-16 sm:w-20 min-w-0 h-11 sm:h-12 text-center font-black bg-white border-2 border-[#A499A7] text-xl sm:text-2xl text-slate-950 focus:outline-none focus:border-[#23548F]">
+              <button type="button" onclick="stepPlayerPin('${pId}', 1)" class="w-10 sm:w-12 h-11 sm:h-12 rounded-r-xl bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-900 font-black text-lg border-y-2 border-r-2 border-[#A499A7] touch-btn shadow-sm shrink-0 flex items-center justify-center select-none">+1</button>
             </div>
           `;
         }
 
         return `
-          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-            <div>
-              <span class="text-xs text-[#23548F] font-black block uppercase tracking-wider">Position ${idx + 1}</span>
-              <span class="text-base sm:text-lg font-black text-slate-950 block mt-0.5">${cleanPlayerName}</span>
-              <div id="badges_pl_${pId}" class="flex items-center flex-wrap gap-1.5 mt-2">
-                ${badgesHtml || '<span class="text-xs text-slate-500 font-semibold">Regulär</span>'}
+          <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-3 sm:p-4 flex flex-col justify-between gap-3 shadow-sm hover:border-[#23548F] transition">
+            <div class="flex items-center justify-between gap-2 border-b border-[#A499A7]/30 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-[#23548F] font-black uppercase tracking-wider bg-[#23548F]/10 px-2 py-0.5 rounded-md">Pos ${idx + 1}</span>
+                ${!isLocked ? `
+                  <div class="inline-flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-300">
+                    <button type="button" onclick="movePlayerPosition(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-20 cursor-not-allowed px-1.5 py-0.5 text-xs"' : 'class="hover:bg-white active:scale-90 px-1.5 py-0.5 text-xs font-black text-slate-800 rounded touch-btn"'} title="Nach oben verschieben">⬆️</button>
+                    <button type="button" onclick="movePlayerPosition(${idx}, 1)" ${idx === activeIds.length - 1 ? 'disabled class="opacity-20 cursor-not-allowed px-1.5 py-0.5 text-xs"' : 'class="hover:bg-white active:scale-90 px-1.5 py-0.5 text-xs font-black text-slate-800 rounded touch-btn"'} title="Nach unten verschieben">⬇️</button>
+                  </div>
+                ` : ''}
               </div>
+              <button type="button" onclick="openPlayerTallyModal('${pId}')" class="px-2.5 py-1 rounded-lg bg-[#E8C543] hover:bg-[#d8b535] text-slate-950 font-black text-xs border border-[#cfae2e] shadow-sm touch-btn flex items-center gap-1">
+                <span>✏️</span>
+                <span>Strichliste</span>
+              </button>
             </div>
-            ${controlsHtml}
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span class="text-base sm:text-lg font-black text-slate-950 block cursor-pointer hover:text-[#23548F]" onclick="openPlayerTallyModal('${pId}')">${displayName}</span>
+                <div class="flex items-center flex-wrap gap-1.5 mt-1.5">
+                  ${badgesHtml || '<span class="text-[11px] text-slate-500 font-semibold">Regulär</span>'}
+                  ${tallyBadges}
+                </div>
+              </div>
+              ${controlsHtml}
+            </div>
           </div>
+        `;
+      }).join('');
+
+      renderInactiveSquadList();
+    }
+
+    // Pfeiltasten: Spieler in der Aufstellung nach oben/unten verschieben
+    function movePlayerPosition(index, direction) {
+      const md = getActiveMatchday();
+      if (!md || md.isLocked) return;
+      let activeIds = [...(md.gameLineups[currentGame] || [])];
+      const targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= activeIds.length) return;
+
+      const temp = activeIds[index];
+      activeIds[index] = activeIds[targetIdx];
+      activeIds[targetIdx] = temp;
+
+      md.gameLineups[currentGame] = activeIds;
+      renderActivePlayerPinCards();
+      persistCurrentTeamData();
+    }
+
+    // Strichliste für einen einzelnen Spieler in neuem Fenster (Modal) öffnen
+    function openPlayerTallyModal(playerId) {
+      activeTallyPlayerId = playerId;
+      const playerObj = allPlayers.find(p => p.id === playerId) || (appState.players || []).find(p => p.id === playerId) || { id: playerId, name: playerId };
+      const md = getActiveMatchday();
+      if (!md) return;
+
+      const displayName = (typeof formatPlayerDisplayName === 'function') 
+        ? formatPlayerDisplayName(playerObj) 
+        : (playerObj.name || playerId);
+
+      const nameEl = document.getElementById('tallyModalPlayerName');
+      if (nameEl) nameEl.innerText = displayName;
+
+      const subEl = document.getElementById('tallyModalSubtitle');
+      if (subEl) subEl.innerText = `Spieltag ${currentMatchday} • Spiel ${currentGame} • ${currentTeam ? currentTeam.name : ''}`;
+
+      renderPlayerTallyModalContent();
+      openModal('modalPlayerTally');
+    }
+
+    function renderPlayerTallyModalContent() {
+      const md = getActiveMatchday();
+      if (!md || !activeTallyPlayerId) return;
+      const pId = activeTallyPlayerId;
+      const isLocked = !!md.isLocked;
+
+      if (!md.matchdayTallies[pId]) {
+        md.matchdayTallies[pId] = { bier: 0, miss: 0, gutter: 0, split: 0, open9: 0, turkey: 0 };
+      }
+      const t = md.matchdayTallies[pId];
+
+      const activeIds = md.gameLineups[currentGame] || [];
+      const isPlayingThisGame = activeIds.includes(pId);
+      const pinSection = document.getElementById('tallyModalPinSection');
+
+      if (pinSection) {
+        if (isPlayingThisGame) {
+          const pins = md.gamePlayerPins[currentGame]?.[pId] ?? 0;
+          pinSection.classList.remove('hidden');
+          pinSection.innerHTML = `
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <span class="text-xs font-black text-[#23548F] uppercase tracking-wider block">Pins für Spiel ${currentGame}</span>
+                <span class="text-xs text-slate-600">Aktuelles Spielergebnis</span>
+              </div>
+              ${isLocked ? `
+                <div class="px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-xl text-xl font-black text-slate-900">${pins}</div>
+              ` : `
+                <div class="flex items-center">
+                  <button type="button" onclick="stepPlayerPin('${pId}', -1); renderPlayerTallyModalContent();" class="w-10 h-10 rounded-l-xl bg-slate-200 hover:bg-slate-300 text-slate-900 font-black text-lg border-y-2 border-l-2 border-[#A499A7] touch-btn flex items-center justify-center">-1</button>
+                  <input type="number" min="0" max="300" value="${pins}" oninput="setPlayerPin('${pId}', this.value); renderPlayerTallyModalContent();" class="w-16 h-10 text-center font-black bg-white border-2 border-[#A499A7] text-xl text-slate-950 focus:outline-none">
+                  <button type="button" onclick="stepPlayerPin('${pId}', 1); renderPlayerTallyModalContent();" class="w-10 h-10 rounded-r-xl bg-slate-200 hover:bg-slate-300 text-slate-900 font-black text-lg border-y-2 border-r-2 border-[#A499A7] touch-btn flex items-center justify-center">+1</button>
+                </div>
+              `}
+            </div>
+          `;
+        } else {
+          pinSection.classList.add('hidden');
+        }
+      }
+
+      const metrics = [
+        { key: 'bier', label: 'Bierframe', icon: '🍺', color: 'text-[#85650d]', bg: 'bg-[#E8C543]/20', border: 'border-[#E8C543]' },
+        { key: 'miss', label: 'Räumfehler', icon: '❌', color: 'text-[#DE4341]', bg: 'bg-[#DE4341]/15', border: 'border-[#DE4341]' },
+        { key: 'gutter', label: 'Gutter (1. Wurf)', icon: '🎳', color: 'text-[#A62F8B]', bg: 'bg-[#A62F8B]/15', border: 'border-[#A62F8B]' },
+        { key: 'split', label: 'Split offen', icon: '⚡', color: 'text-[#9D5A47]', bg: 'bg-[#9D5A47]/15', border: 'border-[#9D5A47]' },
+        { key: 'open9', label: '9. Frame offen', icon: '🎀', color: 'text-[#c24e37]', bg: 'bg-[#ED755D]/15', border: 'border-[#ED755D]' },
+        { key: 'turkey', label: 'Drilling (Turkey)', icon: '🦃', color: 'text-[#2E4D11]', bg: 'bg-[#70C04D]/20', border: 'border-[#70C04D]' }
+      ];
+
+      const grid = document.getElementById('tallyModalMetricGrid');
+      if (grid) {
+        grid.innerHTML = metrics.map(m => {
+          const val = t[m.key] || 0;
+          return `
+            <div class="p-3 rounded-xl border-2 ${m.border} ${m.bg} flex items-center justify-between gap-2 shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">${m.icon}</span>
+                <div>
+                  <span class="font-black text-xs ${m.color} block">${m.label}</span>
+                  <span class="text-[10px] text-slate-600 font-bold">Spieltag: ${val}</span>
+                </div>
+              </div>
+              ${isLocked ? `
+                <span class="text-xl font-black ${m.color} px-3 py-1 bg-white rounded-lg border">${val}</span>
+              ` : `
+                <div class="flex items-center">
+                  <button type="button" onclick="stepTally('${pId}', '${m.key}', -1); renderPlayerTallyModalContent();" class="w-10 h-10 rounded-l-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-base border-y-2 border-l-2 border-[#A499A7] touch-btn flex items-center justify-center select-none">-1</button>
+                  <span class="w-10 h-10 bg-white font-black text-lg ${m.color} border-y-2 border-[#A499A7] flex items-center justify-center select-none">${val}</span>
+                  <button type="button" onclick="stepTally('${pId}', '${m.key}', 1); renderPlayerTallyModalContent();" class="w-10 h-10 rounded-r-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-base border-y-2 border-r-2 border-[#A499A7] touch-btn flex items-center justify-center select-none">+1</button>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Nicht-spielende Kaderspieler (Aussetzer / Bank): Ebenfalls für Striche (z. B. Bierframes) anklickbar
+    function renderInactiveSquadList() {
+      const container = document.getElementById('inactiveSquadTallyList');
+      if (!container) return;
+      const md = getActiveMatchday();
+      if (!md) return;
+      const activeIds = md.gameLineups[currentGame] || [];
+      const inactivePlayers = allPlayers.filter(p => !activeIds.includes(p.id));
+
+      if (inactivePlayers.length === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-500 italic p-2">Alle Kaderspieler sind für dieses Spiel aufgestellt.</span>';
+        return;
+      }
+
+      const isSeasonFinalized = (typeof isTeamSeasonFinalized === 'function') 
+        ? isTeamSeasonFinalized(activeTeamId, appState) 
+        : false;
+
+      container.innerHTML = inactivePlayers.map(p => {
+        const cleanName = (typeof formatPlayerDisplayName === 'function') 
+          ? formatPlayerDisplayName(p) 
+          : p.name;
+        const t = md.matchdayTallies?.[p.id] || {};
+        const totalT = (t.bier || 0) + (t.miss || 0) + (t.gutter || 0) + (t.split || 0) + (t.open9 || 0) + (t.turkey || 0);
+        let inactiveTallies = '';
+        if (isSeasonFinalized) {
+          if (t.bier > 0) inactiveTallies += `<span class="px-1.5 py-0.5 rounded-full bg-[#E8C543]/20 text-[#85650d] text-[10px] font-black border border-[#E8C543]">🍺 ${t.bier}</span>`;
+          if (totalT > 0 && t.bier === 0) inactiveTallies += `<span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">Striche: ${totalT}</span>`;
+        }
+        return `
+          <button type="button" onclick="openPlayerTallyModal('${p.id}')" class="px-3 py-2 rounded-xl bg-white hover:bg-[#E4D7CF]/30 text-slate-900 border-2 border-slate-300 font-bold text-xs flex items-center gap-2 touch-btn shadow-sm" title="Klicke für Strichliste">
+            <span class="font-black">${cleanName}</span>
+            ${inactiveTallies}
+            <span class="text-[11px] text-[#23548F] font-black ml-1">✏️ Strichliste</span>
+          </button>
         `;
       }).join('');
     }
@@ -1549,18 +1956,7 @@
       const inputEl = document.getElementById(`pinInput_${playerId}`);
       if (inputEl) inputEl.value = next;
 
-      const badgeContainer = document.getElementById(`badges_pl_${playerId}`);
-      if (badgeContainer) {
-        let badgesHtml = '';
-        if (next > 0) {
-          if (next < 170) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#E8C543]/20 text-[#85650d] border border-[#E8C543]">&lt; 170</span>';
-          if (next > 210) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#70C04D]/20 text-[#2E4D11] border border-[#70C04D]">&gt; 210</span>';
-          if (checkSchnapszahl(next)) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#A62F8B]/20 text-[#A62F8B] border border-[#A62F8B]">Schnaps</span>';
-        }
-        badgeContainer.innerHTML = badgesHtml || '<span class="text-xs text-slate-500 font-semibold">Regulär</span>';
-      }
-
-      renderPlayerTallyCards();
+      renderActivePlayerPinCards();
       renderSummaryTiles();
       updateGameState();
     }
@@ -1581,18 +1977,7 @@
         inputEl.value = 300;
       }
 
-      const badgeContainer = document.getElementById(`badges_pl_${playerId}`);
-      if (badgeContainer) {
-        let badgesHtml = '';
-        if (num > 0) {
-          if (num < 170) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#E8C543]/20 text-[#85650d] border border-[#E8C543]">&lt; 170</span>';
-          if (num > 210) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#70C04D]/20 text-[#2E4D11] border border-[#70C04D]">&gt; 210</span>';
-          if (checkSchnapszahl(num)) badgesHtml += '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-[#A62F8B]/20 text-[#A62F8B] border border-[#A62F8B]">Schnaps</span>';
-        }
-        badgeContainer.innerHTML = badgesHtml || '<span class="text-xs text-slate-500 font-semibold">Regulär</span>';
-      }
-
-      renderPlayerTallyCards();
+      renderActivePlayerPinCards();
       renderSummaryTiles();
       updateGameState();
     }
@@ -1828,6 +2213,68 @@
       document.getElementById(modalId).classList.add('hidden');
     }
 
+    let squadSortBy = 'last';
+
+    function changeSquadSort(sortKey) {
+      squadSortBy = sortKey;
+      const btnLast = document.getElementById('btnSortSquadLast');
+      const btnFirst = document.getElementById('btnSortSquadFirst');
+      if (btnLast && btnFirst) {
+        if (sortKey === 'last') {
+          btnLast.className = "px-2.5 py-1 rounded-lg text-xs font-black bg-[#23548F] text-white border border-[#23548F] shadow-sm";
+          btnFirst.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300";
+        } else {
+          btnFirst.className = "px-2.5 py-1 rounded-lg text-xs font-black bg-[#23548F] text-white border border-[#23548F] shadow-sm";
+          btnLast.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300";
+        }
+      }
+      renderAssignSquadPlayers();
+    }
+
+    function renderAssignSquadPlayers() {
+      const container = document.getElementById('assignSquadPlayersList');
+      if (!container || !currentTeam) return;
+
+      const currentlyChecked = new Set();
+      document.querySelectorAll('.assign-squad-chk:checked').forEach(chk => {
+        currentlyChecked.add(chk.value);
+      });
+      if (currentlyChecked.size === 0 && currentTeam.playerIds) {
+        currentTeam.playerIds.forEach(id => currentlyChecked.add(id));
+      }
+
+      const players = [...(appState?.players || [])];
+      players.sort((a, b) => {
+        if (squadSortBy === 'first') {
+          const aFirst = (a.name || '').trim();
+          const bFirst = (b.name || '').trim();
+          return aFirst.localeCompare(bFirst);
+        } else {
+          const aLast = (a.name || '').trim().split(' ').slice(-1)[0];
+          const bLast = (b.name || '').trim().split(' ').slice(-1)[0];
+          return aLast.localeCompare(bLast);
+        }
+      });
+
+      container.innerHTML = players.map(p => {
+        const isChecked = currentlyChecked.has(p.id);
+        const dispName = (typeof formatPlayerDisplayName === 'function') 
+          ? formatPlayerDisplayName(p) 
+          : p.name;
+        return `
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#A499A7]/60 hover:bg-[#E4D7CF]/20 cursor-pointer transition select-none shadow-sm">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" value="${p.id}" ${isChecked ? 'checked' : ''} class="assign-squad-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7] focus:ring-0">
+              <div>
+                <span class="font-bold text-slate-900 text-xs block">${dispName}</span>
+              </div>
+            </div>
+            ${p.edv ? `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200">EDV: ${p.edv}</span>` : ''}
+          </label>
+        `;
+      }).join('');
+    }
+
     function openAssignSquadModal() {
       const team = currentTeam;
       if (!team) return;
@@ -1839,36 +2286,7 @@
       const errEl = document.getElementById('assignSquadError');
       if (errEl) errEl.classList.add('hidden');
 
-      const container = document.getElementById('assignSquadPlayersList');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const currentSquad = team.playerIds || [];
-
-      // Sortiere Spieler alphabetisch nach Nachname
-      const sortedPlayers = [...(appState?.players || [])].sort((a, b) => {
-        const nameA = (a.name || '').trim().split(' ').slice(-1)[0];
-        const nameB = (b.name || '').trim().split(' ').slice(-1)[0];
-        return nameA.localeCompare(nameB);
-      });
-
-      sortedPlayers.forEach(p => {
-        const isChecked = currentSquad.includes(p.id);
-        const div = document.createElement('label');
-        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#A499A7]/60 hover:bg-[#E4D7CF]/20 cursor-pointer transition select-none shadow-sm";
-        div.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="checkbox" value="${p.id}" ${isChecked ? 'checked' : ''} class="assign-squad-chk w-4 h-4 rounded text-[#23548F] border-[#A499A7] focus:ring-0">
-            <div>
-              <span class="font-bold text-slate-900 text-xs block">${p.name}</span>
-              ${p.email ? `<span class="text-[10px] text-slate-500">${p.email}</span>` : ''}
-            </div>
-          </div>
-          ${p.edv ? `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200">EDV: ${p.edv}</span>` : ''}
-        `;
-        container.appendChild(div);
-      });
-
+      renderAssignSquadPlayers();
       openModal('modalAssignSquad');
     }
 
@@ -1909,13 +2327,157 @@
       if (typeof triggerCloudSync === 'function') triggerCloudSync();
 
       const assigned = (team.playerIds || []).map(id => appState.players.find(p => p.id === id)).filter(Boolean);
-      allPlayers = assigned.map(p => ({ id: p.id, name: p.name, isRegular: true }));
+      allPlayers = assigned.map(p => ({ id: p.id, name: p.name, nickname: p.nickname || '', isRegular: true }));
 
       closeModal('modalAssignSquad');
       renderLineupPills();
       renderActivePlayerPinCards();
-      renderPlayerTallyCards();
+      renderInactiveSquadList();
       updateGameState();
+    }
+
+    // Modal & Logik für Ersatzspieler aus vorhandener Vereinsspielerliste (Pulldown-Menü)
+    function openSubstitutePlayerModal() {
+      const select = document.getElementById('substitutePlayerSelect');
+      if (!select) return;
+
+      const currentIds = allPlayers.map(p => p.id);
+      const clubPlayers = (appState.players || []).filter(p => !currentIds.includes(p.id));
+
+      if (clubPlayers.length === 0) {
+        select.innerHTML = '<option value="">Alle Vereinsspieler befinden sich bereits im Kader / in der Liste</option>';
+      } else {
+        const sorted = [...clubPlayers].sort((a,b) => {
+          const aLast = (a.name || '').trim().split(' ').slice(-1)[0];
+          const bLast = (b.name || '').trim().split(' ').slice(-1)[0];
+          return aLast.localeCompare(bLast);
+        });
+
+        select.innerHTML = sorted.map(p => {
+          const disp = (typeof formatPlayerDisplayName === 'function') ? formatPlayerDisplayName(p) : p.name;
+          return `<option value="${p.id}">${disp}${p.edv ? ` (EDV: ${p.edv})` : ''}</option>`;
+        }).join('');
+      }
+
+      const subForm = document.getElementById('newClubPlayerSubForm');
+      if (subForm) subForm.classList.add('hidden');
+      const tempChk = document.getElementById('substituteTemporaryOnly');
+      if (tempChk) tempChk.checked = true;
+
+      openModal('modalSubstitutePlayer');
+    }
+
+    function toggleNewClubPlayerSubForm() {
+      const subForm = document.getElementById('newClubPlayerSubForm');
+      if (subForm) subForm.classList.toggle('hidden');
+    }
+
+    function saveSubstitutePlayer() {
+      const subForm = document.getElementById('newClubPlayerSubForm');
+      const isNewSubVisible = subForm && !subForm.classList.contains('hidden');
+
+      let pId = '';
+      let pName = '';
+      let pNick = '';
+
+      if (isNewSubVisible) {
+        const first = document.getElementById('newSubFirst').value.trim();
+        const last = document.getElementById('newSubLast').value.trim();
+        pNick = document.getElementById('newSubNick').value.trim();
+        const edv = document.getElementById('newSubEdv').value.trim();
+
+        if (!first || !last) {
+          alert("Bitte Vor- und Nachname für den neuen Spieler eingeben.");
+          return;
+        }
+        pName = `${first} ${last}`;
+        pId = `player_${Date.now()}`;
+
+        if (!appState.players) appState.players = [];
+        appState.players.push({ id: pId, name: pName, nickname: pNick, edv: edv, email: "" });
+      } else {
+        const select = document.getElementById('substitutePlayerSelect');
+        pId = select ? select.value : '';
+        if (!pId) {
+          alert("Bitte ein Vereinsmitglied aus der Liste auswählen.");
+          return;
+        }
+        const found = appState.players.find(p => p.id === pId);
+        if (!found) return;
+        pName = found.name;
+        pNick = found.nickname || '';
+      }
+
+      const isTemp = document.getElementById('substituteTemporaryOnly').checked;
+
+      if (!allPlayers.some(p => p.id === pId)) {
+        allPlayers.push({
+          id: pId,
+          name: pName,
+          nickname: pNick,
+          isRegular: false,
+          isSubstitute: true
+        });
+      }
+
+      if (!isTemp) {
+        if (!currentTeam.playerIds) currentTeam.playerIds = [];
+        if (!currentTeam.playerIds.includes(pId)) {
+          currentTeam.playerIds.push(pId);
+          currentTeam._customSquadConfigured = true;
+        }
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      persistCurrentTeamData();
+
+      closeModal('modalSubstitutePlayer');
+      renderLineupPills();
+      renderActivePlayerPinCards();
+      renderInactiveSquadList();
+      renderSummaryTiles();
+
+      alert(`${pName} wurde erfolgreich als Ersatzspieler hinzugefügt und kann jetzt in die Aufstellung gewählt werden.`);
+    }
+
+    // Modal & Logik für Saisonabschluss mit Mannschaftspasswort
+    function openFinishSeasonModal() {
+      if (!isCurrentMatchdayLast()) {
+        const keys = Object.keys(matchdaysData).map(Number).sort((a,b) => a - b);
+        const maxDay = keys.length > 0 ? keys[keys.length - 1] : (currentTeam?.matchdaysCount || 5);
+        alert(`Die Saison kann in der Spieltagansicht erst am letzten Spieltag (Spieltag ${maxDay}) oder im Hauptmenü beendet werden.`);
+        return;
+      }
+      const teamNameEl = document.getElementById('finishSeasonTeamName');
+      if (teamNameEl && currentTeam) teamNameEl.innerText = currentTeam.name;
+      const pwInput = document.getElementById('finishSeasonPasswordInput');
+      if (pwInput) pwInput.value = '';
+      openModal('modalFinishSeason');
+      setTimeout(() => { if (pwInput) pwInput.focus(); }, 100);
+    }
+
+    function confirmFinishSeason() {
+      const pwInput = document.getElementById('finishSeasonPasswordInput');
+      const entered = pwInput ? pwInput.value.trim() : '';
+      if (!entered) {
+        alert("Bitte das Mannschafts-Passwort eingeben.");
+        return;
+      }
+      const res = (typeof finalizeTeamSeason === 'function')
+        ? finalizeTeamSeason(currentTeam.id, entered, appState)
+        : { success: true };
+
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+      closeModal('modalFinishSeason');
+      alert(`🏆 Die Saison für ${currentTeam.name} wurde offiziell beendet!\n\nAlle Awards und Strichlisten sind nun freigegeben. Du wirst zur Siegerehrung weitergeleitet.`);
+      window.location.href = `awards-rankings.html?team=${currentTeam.id}&season=${activeSeasonId}`;
+    }
+
+    function finishSeasonPrompt() {
+      openFinishSeasonModal();
     }
 
     function saveNewCenter() {
@@ -1945,6 +2507,8 @@
     function saveNewPlayer() {
       const first = document.getElementById('newPlayerFirst').value.trim();
       const last = document.getElementById('newPlayerLast').value.trim();
+      const nick = document.getElementById('newPlayerNick')?.value.trim() || '';
+      const email = document.getElementById('newPlayerEmail')?.value.trim() || '';
       const isRegular = document.getElementById('newPlayerRegular').checked;
 
       if (!first || !last) {
@@ -1954,16 +2518,18 @@
 
       const displayName = `${first} ${last}`;
       const newId = `player_${Date.now()}`;
-      allPlayers.push({ id: newId, name: displayName, isRegular });
+      allPlayers.push({ id: newId, name: displayName, nickname: nick, isRegular });
 
       if (!appState.players) appState.players = [];
-      appState.players.push({ id: newId, name: displayName, email: "" });
+      const playerPw = (typeof generate5DigitPassword === 'function') ? generate5DigitPassword() : String(Math.floor(10000 + Math.random() * 90000));
+      appState.players.push({ id: newId, name: displayName, nickname: nick, email, password: playerPw, trainingPassword: playerPw });
       if (!currentTeam.playerIds) currentTeam.playerIds = [];
       currentTeam.playerIds.push(newId);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 
       renderLineupPills();
-      renderPlayerTallyCards();
+      renderActivePlayerPinCards();
+      renderInactiveSquadList();
       renderSummaryTiles();
       closeModal('modalPlayer');
       persistCurrentTeamData();

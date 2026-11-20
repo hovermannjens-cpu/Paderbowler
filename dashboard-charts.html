@@ -68,6 +68,10 @@
 
     <!-- Navigation: Sauber umbrechend, bleibt immer im Fenster -->
     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <button id="btnToggleTheme" onclick="toggleTheme()" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white/90 hover:bg-white text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm flex items-center gap-1.5" title="Dark Mode umschalten">
+        <span id="themeToggleIcon">🌙</span>
+        <span id="themeToggleText" class="hidden sm:inline">Dunkel</span>
+      </button>
       <a href="index.html" class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 border-2 border-[#A499A7] touch-btn shadow-sm">
         <span>Teams</span>
       </a>
@@ -207,24 +211,46 @@
     <div class="bg-white border-2 border-[#A499A7] rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#A499A7]/50 pb-3">
         <div>
-          <h2 class="text-base font-bold text-slate-900">Strichlisten</h2>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Strichlisten</span>
+            <span id="tallyLockBadge" class="hidden text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">🔒 Unter Verschluss</span>
+          </h2>
           <p class="text-xs text-slate-600">Vergleich der Spieler:</p>
         </div>
 
-        <!-- Metric Selector Dropdown -->
-        <select id="metricSelector" onchange="updateTallyChart(this.value)" class="bg-white border-2 border-[#A499A7] rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
-          <option value="bier" selected>Bierframes</option>
-          <option value="miss">Räumfehler</option>
-          <option value="gutter">Gutter / Rinne</option>
-          <option value="turkey">Drillinge</option>
-          <option value="split">Split ≤ 50%</option>
-          <option value="open9">9. Frame offen</option>
-          <option value="over210">Spiele &gt; 210</option>
-          <option value="under170">Spiele &lt; 170</option>
-        </select>
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Mannschafts-Filter für Strichlisten in der Vereinsstatistik -->
+          <select id="tallyTeamFilter" onchange="updateTallyChart()" class="hidden bg-white border-2 border-[#A499A7] rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+            <option value="all_finalized">Freigegebene Mannschaften</option>
+          </select>
+          <!-- Metric Selector Dropdown -->
+          <select id="metricSelector" onchange="updateTallyChart()" class="bg-white border-2 border-[#A499A7] rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#23548F] shadow-sm">
+            <option value="bier" selected>Bierframes</option>
+            <option value="miss">Räumfehler</option>
+            <option value="gutter">Gutter / Rinne</option>
+            <option value="turkey">Drillinge</option>
+            <option value="split">Split ≤ 50%</option>
+            <option value="open9">9. Frame offen</option>
+            <option value="over210">Spiele &gt; 210</option>
+            <option value="under170">Spiele &lt; 170</option>
+          </select>
+        </div>
       </div>
 
-      <div class="h-64 w-full">
+      <!-- Lock Banner für Strichlisten -->
+      <div id="tallyLockNotice" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-5 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-amber-200/80 border border-amber-400 flex items-center justify-center text-2xl shadow-inner">
+          🔒
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-sm font-black text-amber-950">Strichlistenbilanz bis zum Saisonende unter Verschluss!</h3>
+          <p class="text-xs text-amber-900/80 max-w-md mx-auto leading-relaxed">
+            Die Bierframes, Räumfehler und Gaudi-Statistiken werden traditionsgemäß erst am Ende der Saison durch den Schriftführer mit dem Mannschafts-Passwort freigegeben.
+          </p>
+        </div>
+      </div>
+
+      <div id="tallyChartContainer" class="h-64 w-full">
         <canvas id="chartTallies"></canvas>
       </div>
     </div>
@@ -351,6 +377,29 @@
     let chartTalliesInstance = null;
     let chartSeasonEvolutionInstance = null;
     let selectedPlayerProfileId = null;
+
+    function getChartTextColor() {
+      return document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b';
+    }
+    function getChartSubtextColor() {
+      return document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569';
+    }
+    function getChartGridColor() {
+      return document.documentElement.classList.contains('dark') ? 'rgba(148, 163, 184, 0.15)' : 'rgba(164, 153, 167, 0.25)';
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('paderbowler-theme-changed', () => {
+        try {
+          renderFormkurvenChart();
+          renderCentersChart();
+          updateTallyChart();
+          if (window._lastEvolutionData) {
+            renderSeasonEvolutionChart(window._lastEvolutionData);
+          }
+        } catch (e) {}
+      });
+    }
 
     function openModal(id) {
       const el = document.getElementById(id);
@@ -540,8 +589,11 @@
       populatePlayerProfileDropdown();
     }
 
+    let teamCurvesData = [];
+
     function computeMatchdaysAndCurves(rawPlayers) {
       matchdaysData = [];
+      teamCurvesData = [];
 
       let teamsToInspect = [];
       if (isClubWide) {
@@ -626,6 +678,47 @@
         }
       });
 
+      // Mannschaftskurven für die einzelnen Teams (PB1, PB2, PB3, PB4) in der Vereinsstatistik
+      if (isClubWide) {
+        const teamColorsMap = {
+          'team_pb1': '#23548F',
+          'team_pb2': '#70C04D',
+          'team_pb3': '#E8C543',
+          'team_pb4': '#DE4341'
+        };
+
+        teamsToInspect.forEach((team, tIdx) => {
+          const tMds = getTeamMatchdays(team.id);
+          const tCurve = matchdaysData.map(md => {
+            const rawMd = tMds[md.number];
+            if (!rawMd) return null;
+            let tPins = 0;
+            let tGames = 0;
+            for (let g = 1; g <= 5; g++) {
+              const lineup = rawMd.gameLineups?.[g] || [];
+              lineup.forEach(pId => {
+                const p = rawMd.gamePlayerPins?.[g]?.[pId] || 0;
+                if (p > 0) {
+                  tPins += p;
+                  tGames++;
+                }
+              });
+            }
+            return tGames > 0 ? parseFloat((tPins / tGames).toFixed(2)) : null;
+          });
+
+          if (tCurve.some(v => v !== null && v > 0)) {
+            const tColor = teamColorsMap[team.id] || defaultColorPalette[tIdx % defaultColorPalette.length];
+            teamCurvesData.push({
+              teamId: team.id,
+              teamName: team.name,
+              color: tColor,
+              curve: tCurve
+            });
+          }
+        });
+      }
+
       playersData = rawPlayers.map((p, idx) => {
         const color = playerColors[p.id] || defaultColorPalette[idx % defaultColorPalette.length];
         const curve = matchdaysData.map(md => {
@@ -636,9 +729,12 @@
           return null;
         });
 
+        const playerObj = (appState.players || []).find(pl => pl.id === p.id);
+        const displayName = formatPlayerDisplayName(playerObj || p, true);
+
         return {
           ...p,
-          displayName: p.displayName.replace(/\s*\([^)]*\)/g, '').trim(),
+          displayName: displayName || p.displayName,
           color,
           curve
         };
@@ -787,10 +883,17 @@
           maxBierPlayerName = p.displayName.split(' ')[0];
         }
       });
+      let isLocked = false;
+      if (isClubWide) {
+        const anyFinalized = appState.teams.some(t => isTeamSeasonFinalized(t.id, appState));
+        isLocked = !anyFinalized;
+      } else {
+        isLocked = !isTeamSeasonFinalized(activeTeamId, appState);
+      }
       const kpiBierVal = document.getElementById('kpi-bier-val');
-      if (kpiBierVal) kpiBierVal.innerText = `${totalBier}`;
+      if (kpiBierVal) kpiBierVal.innerText = isLocked ? "🔒 Geheim" : `${totalBier}`;
       const kpiBierSub = document.getElementById('kpi-bier-sub');
-      if (kpiBierSub) kpiBierSub.innerText = maxBier > 0 ? `Rekord: ${maxBier} durch ${maxBierPlayerName}` : "Noch keine Bierframes";
+      if (kpiBierSub) kpiBierSub.innerText = isLocked ? "Freigabe am Saisonende" : (maxBier > 0 ? `Rekord: ${maxBier} durch ${maxBierPlayerName}` : "Noch keine Bierframes");
     }
 
     function updateHeaderUI() {
@@ -978,7 +1081,7 @@
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              labels: { color: '#1e293b', font: { size: 11, weight: 'bold' } }
+              labels: { color: getChartTextColor(), font: { size: 11, weight: 'bold' } }
             },
             tooltip: {
               callbacks: {
@@ -990,12 +1093,12 @@
             y: {
               min: trendMetric === 'avg' ? 140 : 0,
               max: trendMetric === 'avg' ? 220 : undefined,
-              grid: { color: 'rgba(164, 153, 167, 0.25)' },
-              ticks: { color: '#475569', font: { weight: 'bold' } }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { weight: 'bold' } }
             },
             x: {
-              grid: { color: 'rgba(164, 153, 167, 0.15)' },
-              ticks: { color: '#475569', font: { size: 11, weight: 'bold' } }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { size: 11, weight: 'bold' } }
             }
           }
         }
@@ -1055,8 +1158,10 @@
       const ctx = canvas.getContext('2d');
       if (chartFormkurveInstance) chartFormkurveInstance.destroy();
 
-      const labels = matchdaysData.map(m => `ST ${m.number} (${m.center})`);
+      // Nur Spieltage auf der X-Achse (kein Center, da Teams in unterschiedlichen Centern spielen)
+      const labels = matchdaysData.map(m => `Spieltag ${m.number}`);
       const teamAvgLabel = isClubWide ? 'Vereins-Schnitt' : 'Team-Schnitt';
+      const refLineColor = document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a';
 
       // Dynamische Min/Max-Berechnung für optimale Spreizung der Y-Achse
       let allValues = matchdaysData.map(m => m.avg).filter(v => v > 0);
@@ -1068,32 +1173,83 @@
       const minVal = allValues.length > 0 ? Math.max(100, Math.floor((Math.min(...allValues) - 15) / 10) * 10) : 120;
       const maxVal = allValues.length > 0 ? Math.min(270, Math.ceil((Math.max(...allValues) + 15) / 10) * 10) : 230;
 
-      const datasets = [
-        {
-          label: teamAvgLabel,
+      let datasets = [];
+
+      if (isClubWide && teamCurvesData.length > 0) {
+        // In der Vereinsstatistik: Mannschaftsschnitte der einzelnen Mannschaften (PB1, PB2, PB3, PB4) als solide Hauptkurven
+        teamCurvesData.forEach(teamData => {
+          datasets.push({
+            label: `${teamData.teamName} (Schnitt)`,
+            data: teamData.curve,
+            borderColor: teamData.color,
+            backgroundColor: teamData.color,
+            borderWidth: 3.5,
+            tension: 0.25,
+            pointRadius: 6.5,
+            pointHoverRadius: 9.5,
+            pointHitRadius: 16,
+            spanGaps: true
+          });
+        });
+
+        // Gesamter Vereinsschnitt als Referenzlinie
+        datasets.push({
+          label: 'Gesamt-Vereinsschnitt',
           data: matchdaysData.map(m => m.avg),
-          borderColor: '#0f172a',
-          backgroundColor: '#0f172a',
-          borderWidth: 3.5,
+          borderColor: refLineColor,
+          backgroundColor: refLineColor,
+          borderWidth: 2.5,
+          borderDash: [6, 4],
           tension: 0.25,
-          pointRadius: 6.5,
-          pointHoverRadius: 9.5,
-          pointHitRadius: 16
-        },
-        ...playersData.map(p => ({
-          label: p.displayName,
-          data: p.curve,
-          borderColor: p.color,
-          backgroundColor: p.color,
-          borderWidth: 2.2,
-          borderDash: [5, 4],
-          tension: 0.2,
           pointRadius: 5,
-          pointHoverRadius: 8.5,
-          pointHitRadius: 14,
-          spanGaps: true
-        }))
-      ];
+          pointHoverRadius: 8,
+          pointHitRadius: 14
+        });
+
+        // Einzelne Spieler
+        playersData.forEach(p => {
+          datasets.push({
+            label: p.displayName,
+            data: p.curve,
+            borderColor: p.color,
+            backgroundColor: p.color,
+            borderWidth: 1.8,
+            borderDash: [3, 3],
+            tension: 0.2,
+            pointRadius: 4,
+            pointHoverRadius: 7,
+            pointHitRadius: 12,
+            spanGaps: true
+          });
+        });
+      } else {
+        datasets = [
+          {
+            label: teamAvgLabel,
+            data: matchdaysData.map(m => m.avg),
+            borderColor: refLineColor,
+            backgroundColor: refLineColor,
+            borderWidth: 3.5,
+            tension: 0.25,
+            pointRadius: 6.5,
+            pointHoverRadius: 9.5,
+            pointHitRadius: 16
+          },
+          ...playersData.map(p => ({
+            label: p.displayName,
+            data: p.curve,
+            borderColor: p.color,
+            backgroundColor: p.color,
+            borderWidth: 2.2,
+            borderDash: [5, 4],
+            tension: 0.2,
+            pointRadius: 5,
+            pointHoverRadius: 8.5,
+            pointHitRadius: 14,
+            spanGaps: true
+          }))
+        ];
+      }
 
       chartFormkurveInstance = new Chart(ctx, {
         type: 'line',
@@ -1105,7 +1261,7 @@
             legend: {
               position: 'top',
               labels: {
-                color: '#1e293b',
+                color: getChartTextColor(),
                 font: { size: 12, weight: 'bold' },
                 padding: 14,
                 boxWidth: 20,
@@ -1125,12 +1281,12 @@
             y: {
               min: minVal,
               max: maxVal,
-              grid: { color: 'rgba(164, 153, 167, 0.25)' },
-              ticks: { color: '#475569', font: { weight: 'bold', size: 11 }, stepSize: 10 }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { weight: 'bold', size: 11 }, stepSize: 10 }
             },
             x: {
-              grid: { color: 'rgba(164, 153, 167, 0.15)' },
-              ticks: { color: '#334155', font: { size: 11, weight: 'bold' }, padding: 8 }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { size: 11, weight: 'bold' }, padding: 8 }
             }
           }
         }
@@ -1176,11 +1332,11 @@
             y: {
               min: 130,
               max: 215,
-              grid: { color: 'rgba(164, 153, 167, 0.25)' },
-              ticks: { color: '#475569', font: { weight: 'bold' } }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { weight: 'bold' } }
             },
             x: {
-              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } },
+              ticks: { color: getChartSubtextColor(), font: { size: 10, weight: 'bold' } },
               grid: { display: false }
             }
           }
@@ -1208,6 +1364,79 @@
 
     // 3. Strichlisten Ranking Chart
     function updateTallyChart(metricKey) {
+      if (!metricKey) {
+        const sel = document.getElementById('metricSelector');
+        metricKey = sel ? sel.value : 'bier';
+      }
+
+      const tallyNotice = document.getElementById('tallyLockNotice');
+      const tallyContainer = document.getElementById('tallyChartContainer');
+      const tallyBadge = document.getElementById('tallyLockBadge');
+      const teamFilter = document.getElementById('tallyTeamFilter');
+
+      let isLocked = false;
+      let relevantPlayers = [...playersData];
+      const finalizedTeams = appState.teams.filter(t => isTeamSeasonFinalized(t.id, appState));
+
+      if (isClubWide) {
+        if (teamFilter) {
+          teamFilter.classList.remove('hidden');
+          const previousVal = teamFilter.value;
+          teamFilter.innerHTML = `
+            <option value="all_finalized">Alle freigegebenen Teams (${finalizedTeams.length}/${appState.teams.length})</option>
+            ${appState.teams.map(t => {
+              const fin = isTeamSeasonFinalized(t.id, appState);
+              return `<option value="${t.id}" ${!fin ? 'disabled class="opacity-50 text-slate-400"' : ''}>${t.name} ${fin ? '✓' : '(🔒 gesperrt)'}</option>`;
+            }).join('')}
+          `;
+          if (previousVal && Array.from(teamFilter.options).some(o => o.value === previousVal && !o.disabled)) {
+            teamFilter.value = previousVal;
+          }
+        }
+
+        if (finalizedTeams.length === 0) {
+          isLocked = true;
+          const noticeH3 = tallyNotice ? tallyNotice.querySelector('h3') : null;
+          const noticeP = tallyNotice ? tallyNotice.querySelector('p') : null;
+          if (noticeH3) noticeH3.textContent = "Vereins-Strichlisten noch unter Verschluss!";
+          if (noticeP) noticeP.textContent = "Es wurde noch keine Mannschafts-Saison abgeschlossen. Sobald die Saison einer Mannschaft freigegeben wurde, werden deren Strichlisten hier sichtbar.";
+        } else {
+          const selectedTeamId = teamFilter ? teamFilter.value : 'all_finalized';
+          if (selectedTeamId === 'all_finalized') {
+            const finalizedIds = new Set(finalizedTeams.map(t => t.id));
+            relevantPlayers = playersData.filter(p => {
+              const pTeam = appState.teams.find(t => t.playerIds && t.playerIds.includes(p.id));
+              return pTeam && finalizedIds.has(pTeam.id);
+            });
+          } else {
+            const chosen = appState.teams.find(t => t.id === selectedTeamId);
+            if (!chosen || !isTeamSeasonFinalized(chosen.id, appState)) {
+              isLocked = true;
+            } else {
+              relevantPlayers = playersData.filter(p => chosen.playerIds && chosen.playerIds.includes(p.id));
+            }
+          }
+        }
+      } else {
+        if (teamFilter) teamFilter.classList.add('hidden');
+        isLocked = !isTeamSeasonFinalized(activeTeamId, appState);
+        const noticeH3 = tallyNotice ? tallyNotice.querySelector('h3') : null;
+        const noticeP = tallyNotice ? tallyNotice.querySelector('p') : null;
+        if (noticeH3) noticeH3.textContent = "Strichlistenbilanz bis zum Saisonende unter Verschluss!";
+        if (noticeP) noticeP.textContent = "Die Bierframes, Räumfehler und Gaudi-Statistiken werden traditionsgemäß erst am Ende der Saison durch den Schriftführer mit dem Mannschafts-Passwort freigegeben.";
+      }
+
+      if (tallyBadge) tallyBadge.classList.toggle('hidden', !isLocked);
+
+      if (isLocked) {
+        if (tallyNotice) tallyNotice.classList.remove('hidden');
+        if (tallyContainer) tallyContainer.classList.add('hidden');
+        return;
+      } else {
+        if (tallyNotice) tallyNotice.classList.add('hidden');
+        if (tallyContainer) tallyContainer.classList.remove('hidden');
+      }
+
       const metricLabels = {
         bier: 'Bierframes',
         miss: 'Räumfehler',
@@ -1242,7 +1471,7 @@
       };
 
       const key = propMap[metricKey] || 'totalBierframes';
-      const sorted = [...playersData].sort((a, b) => (b[key] || 0) - (a[key] || 0));
+      const sorted = [...relevantPlayers].sort((a, b) => (b[key] || 0) - (a[key] || 0));
 
       const canvas = document.getElementById('chartTallies');
       if (!canvas) return;
@@ -1271,11 +1500,11 @@
           scales: {
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(164, 153, 167, 0.25)' },
-              ticks: { color: '#475569', font: { weight: 'bold' }, stepSize: 2 }
+              grid: { color: getChartGridColor() },
+              ticks: { color: getChartSubtextColor(), font: { weight: 'bold' }, stepSize: 2 }
             },
             x: {
-              ticks: { color: '#475569', font: { size: 10, weight: 'bold' } },
+              ticks: { color: getChartSubtextColor(), font: { size: 10, weight: 'bold' } },
               grid: { display: false }
             }
           }
@@ -1310,6 +1539,11 @@
       const p = playersData.find(x => x.id === playerId);
       if (!p) return;
 
+      const playerTeam = appState.teams.find(t => t.playerIds && t.playerIds.includes(playerId));
+      const isLocked = playerTeam 
+        ? !isTeamSeasonFinalized(playerTeam.id, appState) 
+        : (!isClubWide && !isTeamSeasonFinalized(activeTeamId, appState));
+
       let honor = "Stammspieler";
       const maxAvg = Math.max(...playersData.map(x => x.average));
       const maxPins = Math.max(...playersData.map(x => x.totalPins));
@@ -1323,13 +1557,24 @@
 
       if (p.average === maxAvg && p.gamesPlayed >= 5) honor = "Führender Saison-MVP";
       else if (p.totalPins === maxPins && p.totalPins > 0) honor = "Führender Gesamtpins";
-      else if (p.totalBierframes === maxBier && maxBier > 0) honor = "Führender Bierframes";
       else if (p.highGame === maxHigh && maxHigh > 0) honor = "Führender High-Game";
-      else if (p.totalDrilling === maxDrilling && maxDrilling > 0) honor = "Führender Strike-Maestro";
-      else if (p.totalGutterAnwurf === maxGutter && maxGutter > 0) honor = "Führender Goldene Rinne";
-      else if (p.totalRaeumfehler === maxMiss && maxMiss > 0) honor = "Führender Räumfehler";
-      else if (p.totalUnder170 === maxUnder170 && maxUnder170 > 0) honor = "Führender Bahn-Bändiger";
-      else if (p.totalOver210 === maxOver210 && maxOver210 > 0) honor = "High-Roller über 210";
+      else if (!isLocked && p.totalBierframes === maxBier && maxBier > 0) honor = "Führender Bierframes";
+      else if (!isLocked && p.totalDrilling === maxDrilling && maxDrilling > 0) honor = "Führender Strike-Maestro";
+      else if (!isLocked && p.totalGutterAnwurf === maxGutter && maxGutter > 0) honor = "Führender Goldene Rinne";
+      else if (!isLocked && p.totalRaeumfehler === maxMiss && maxMiss > 0) honor = "Führender Räumfehler";
+      else if (!isLocked && p.totalUnder170 === maxUnder170 && maxUnder170 > 0) honor = "Führender Bahn-Bändiger";
+      else if (!isLocked && p.totalOver210 === maxOver210 && maxOver210 > 0) honor = "High-Roller über 210";
+
+      const bierVal = isLocked ? "🔒 Geheim" : p.totalBierframes;
+      const missVal = isLocked ? "🔒 Geheim" : p.totalRaeumfehler;
+      const gutterVal = isLocked ? "🔒 Geheim" : p.totalGutterAnwurf;
+      const drillingVal = isLocked ? "🔒 Geheim" : p.totalDrilling;
+      const splitVal = isLocked ? "🔒 / 🔒" : `${p.totalSplitUnder50} / ${p.totalNinthFrameOpen}`;
+
+      const over210Val = isLocked ? "🔒 Geheim" : `${p.totalOver210}x`;
+      const under170Val = isLocked ? "🔒 Geheim" : `${p.totalUnder170}x`;
+      const schnapsVal = isLocked ? "🔒 Geheim" : `${p.totalSchnapszahl}x`;
+      const statusVal = isLocked ? "🔒 Freigabe am Saisonende" : honor;
 
       const container = document.getElementById('playerProfileContent');
       container.innerHTML = `
@@ -1361,48 +1606,54 @@
 
           <!-- Steckbrief Spalte 2: Strichlisten-Highlights -->
           <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3.5 space-y-2">
-            <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Strichlisten-Bilanz</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Strichlisten-Bilanz</span>
+              ${isLocked ? '<span class="text-[10px] text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded">🔒 Verdeckt</span>' : ''}
+            </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Bierframes:</span>
-              <span class="text-sm font-extrabold text-[#E8C543]">${p.totalBierframes}</span>
+              <span class="text-sm font-extrabold text-[#E8C543]">${bierVal}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Räumfehler:</span>
-              <span class="text-sm font-extrabold text-[#DE4341]">${p.totalRaeumfehler}</span>
+              <span class="text-sm font-extrabold text-[#DE4341]">${missVal}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Gutter:</span>
-              <span class="text-sm font-extrabold text-[#A62F8B]">${p.totalGutterAnwurf}</span>
+              <span class="text-sm font-extrabold text-[#A62F8B]">${gutterVal}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Drillinge:</span>
-              <span class="text-sm font-extrabold text-[#70C04D]">${p.totalDrilling}</span>
+              <span class="text-sm font-extrabold text-[#70C04D]">${drillingVal}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Split ≤ 50% / 9. offen:</span>
-              <span class="text-sm font-bold text-slate-800">${p.totalSplitUnder50} / ${p.totalNinthFrameOpen}</span>
+              <span class="text-sm font-bold text-slate-800">${splitVal}</span>
             </div>
           </div>
 
           <!-- Steckbrief Spalte 3: Kuriositäten & Schwellenwerte -->
           <div class="bg-[#E4D7CF]/30 border border-[#A499A7] rounded-xl p-3.5 space-y-2">
-            <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Schwellenwerte & Status</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-700 font-bold block uppercase tracking-wider">Schwellenwerte & Status</span>
+              ${isLocked ? '<span class="text-[10px] text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded">🔒 Verdeckt</span>' : ''}
+            </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Spiele &gt; 210:</span>
-              <span class="text-sm font-black text-[#23548F]">${p.totalOver210}x</span>
+              <span class="text-sm font-black text-[#23548F]">${over210Val}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Spiele &lt; 170:</span>
-              <span class="text-sm font-black text-[#DE9090]">${p.totalUnder170}x</span>
+              <span class="text-sm font-black text-[#DE9090]">${under170Val}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-slate-700">Schnapszahlen:</span>
-              <span class="text-sm font-black text-[#A62F8B]">${p.totalSchnapszahl}x</span>
+              <span class="text-sm font-black text-[#A62F8B]">${schnapsVal}</span>
             </div>
             <div class="pt-1 border-t border-[#A499A7]/50">
               <span class="text-[10px] text-slate-600 block">Aktueller Status:</span>
               <span class="text-xs font-bold text-[#23548F] block truncate">
-                ${honor}
+                ${statusVal}
               </span>
             </div>
           </div>
@@ -1411,6 +1662,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       initCharts();
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});

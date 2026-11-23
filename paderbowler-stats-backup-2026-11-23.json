@@ -1,0 +1,4291 @@
+{
+  "version": "2.0",
+  "exportedAt": "2026-11-23T18:17:48.399Z",
+  "hub": {
+    "players": [
+      {
+        "name": "Pascal Ploewka",
+        "edv": "21452",
+        "trainingPassword": "48291",
+        "id": "player_ploewka",
+        "password": "48291",
+        "nickname": "",
+        "email": ""
+      },
+      {
+        "email": "",
+        "nickname": "",
+        "password": "71642",
+        "trainingPassword": "71642",
+        "edv": "24743",
+        "name": "Gerrit Baumeister",
+        "id": "player_baumeister"
+      },
+      {
+        "trainingPassword": "35918",
+        "name": "Pascal Hatzig",
+        "password": "35918",
+        "nickname": "Kalle",
+        "id": "player_hatzig",
+        "edv": "36536",
+        "email": ""
+      },
+      {
+        "id": "player_poguntke",
+        "password": "82405",
+        "email": "",
+        "nickname": "",
+        "trainingPassword": "82405",
+        "name": "Andre Poguntke",
+        "edv": "40969"
+      },
+      {
+        "email": "",
+        "trainingPassword": "60371",
+        "id": "player_mueller",
+        "name": "Andrè Müller",
+        "password": "60371",
+        "nickname": "",
+        "edv": "24454"
+      },
+      {
+        "email": "",
+        "name": "Waldemar Pfaffenrot",
+        "id": "player_pfaffenrot",
+        "edv": "40967",
+        "trainingPassword": "91834",
+        "password": "91834",
+        "nickname": ""
+      },
+      {
+        "password": "27490",
+        "nickname": "",
+        "name": "Gary Gerdhenrich",
+        "email": "",
+        "edv": "36514",
+        "id": "player_gerdhenrich",
+        "trainingPassword": "27490"
+      },
+      {
+        "email": "",
+        "edv": "40488",
+        "nickname": "",
+        "password": "53816",
+        "trainingPassword": "53816",
+        "id": "player_mandel",
+        "name": "Dennis Mandel"
+      },
+      {
+        "edv": "40966",
+        "name": "Andre Klipenstein",
+        "id": "player_klipenstein",
+        "trainingPassword": "19643",
+        "email": "",
+        "password": "19643",
+        "nickname": "Olaf"
+      },
+      {
+        "id": "player_hoppe",
+        "name": "Joachim Hoppe",
+        "edv": "36535",
+        "trainingPassword": "74028",
+        "nickname": "Jo",
+        "email": "",
+        "password": "74028"
+      },
+      {
+        "name": "Rüdiger Käune",
+        "edv": "24752",
+        "id": "player_kaeune",
+        "trainingPassword": "86215",
+        "password": "86215",
+        "nickname": "",
+        "email": ""
+      },
+      {
+        "email": "",
+        "edv": "40300",
+        "trainingPassword": "32974",
+        "password": "32974",
+        "nickname": "",
+        "name": "Dustin Hoffmann",
+        "id": "player_d_hoffmann"
+      },
+      {
+        "name": "Nils Nowatzky",
+        "trainingPassword": "64180",
+        "password": "64180",
+        "nickname": "",
+        "email": "",
+        "edv": "40301",
+        "id": "player_nowatzky"
+      },
+      {
+        "edv": "40370",
+        "name": "Marek Dreier",
+        "email": "",
+        "password": "90527",
+        "nickname": "",
+        "id": "player_dreier",
+        "trainingPassword": "90527"
+      },
+      {
+        "edv": "40428",
+        "password": "41783",
+        "nickname": "",
+        "email": "",
+        "name": "Dirk Burshile",
+        "trainingPassword": "41783",
+        "id": "player_burshile"
+      },
+      {
+        "edv": "40487",
+        "nickname": "",
+        "password": "58209",
+        "email": "",
+        "name": "Marvin Stöwer",
+        "id": "player_stoewer",
+        "trainingPassword": "58209"
+      },
+      {
+        "nickname": "",
+        "password": "23671",
+        "email": "",
+        "id": "player_engemann",
+        "name": "Peter Engemann",
+        "edv": "20259",
+        "trainingPassword": "23671"
+      },
+      {
+        "name": "Sven Seifert",
+        "nickname": "",
+        "password": "87413",
+        "email": "",
+        "edv": "40302",
+        "id": "player_seifert",
+        "trainingPassword": "87413"
+      },
+      {
+        "edv": "40516",
+        "name": "Lucas Vogt",
+        "id": "player_vogt",
+        "email": "",
+        "trainingPassword": "15948",
+        "password": "15948",
+        "nickname": ""
+      },
+      {
+        "trainingPassword": "70362",
+        "edv": "40519",
+        "name": "Marvin Hoffmann",
+        "id": "player_m_hoffmann",
+        "password": "70362",
+        "nickname": "",
+        "email": ""
+      },
+      {
+        "trainingPassword": "49185",
+        "id": "player_dutkowski",
+        "name": "André Dutkowski",
+        "edv": "40307",
+        "password": "49185",
+        "nickname": "",
+        "email": ""
+      },
+      {
+        "id": "player_bronnikow",
+        "name": "Leon Bronnikow",
+        "email": "",
+        "edv": "40517",
+        "password": "62830",
+        "nickname": "",
+        "trainingPassword": "62830"
+      },
+      {
+        "name": "Armin Beiersdörfer",
+        "nickname": "",
+        "password": "38504",
+        "email": "",
+        "edv": "40518",
+        "trainingPassword": "38504",
+        "id": "player_beiersdoerfer"
+      },
+      {
+        "id": "player_1795166188285",
+        "nickname": "Jensmann",
+        "password": "92138",
+        "email": "",
+        "trainingPassword": "92138",
+        "name": "Jens Schniedermeier"
+      }
+    ],
+    "trainingDays": [
+      {
+        "playerId": "player_hatzig",
+        "id": "train_1795342347026",
+        "games": [
+          {
+            "frames": [
+              {
+                "standingRoll3": [],
+                "isSpare": false,
+                "standingRoll2": [],
+                "score": 20,
+                "isOpen": false,
+                "standingRoll1": [],
+                "rolls": [
+                  10
+                ],
+                "frameNumber": 1,
+                "isStrike": true
+              },
+              {
+                "frameNumber": 2,
+                "standingRoll1": [
+                  10
+                ],
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "isStrike": false,
+                "isOpen": false,
+                "rolls": [
+                  9,
+                  1
+                ],
+                "isSpare": true,
+                "score": 40
+              },
+              {
+                "standingRoll1": [],
+                "isOpen": false,
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "isStrike": true,
+                "isSpare": false,
+                "frameNumber": 3,
+                "score": 70,
+                "rolls": [
+                  10
+                ]
+              },
+              {
+                "score": 97,
+                "standingRoll2": [],
+                "isStrike": true,
+                "standingRoll3": [],
+                "isOpen": false,
+                "frameNumber": 4,
+                "isSpare": false,
+                "rolls": [
+                  10
+                ],
+                "standingRoll1": []
+              },
+              {
+                "rolls": [
+                  10
+                ],
+                "isSpare": false,
+                "score": 117,
+                "frameNumber": 5,
+                "isOpen": false,
+                "standingRoll3": [],
+                "isStrike": true,
+                "standingRoll2": [],
+                "standingRoll1": []
+              },
+              {
+                "standingRoll3": [],
+                "rolls": [
+                  7,
+                  3
+                ],
+                "standingRoll2": [],
+                "frameNumber": 6,
+                "isStrike": false,
+                "standingRoll1": [
+                  10,
+                  6,
+                  3
+                ],
+                "score": 137,
+                "isSpare": true,
+                "isOpen": false
+              },
+              {
+                "isSpare": false,
+                "isOpen": false,
+                "isStrike": true,
+                "standingRoll1": [],
+                "frameNumber": 7,
+                "score": 165,
+                "rolls": [
+                  10
+                ],
+                "standingRoll2": [],
+                "standingRoll3": []
+              },
+              {
+                "isSpare": false,
+                "score": 185,
+                "isOpen": false,
+                "rolls": [
+                  10
+                ],
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "frameNumber": 8,
+                "standingRoll1": [],
+                "isStrike": true
+              },
+              {
+                "isStrike": false,
+                "score": 201,
+                "rolls": [
+                  8,
+                  2
+                ],
+                "standingRoll1": [
+                  10,
+                  6
+                ],
+                "standingRoll3": [],
+                "isSpare": true,
+                "frameNumber": 9,
+                "isOpen": false,
+                "standingRoll2": []
+              },
+              {
+                "isOpen": false,
+                "isSpare": true,
+                "isStrike": false,
+                "rolls": [
+                  6,
+                  4,
+                  9
+                ],
+                "standingRoll1": [
+                  8,
+                  4,
+                  5,
+                  2
+                ],
+                "frameNumber": 10,
+                "standingRoll2": [],
+                "score": 220,
+                "standingRoll3": [
+                  4
+                ]
+              }
+            ],
+            "gameNumber": 1,
+            "totalPins": 220,
+            "mode": "pindeck"
+          },
+          {
+            "gameNumber": 2,
+            "mode": "pindeck",
+            "totalPins": 139,
+            "frames": [
+              {
+                "isStrike": false,
+                "rolls": [
+                  8,
+                  2
+                ],
+                "score": 19,
+                "isSpare": true,
+                "standingRoll1": [
+                  6,
+                  3
+                ],
+                "standingRoll2": [],
+                "isOpen": false,
+                "standingRoll3": [],
+                "frameNumber": 1
+              },
+              {
+                "isStrike": false,
+                "frameNumber": 2,
+                "standingRoll1": [
+                  7
+                ],
+                "score": 38,
+                "isOpen": false,
+                "isSpare": true,
+                "standingRoll2": [],
+                "rolls": [
+                  9,
+                  1
+                ],
+                "standingRoll3": []
+              },
+              {
+                "score": 47,
+                "isSpare": false,
+                "rolls": [
+                  9,
+                  0
+                ],
+                "isOpen": true,
+                "standingRoll3": [],
+                "standingRoll2": [
+                  10
+                ],
+                "isStrike": false,
+                "frameNumber": 3,
+                "standingRoll1": [
+                  10
+                ]
+              },
+              {
+                "isSpare": false,
+                "isOpen": true,
+                "isStrike": false,
+                "score": 56,
+                "standingRoll1": [
+                  10
+                ],
+                "standingRoll3": [],
+                "rolls": [
+                  9,
+                  0
+                ],
+                "standingRoll2": [
+                  10
+                ],
+                "frameNumber": 4
+              },
+              {
+                "standingRoll1": [],
+                "isStrike": true,
+                "rolls": [
+                  10
+                ],
+                "isSpare": false,
+                "standingRoll2": [],
+                "isOpen": false,
+                "frameNumber": 5,
+                "standingRoll3": [],
+                "score": 76
+              },
+              {
+                "standingRoll1": [
+                  10
+                ],
+                "standingRoll2": [],
+                "isSpare": true,
+                "standingRoll3": [],
+                "isOpen": false,
+                "frameNumber": 6,
+                "isStrike": false,
+                "rolls": [
+                  9,
+                  1
+                ],
+                "score": 93
+              },
+              {
+                "isSpare": false,
+                "standingRoll3": [],
+                "isOpen": true,
+                "standingRoll2": [
+                  10
+                ],
+                "frameNumber": 7,
+                "standingRoll1": [
+                  2,
+                  4,
+                  10
+                ],
+                "score": 102,
+                "rolls": [
+                  7,
+                  2
+                ],
+                "isStrike": false
+              },
+              {
+                "rolls": [
+                  10
+                ],
+                "isStrike": true,
+                "standingRoll1": [],
+                "standingRoll3": [],
+                "score": 121,
+                "isOpen": false,
+                "standingRoll2": [],
+                "frameNumber": 8,
+                "isSpare": false
+              },
+              {
+                "standingRoll1": [
+                  8,
+                  5,
+                  9
+                ],
+                "frameNumber": 9,
+                "isOpen": true,
+                "standingRoll2": [
+                  9
+                ],
+                "standingRoll3": [],
+                "isStrike": false,
+                "isSpare": false,
+                "score": 130,
+                "rolls": [
+                  7,
+                  2
+                ]
+              },
+              {
+                "rolls": [
+                  8,
+                  1
+                ],
+                "isStrike": false,
+                "score": 139,
+                "standingRoll3": [],
+                "standingRoll2": [
+                  2
+                ],
+                "isOpen": true,
+                "standingRoll1": [
+                  8,
+                  2
+                ],
+                "isSpare": false,
+                "frameNumber": 10
+              }
+            ]
+          },
+          {
+            "mode": "pindeck",
+            "totalPins": 182,
+            "gameNumber": 3,
+            "frames": [
+              {
+                "isStrike": false,
+                "isOpen": true,
+                "isSpare": false,
+                "rolls": [
+                  7,
+                  2
+                ],
+                "standingRoll1": [
+                  10,
+                  4,
+                  7
+                ],
+                "standingRoll3": [],
+                "frameNumber": 1,
+                "score": 9,
+                "standingRoll2": [
+                  10
+                ]
+              },
+              {
+                "standingRoll2": [],
+                "score": 29,
+                "standingRoll3": [],
+                "standingRoll1": [
+                  6
+                ],
+                "frameNumber": 2,
+                "rolls": [
+                  9,
+                  1
+                ],
+                "isStrike": false,
+                "isSpare": true,
+                "isOpen": false
+              },
+              {
+                "score": 59,
+                "rolls": [
+                  10
+                ],
+                "isStrike": true,
+                "frameNumber": 3,
+                "isOpen": false,
+                "standingRoll1": [],
+                "isSpare": false,
+                "standingRoll2": [],
+                "standingRoll3": []
+              },
+              {
+                "rolls": [
+                  10
+                ],
+                "score": 88,
+                "isStrike": true,
+                "frameNumber": 4,
+                "standingRoll1": [],
+                "standingRoll2": [],
+                "isOpen": false,
+                "standingRoll3": [],
+                "isSpare": false
+              },
+              {
+                "isSpare": false,
+                "standingRoll1": [],
+                "isOpen": false,
+                "standingRoll2": [],
+                "standingRoll3": [],
+                "isStrike": true,
+                "score": 108,
+                "frameNumber": 5,
+                "rolls": [
+                  10
+                ]
+              },
+              {
+                "standingRoll3": [],
+                "frameNumber": 6,
+                "isOpen": false,
+                "isSpare": true,
+                "standingRoll2": [],
+                "isStrike": false,
+                "standingRoll1": [
+                  3
+                ],
+                "rolls": [
+                  9,
+                  1
+                ],
+                "score": 128
+              },
+              {
+                "frameNumber": 7,
+                "isSpare": false,
+                "isOpen": false,
+                "standingRoll1": [],
+                "isStrike": true,
+                "rolls": [
+                  10
+                ],
+                "standingRoll2": [],
+                "score": 146,
+                "standingRoll3": []
+              },
+              {
+                "isStrike": false,
+                "frameNumber": 8,
+                "isSpare": false,
+                "standingRoll1": [
+                  6,
+                  9,
+                  4,
+                  7
+                ],
+                "score": 154,
+                "isOpen": true,
+                "standingRoll2": [
+                  4,
+                  7
+                ],
+                "standingRoll3": [],
+                "rolls": [
+                  6,
+                  2
+                ]
+              },
+              {
+                "isStrike": true,
+                "rolls": [
+                  10
+                ],
+                "score": 173,
+                "isSpare": false,
+                "frameNumber": 9,
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "isOpen": false,
+                "standingRoll1": []
+              },
+              {
+                "isStrike": false,
+                "score": 182,
+                "frameNumber": 10,
+                "rolls": [
+                  7,
+                  2
+                ],
+                "isOpen": true,
+                "isSpare": false,
+                "standingRoll1": [
+                  8,
+                  5,
+                  9
+                ],
+                "standingRoll3": [],
+                "standingRoll2": [
+                  9
+                ]
+              }
+            ]
+          },
+          {
+            "totalPins": 198,
+            "gameNumber": 4,
+            "frames": [
+              {
+                "frameNumber": 1,
+                "standingRoll1": [],
+                "score": 20,
+                "standingRoll2": [],
+                "rolls": [
+                  10
+                ],
+                "standingRoll3": [],
+                "isStrike": true,
+                "isOpen": false,
+                "isSpare": false
+              },
+              {
+                "frameNumber": 2,
+                "isSpare": true,
+                "isOpen": false,
+                "standingRoll3": [],
+                "rolls": [
+                  9,
+                  1
+                ],
+                "standingRoll2": [],
+                "score": 39,
+                "standingRoll1": [
+                  8
+                ],
+                "isStrike": false
+              },
+              {
+                "frameNumber": 3,
+                "isOpen": false,
+                "isStrike": false,
+                "standingRoll2": [],
+                "isSpare": true,
+                "standingRoll3": [],
+                "rolls": [
+                  9,
+                  1
+                ],
+                "standingRoll1": [
+                  6
+                ],
+                "score": 59
+              },
+              {
+                "frameNumber": 4,
+                "score": 89,
+                "isStrike": true,
+                "rolls": [
+                  10
+                ],
+                "isSpare": false,
+                "standingRoll1": [],
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "isOpen": false
+              },
+              {
+                "standingRoll2": [],
+                "standingRoll3": [],
+                "standingRoll1": [],
+                "isOpen": false,
+                "rolls": [
+                  10
+                ],
+                "isSpare": false,
+                "isStrike": true,
+                "frameNumber": 5,
+                "score": 116
+              },
+              {
+                "isOpen": false,
+                "isSpare": false,
+                "isStrike": true,
+                "standingRoll3": [],
+                "frameNumber": 6,
+                "rolls": [
+                  10
+                ],
+                "standingRoll2": [],
+                "score": 134,
+                "standingRoll1": []
+              },
+              {
+                "rolls": [
+                  7,
+                  1
+                ],
+                "isOpen": true,
+                "frameNumber": 7,
+                "score": 142,
+                "standingRoll1": [
+                  8,
+                  9,
+                  5
+                ],
+                "isStrike": false,
+                "isSpare": false,
+                "standingRoll2": [
+                  8,
+                  5
+                ],
+                "standingRoll3": []
+              },
+              {
+                "standingRoll3": [],
+                "frameNumber": 8,
+                "standingRoll2": [],
+                "isSpare": true,
+                "standingRoll1": [
+                  10
+                ],
+                "isOpen": false,
+                "score": 160,
+                "isStrike": false,
+                "rolls": [
+                  9,
+                  1
+                ]
+              },
+              {
+                "score": 168,
+                "frameNumber": 9,
+                "rolls": [
+                  8,
+                  0
+                ],
+                "isStrike": false,
+                "standingRoll1": [
+                  4,
+                  10
+                ],
+                "standingRoll2": [
+                  4,
+                  10
+                ],
+                "isOpen": true,
+                "isSpare": false,
+                "standingRoll3": []
+              },
+              {
+                "score": 198,
+                "isSpare": false,
+                "rolls": [
+                  10,
+                  10,
+                  10
+                ],
+                "isStrike": true,
+                "isOpen": false,
+                "standingRoll1": [],
+                "standingRoll2": [],
+                "frameNumber": 10,
+                "standingRoll3": []
+              }
+            ],
+            "mode": "pindeck"
+          },
+          {
+            "frames": [
+              {
+                "score": 30,
+                "frameNumber": 1,
+                "rolls": [
+                  10
+                ],
+                "standingRoll1": [],
+                "isStrike": true,
+                "standingRoll2": [],
+                "isSpare": false,
+                "isOpen": false,
+                "standingRoll3": []
+              },
+              {
+                "standingRoll3": [],
+                "frameNumber": 2,
+                "standingRoll2": [],
+                "isSpare": false,
+                "standingRoll1": [],
+                "score": 58,
+                "isOpen": false,
+                "rolls": [
+                  10
+                ],
+                "isStrike": true
+              },
+              {
+                "frameNumber": 3,
+                "isStrike": true,
+                "isOpen": false,
+                "isSpare": false,
+                "score": 77,
+                "standingRoll3": [],
+                "standingRoll2": [],
+                "rolls": [
+                  10
+                ],
+                "standingRoll1": []
+              },
+              {
+                "standingRoll3": [],
+                "rolls": [
+                  8,
+                  1
+                ],
+                "standingRoll2": [
+                  10
+                ],
+                "frameNumber": 4,
+                "score": 86,
+                "standingRoll1": [
+                  4,
+                  10
+                ],
+                "isSpare": false,
+                "isStrike": false,
+                "isOpen": true
+              },
+              {
+                "standingRoll2": [],
+                "standingRoll3": [],
+                "standingRoll1": [],
+                "isSpare": false,
+                "isOpen": false,
+                "score": 106,
+                "isStrike": true,
+                "frameNumber": 5,
+                "rolls": [
+                  10
+                ]
+              },
+              {
+                "score": 125,
+                "standingRoll2": [],
+                "standingRoll3": [],
+                "frameNumber": 6,
+                "standingRoll1": [
+                  3
+                ],
+                "rolls": [
+                  9,
+                  1
+                ],
+                "isStrike": false,
+                "isSpare": true,
+                "isOpen": false
+              },
+              {
+                "isSpare": true,
+                "standingRoll1": [
+                  7
+                ],
+                "frameNumber": 7,
+                "isOpen": false,
+                "standingRoll2": [],
+                "standingRoll3": [],
+                "isStrike": false,
+                "score": 142,
+                "rolls": [
+                  9,
+                  1
+                ]
+              },
+              {
+                "isStrike": false,
+                "frameNumber": 8,
+                "rolls": [
+                  7,
+                  2
+                ],
+                "score": 151,
+                "standingRoll3": [],
+                "standingRoll2": [
+                  8
+                ],
+                "isOpen": true,
+                "standingRoll1": [
+                  8,
+                  5,
+                  9
+                ],
+                "isSpare": false
+              },
+              {
+                "standingRoll1": [],
+                "rolls": [
+                  10
+                ],
+                "standingRoll2": [],
+                "isStrike": true,
+                "score": 180,
+                "standingRoll3": [],
+                "isSpare": false,
+                "frameNumber": 9,
+                "isOpen": false
+              },
+              {
+                "frameNumber": 10,
+                "standingRoll1": [],
+                "isOpen": false,
+                "standingRoll2": [
+                  10
+                ],
+                "standingRoll3": [],
+                "rolls": [
+                  10,
+                  9,
+                  1
+                ],
+                "isSpare": false,
+                "score": 200,
+                "isStrike": true
+              }
+            ],
+            "mode": "pindeck",
+            "totalPins": 200,
+            "gameNumber": 5
+          }
+        ],
+        "oilPattern": "Sportölung Flat (1:1)",
+        "center": "PaderBowling (Heimatbahn)",
+        "date": "2026-11-22"
+      }
+    ],
+    "deletedTrainingDayIds": [
+      "train_1795130204891",
+      "train_1795163182348",
+      "train_1795166358485",
+      "train_1795166488807",
+      "train_1795166558404",
+      "train_1795166594519",
+      "train_1795166755387",
+      "train_1795166879194",
+      "train_test_1795165622725",
+      "train_1795203841150",
+      "train_1795314401471",
+      "train_1795457441655"
+    ],
+    "centers": [
+      {
+        "city": "Bielefeld",
+        "name": "Elite Bowling Center",
+        "id": "center_elite"
+      },
+      {
+        "name": "Bowltreff Münster",
+        "city": "Münster",
+        "id": "center_muenster"
+      },
+      {
+        "name": "Skyline Bowling",
+        "id": "center_detmold",
+        "city": "Detmold"
+      },
+      {
+        "id": "center_hamm",
+        "name": "Maxi Strike",
+        "city": "Hamm"
+      },
+      {
+        "id": "center_paderborn",
+        "city": "Paderborn",
+        "name": "Pader Bowling"
+      }
+    ],
+    "deletedTeamIds": [],
+    "teams": [
+      {
+        "matchdaysCount": 5,
+        "password": "paderbowler1",
+        "league": "Verbandsliga 1",
+        "playerIds": [
+          "player_pfaffenrot",
+          "player_nowatzky",
+          "player_1794995411303",
+          "player_kaeune",
+          "player_d_hoffmann",
+          "player_gerdhenrich",
+          "player_ploewka",
+          "player_klipenstein",
+          "player_mueller"
+        ],
+        "totalPins": 17231,
+        "points": "30 : 20",
+        "seasonId": "season_2026_2027",
+        "name": "PaderBowler 1",
+        "id": "team_pb1",
+        "opponents": [
+          "VfL Holsen 3",
+          "BV Brackwede 3",
+          "MaxiStrike Hamm 2",
+          "BV Detmold 2",
+          "Bowlingfreunde Bielefeld 3"
+        ],
+        "average": 172.31
+      },
+      {
+        "password": "paderbowler2",
+        "league": "Landesliga 1",
+        "matchdaysCount": 5,
+        "id": "team_pb2",
+        "average": 180.54,
+        "playerIds": [
+          "player_hatzig",
+          "player_baumeister",
+          "player_klipenstein",
+          "player_gerdhenrich",
+          "player_hoppe",
+          "player_stoewer"
+        ],
+        "points": "38 : 12",
+        "totalPins": 18054,
+        "seasonId": "season_2026_2027",
+        "opponents": [
+          "MaxiStrike Hamm 2",
+          "BV Detmold 2",
+          "VfL Holsen 3",
+          "Bowlingfreunde Bielefeld 3",
+          "BV Brackwede 3"
+        ],
+        "name": "PaderBowler 2"
+      },
+      {
+        "average": 163.43,
+        "matchdaysCount": 5,
+        "playerIds": [
+          "player_poguntke",
+          "player_engemann",
+          "player_seifert",
+          "player_dutkowski",
+          "player_mandel",
+          "player_burshile"
+        ],
+        "name": "PaderBowler 3",
+        "id": "team_pb3",
+        "points": "31 : 19",
+        "seasonId": "season_2026_2027",
+        "opponents": [
+          "BC Lemgo",
+          "BV Detmold 4",
+          "BV Detmold 3",
+          "PaderBowler 4",
+          "BV Brackwede 4"
+        ],
+        "password": "paderbowler3",
+        "league": "Bezirksliga 2",
+        "totalPins": 16343
+      },
+      {
+        "playerIds": [
+          "player_dreier",
+          "player_vogt",
+          "player_m_hoffmann",
+          "player_beiersdoerfer",
+          "player_bronnikow"
+        ],
+        "league": "Bezirksliga 2",
+        "id": "team_pb4",
+        "seasonId": "season_2026_2027",
+        "name": "PaderBowler 4",
+        "password": "paderbowler4",
+        "opponents": [
+          "PaderBowler 3",
+          "BC Lemgo",
+          "BV Detmold 4",
+          "BV Detmold 3",
+          "BV Brackwede 4"
+        ],
+        "matchdaysCount": 5,
+        "points": "10 : 40",
+        "totalPins": 14359,
+        "average": 143.59
+      }
+    ],
+    "seasons": [
+      {
+        "name": "2026/2027",
+        "id": "season_2026_2027",
+        "isCurrent": true
+      }
+    ],
+    "currentSeasonId": "season_2026_2027"
+  },
+  "matchdays": {
+    "team_pb1": {
+      "1": {
+        "gamePlayerPins": {
+          "1": {
+            "player_klipenstein": 0,
+            "player_nowatzky": 198,
+            "player_kaeune": 181,
+            "player_hoppe": 0,
+            "player_pfaffenrot": 199,
+            "player_1794995411303": 189
+          },
+          "2": {
+            "player_pfaffenrot": 213,
+            "player_1794995411303": 170,
+            "player_hoppe": 0,
+            "player_klipenstein": 0,
+            "player_kaeune": 157,
+            "player_nowatzky": 180
+          },
+          "3": {
+            "player_1794995411303": 145,
+            "player_pfaffenrot": 170,
+            "player_hoppe": 0,
+            "player_d_hoffmann": 169,
+            "player_nowatzky": 167,
+            "player_klipenstein": 0
+          },
+          "4": {
+            "player_nowatzky": 183,
+            "player_klipenstein": 0,
+            "player_pfaffenrot": 224,
+            "player_hoppe": 0,
+            "player_d_hoffmann": 194,
+            "player_1794995411303": 195
+          },
+          "5": {
+            "player_d_hoffmann": 210,
+            "player_hoppe": 0,
+            "player_nowatzky": 223,
+            "player_klipenstein": 0,
+            "player_pfaffenrot": 185,
+            "player_kaeune": 174
+          }
+        },
+        "isLocked": true,
+        "centerId": "center_1794991615301",
+        "matchdayTallies": {
+          "player_hoppe": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0
+          },
+          "player_klipenstein": {
+            "miss": 0,
+            "bier": 0,
+            "open9": 0,
+            "turkey": 0,
+            "split": 0,
+            "gutter": 0
+          }
+        },
+        "date": "2026-09-06",
+        "gameOpponents": {
+          "1": {
+            "pins": 692,
+            "name": "PSV Bielefeld",
+            "id": "PSV Bielefeld"
+          },
+          "2": {
+            "id": "ABC Dortmund 2",
+            "name": "ABC Dortmund 2",
+            "pins": 636
+          },
+          "3": {
+            "pins": 876,
+            "name": "BV Brackwede 2",
+            "id": "BV Brackwede 2"
+          },
+          "4": {
+            "pins": 766,
+            "name": "VfL Holsen 2",
+            "id": "VfL Holsen 2"
+          },
+          "5": {
+            "name": "Vfl Holsen 1",
+            "id": "Vfl Holsen 1",
+            "pins": 774
+          }
+        },
+        "number": 1,
+        "gameLineups": {
+          "1": [
+            "player_pfaffenrot",
+            "player_nowatzky",
+            "player_1794995411303",
+            "player_kaeune"
+          ],
+          "2": [
+            "player_pfaffenrot",
+            "player_nowatzky",
+            "player_1794995411303",
+            "player_kaeune"
+          ],
+          "3": [
+            "player_pfaffenrot",
+            "player_d_hoffmann",
+            "player_nowatzky",
+            "player_1794995411303"
+          ],
+          "4": [
+            "player_pfaffenrot",
+            "player_d_hoffmann",
+            "player_nowatzky",
+            "player_1794995411303"
+          ],
+          "5": [
+            "player_pfaffenrot",
+            "player_d_hoffmann",
+            "player_nowatzky",
+            "player_kaeune"
+          ]
+        }
+      },
+      "2": {
+        "centerId": "center_muenster",
+        "date": "2026-09-20",
+        "gamePlayerPins": {
+          "1": {
+            "player_nowatzky": 142,
+            "player_mueller": 0,
+            "player_d_hoffmann": 129,
+            "player_pfaffenrot": 149,
+            "player_klipenstein": 0,
+            "player_gerdhenrich": 179,
+            "player_kaeune": 0
+          },
+          "2": {
+            "player_nowatzky": 180,
+            "player_pfaffenrot": 168,
+            "player_kaeune": 0,
+            "player_mueller": 0,
+            "player_klipenstein": 0,
+            "player_gerdhenrich": 166,
+            "player_d_hoffmann": 145
+          },
+          "3": {
+            "player_d_hoffmann": 196,
+            "player_nowatzky": 151,
+            "player_klipenstein": 0,
+            "player_gerdhenrich": 148,
+            "player_pfaffenrot": 186,
+            "player_kaeune": 0,
+            "player_mueller": 0
+          },
+          "4": {
+            "player_pfaffenrot": 153,
+            "player_nowatzky": 143,
+            "player_klipenstein": 0,
+            "player_gerdhenrich": 164,
+            "player_mueller": 0,
+            "player_d_hoffmann": 173,
+            "player_kaeune": 0
+          },
+          "5": {
+            "player_kaeune": 0,
+            "player_pfaffenrot": 180,
+            "player_nowatzky": 167,
+            "player_mueller": 0,
+            "player_gerdhenrich": 230,
+            "player_klipenstein": 0,
+            "player_d_hoffmann": 210
+          }
+        },
+        "isLocked": true,
+        "gameOpponents": {
+          "1": {
+            "name": "ABC Dortmund 2",
+            "id": "ABC Dortmund 2",
+            "pins": 673
+          },
+          "2": {
+            "pins": 651,
+            "id": "PSV Bielefeld",
+            "name": "PSV Bielefeld"
+          },
+          "3": {
+            "id": "VfL Holsen 2",
+            "pins": 701,
+            "name": "VfL Holsen 2"
+          },
+          "4": {
+            "pins": 624,
+            "name": "Vfl Holsen 1",
+            "id": "Vfl Holsen 1"
+          },
+          "5": {
+            "pins": 590,
+            "name": "BV Brackwede 2",
+            "id": "BV Brackwede 2"
+          }
+        },
+        "matchdayTallies": {
+          "player_pfaffenrot": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_mueller": {
+            "open9": 0,
+            "turkey": 0,
+            "bier": 0,
+            "split": 0,
+            "miss": 0,
+            "gutter": 0
+          },
+          "player_ploewka": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "bier": 0,
+            "open9": 0,
+            "miss": 0
+          },
+          "player_kaeune": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_klipenstein": {
+            "open9": 0,
+            "turkey": 0,
+            "split": 0,
+            "bier": 0,
+            "gutter": 0,
+            "miss": 0
+          },
+          "player_d_hoffmann": {
+            "split": 0,
+            "bier": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0
+          },
+          "player_nowatzky": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_gerdhenrich",
+            "player_d_hoffmann",
+            "player_pfaffenrot",
+            "player_nowatzky"
+          ],
+          "2": [
+            "player_gerdhenrich",
+            "player_d_hoffmann",
+            "player_pfaffenrot",
+            "player_nowatzky"
+          ],
+          "3": [
+            "player_gerdhenrich",
+            "player_d_hoffmann",
+            "player_pfaffenrot",
+            "player_nowatzky"
+          ],
+          "4": [
+            "player_gerdhenrich",
+            "player_d_hoffmann",
+            "player_pfaffenrot",
+            "player_nowatzky"
+          ],
+          "5": [
+            "player_gerdhenrich",
+            "player_d_hoffmann",
+            "player_pfaffenrot",
+            "player_nowatzky"
+          ]
+        },
+        "number": 2
+      },
+      "3": {
+        "date": "2026-10-04",
+        "matchdayTallies": {
+          "player_klipenstein": {
+            "miss": 0,
+            "bier": 0,
+            "open9": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_d_hoffmann": {
+            "open9": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_mueller": {
+            "open9": 0,
+            "turkey": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_ploewka": {
+            "bier": 0,
+            "miss": 0,
+            "turkey": 0,
+            "gutter": 0,
+            "open9": 0,
+            "split": 0
+          },
+          "player_kaeune": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "split": 0,
+            "bier": 0
+          },
+          "player_pfaffenrot": {
+            "split": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0
+          },
+          "player_nowatzky": {
+            "bier": 0,
+            "split": 0,
+            "miss": 0,
+            "gutter": 0,
+            "turkey": 0,
+            "open9": 0
+          }
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_kaeune": 170,
+            "player_mueller": 0,
+            "player_ploewka": 193,
+            "player_d_hoffmann": 206,
+            "player_nowatzky": 187,
+            "player_klipenstein": 0
+          },
+          "2": {
+            "player_d_hoffmann": 204,
+            "player_mueller": 0,
+            "player_ploewka": 212,
+            "player_klipenstein": 0,
+            "player_nowatzky": 165,
+            "player_kaeune": 180
+          },
+          "3": {
+            "player_d_hoffmann": 179,
+            "player_nowatzky": 221,
+            "player_mueller": 0,
+            "player_ploewka": 192,
+            "player_klipenstein": 0,
+            "player_kaeune": 158
+          },
+          "4": {
+            "player_d_hoffmann": 152,
+            "player_kaeune": 201,
+            "player_mueller": 0,
+            "player_ploewka": 188,
+            "player_klipenstein": 0,
+            "player_nowatzky": 134
+          },
+          "5": {
+            "player_d_hoffmann": 154,
+            "player_mueller": 0,
+            "player_ploewka": 202,
+            "player_nowatzky": 150,
+            "player_kaeune": 204,
+            "player_klipenstein": 0
+          }
+        },
+        "number": 3,
+        "gameLineups": {
+          "1": [
+            "player_ploewka",
+            "player_kaeune",
+            "player_d_hoffmann",
+            "player_nowatzky"
+          ],
+          "2": [
+            "player_ploewka",
+            "player_kaeune",
+            "player_d_hoffmann",
+            "player_nowatzky"
+          ],
+          "3": [
+            "player_ploewka",
+            "player_kaeune",
+            "player_d_hoffmann",
+            "player_nowatzky"
+          ],
+          "4": [
+            "player_ploewka",
+            "player_kaeune",
+            "player_d_hoffmann",
+            "player_nowatzky"
+          ],
+          "5": [
+            "player_ploewka",
+            "player_kaeune",
+            "player_d_hoffmann",
+            "player_nowatzky"
+          ]
+        },
+        "isLocked": true,
+        "gameOpponents": {
+          "1": {
+            "pins": 685,
+            "name": "VfL Holsen 2",
+            "id": "VfL Holsen 2"
+          },
+          "2": {
+            "pins": 613,
+            "name": "ABC Dortmund 2",
+            "id": "ABC Dortmund 2"
+          },
+          "3": {
+            "id": "PSV Bielefeld",
+            "pins": 745,
+            "name": "PSV Bielefeld"
+          },
+          "4": {
+            "id": "Vfl Holsen 1",
+            "name": "Vfl Holsen 1",
+            "pins": 704
+          },
+          "5": {
+            "id": "BV Brackwede 2",
+            "name": "BV Brackwede 2",
+            "pins": 913
+          }
+        },
+        "centerId": "center_elite"
+      },
+      "4": {
+        "number": 4,
+        "gamePlayerPins": {
+          "1": {
+            "player_klipenstein": 0,
+            "player_nowatzky": 199,
+            "player_d_hoffmann": 133,
+            "player_ploewka": 195,
+            "player_mueller": 0,
+            "player_pfaffenrot": 179,
+            "player_kaeune": 0
+          },
+          "2": {
+            "player_nowatzky": 134,
+            "player_d_hoffmann": 0,
+            "player_ploewka": 169,
+            "player_mueller": 0,
+            "player_klipenstein": 0,
+            "player_pfaffenrot": 1,
+            "player_kaeune": 162
+          },
+          "3": {
+            "player_d_hoffmann": 0,
+            "player_mueller": 0,
+            "player_ploewka": 248,
+            "player_kaeune": 136,
+            "player_pfaffenrot": 152,
+            "player_klipenstein": 0,
+            "player_nowatzky": 189
+          },
+          "4": {
+            "player_mueller": 0,
+            "player_ploewka": 172,
+            "player_kaeune": 0,
+            "player_d_hoffmann": 139,
+            "player_nowatzky": 156,
+            "player_pfaffenrot": 163,
+            "player_klipenstein": 0
+          },
+          "5": {
+            "player_pfaffenrot": 157,
+            "player_mueller": 0,
+            "player_ploewka": 154,
+            "player_kaeune": 0,
+            "player_nowatzky": 164,
+            "player_d_hoffmann": 195,
+            "player_klipenstein": 0
+          }
+        },
+        "gameOpponents": {
+          "1": {
+            "pins": 698,
+            "id": "BV Brackwede 2",
+            "name": "BV Brackwede 2"
+          },
+          "2": {
+            "pins": 634,
+            "id": "Vfl Holsen 1",
+            "name": "Vfl Holsen 1"
+          },
+          "3": {
+            "id": "VfL Holsen 2",
+            "name": "VfL Holsen 2",
+            "pins": 683
+          },
+          "4": {
+            "id": "PSV Bielefeld",
+            "name": "PSV Bielefeld",
+            "pins": 729
+          },
+          "5": {
+            "pins": 719,
+            "id": "ABC Dortmund 2",
+            "name": "ABC Dortmund 2"
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_ploewka",
+            "player_nowatzky",
+            "player_pfaffenrot",
+            "player_d_hoffmann"
+          ],
+          "2": [
+            "player_ploewka",
+            "player_nowatzky",
+            "player_pfaffenrot",
+            "player_kaeune"
+          ],
+          "3": [
+            "player_ploewka",
+            "player_nowatzky",
+            "player_pfaffenrot",
+            "player_kaeune"
+          ],
+          "4": [
+            "player_ploewka",
+            "player_nowatzky",
+            "player_pfaffenrot",
+            "player_d_hoffmann"
+          ],
+          "5": [
+            "player_ploewka",
+            "player_pfaffenrot",
+            "player_nowatzky",
+            "player_d_hoffmann"
+          ]
+        },
+        "isLocked": true,
+        "date": "2026-10-18",
+        "matchdayTallies": {
+          "player_d_hoffmann": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_klipenstein": {
+            "miss": 0,
+            "bier": 0,
+            "split": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_ploewka": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_mueller": {
+            "bier": 0,
+            "open9": 0,
+            "miss": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_nowatzky": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0
+          },
+          "player_kaeune": {
+            "split": 0,
+            "bier": 0,
+            "miss": 0,
+            "open9": 0,
+            "gutter": 0,
+            "turkey": 0
+          },
+          "player_pfaffenrot": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "bier": 0,
+            "miss": 0
+          }
+        },
+        "centerId": "center_elite"
+      },
+      "5": {
+        "gamePlayerPins": {
+          "1": {
+            "player_hoppe": 0,
+            "player_mueller": 184,
+            "player_pfaffenrot": 154,
+            "player_d_hoffmann": 199,
+            "player_klipenstein": 151
+          },
+          "2": {
+            "player_hoppe": 0,
+            "player_d_hoffmann": 162,
+            "player_pfaffenrot": 135,
+            "player_klipenstein": 152,
+            "player_mueller": 182
+          },
+          "3": {
+            "player_d_hoffmann": 170,
+            "player_klipenstein": 198,
+            "player_hoppe": 0,
+            "player_pfaffenrot": 188,
+            "player_mueller": 155
+          },
+          "4": {
+            "player_pfaffenrot": 152,
+            "player_d_hoffmann": 137,
+            "player_klipenstein": 177,
+            "player_mueller": 129,
+            "player_hoppe": 0
+          },
+          "5": {
+            "player_klipenstein": 154,
+            "player_mueller": 180,
+            "player_d_hoffmann": 172,
+            "player_hoppe": 0,
+            "player_pfaffenrot": 166
+          }
+        },
+        "isLocked": true,
+        "gameOpponents": {
+          "1": {
+            "name": "Vfl Holsen 1",
+            "pins": 604,
+            "id": "Vfl Holsen 1"
+          },
+          "2": {
+            "id": "VfL Holsen 2",
+            "name": "VfL Holsen 2",
+            "pins": 671
+          },
+          "3": {
+            "id": "BV Brackwede 2",
+            "name": "BV Brackwede 2",
+            "pins": 628
+          },
+          "4": {
+            "id": "ABC Dortmund 2",
+            "name": "ABC Dortmund 2",
+            "pins": 643
+          },
+          "5": {
+            "id": "PSV Bielefeld",
+            "pins": 627,
+            "name": "PSV Bielefeld"
+          }
+        },
+        "matchdayTallies": {
+          "player_klipenstein": {
+            "gutter": 0,
+            "bier": 0,
+            "split": 0,
+            "miss": 0,
+            "turkey": 0,
+            "open9": 0
+          },
+          "player_d_hoffmann": {
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "split": 0
+          },
+          "player_mueller": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0
+          },
+          "player_hoppe": {
+            "miss": 0,
+            "bier": 0,
+            "split": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_kaeune": {
+            "gutter": 0,
+            "split": 0,
+            "bier": 0,
+            "miss": 0,
+            "turkey": 0,
+            "open9": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_d_hoffmann",
+            "player_klipenstein",
+            "player_mueller",
+            "player_pfaffenrot"
+          ],
+          "2": [
+            "player_d_hoffmann",
+            "player_klipenstein",
+            "player_mueller",
+            "player_pfaffenrot"
+          ],
+          "3": [
+            "player_d_hoffmann",
+            "player_klipenstein",
+            "player_mueller",
+            "player_pfaffenrot"
+          ],
+          "4": [
+            "player_d_hoffmann",
+            "player_klipenstein",
+            "player_mueller",
+            "player_pfaffenrot"
+          ],
+          "5": [
+            "player_d_hoffmann",
+            "player_klipenstein",
+            "player_mueller",
+            "player_pfaffenrot"
+          ]
+        },
+        "centerId": "center_muenster",
+        "date": "2026-11-08",
+        "number": 5
+      }
+    },
+    "team_pb2": {
+      "1": {
+        "gameOpponents": {
+          "1": {
+            "name": "MaxiStrike Hamm 2",
+            "id": "MaxiStrike Hamm 2",
+            "pins": 674
+          },
+          "2": {
+            "id": "BV Detmold 2",
+            "pins": 709,
+            "name": "BV Detmold 2"
+          },
+          "3": {
+            "id": "VfL Holsen 3",
+            "pins": 742,
+            "name": "VfL Holsen 3"
+          },
+          "4": {
+            "pins": 676,
+            "id": "Bowlingfreunde Bielefeld 3",
+            "name": "Bowlingfreunde Bielefeld 3"
+          },
+          "5": {
+            "id": "BV Brackwede 3",
+            "name": "BV Brackwede 3",
+            "pins": 757
+          }
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_baumeister": 174,
+            "player_hatzig": 198,
+            "player_klipenstein": 222,
+            "player_gerdhenrich": 169
+          },
+          "2": {
+            "player_klipenstein": 183,
+            "player_hoppe": 164,
+            "player_hatzig": 155,
+            "player_baumeister": 203
+          },
+          "3": {
+            "player_klipenstein": 181,
+            "player_gerdhenrich": 152,
+            "player_baumeister": 161,
+            "player_hoppe": 141
+          },
+          "4": {
+            "player_klipenstein": 227,
+            "player_hatzig": 246,
+            "player_baumeister": 157,
+            "player_hoppe": 163
+          },
+          "5": {
+            "player_gerdhenrich": 182,
+            "player_klipenstein": 190,
+            "player_hatzig": 195,
+            "player_hoppe": 167
+          }
+        },
+        "number": 1,
+        "gameLineups": {
+          "1": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_gerdhenrich",
+            "player_baumeister"
+          ],
+          "2": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "3": [
+            "player_klipenstein",
+            "player_hoppe",
+            "player_gerdhenrich",
+            "player_baumeister"
+          ],
+          "4": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "5": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_gerdhenrich"
+          ]
+        },
+        "isLocked": true,
+        "date": "2026-09-06",
+        "matchdayTallies": {
+          "player_baumeister": {
+            "open9": 1,
+            "miss": 7,
+            "turkey": 0,
+            "bier": 4,
+            "split": 1,
+            "gutter": 0
+          },
+          "player_stoewer": {
+            "bier": 0,
+            "open9": 0,
+            "miss": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_hatzig": {
+            "open9": 0,
+            "miss": 2,
+            "bier": 1,
+            "split": 1,
+            "turkey": 3,
+            "gutter": 0
+          },
+          "player_gerdhenrich": {
+            "open9": 1,
+            "turkey": 1,
+            "split": 0,
+            "miss": 5,
+            "bier": 1,
+            "gutter": 0
+          },
+          "player_klipenstein": {
+            "open9": 2,
+            "turkey": 3,
+            "bier": 0,
+            "miss": 6,
+            "split": 2,
+            "gutter": 0
+          },
+          "player_hoppe": {
+            "bier": 1,
+            "miss": 5,
+            "turkey": 0,
+            "gutter": 0,
+            "open9": 1,
+            "split": 0
+          }
+        },
+        "centerId": "center_elite"
+      },
+      "2": {
+        "gameOpponents": {
+          "1": {
+            "id": "BV Detmold 2",
+            "pins": 583,
+            "name": "BV Detmold 2"
+          },
+          "2": {
+            "id": "MaxiStrike Hamm 2",
+            "name": "MaxiStrike Hamm 2",
+            "pins": 644
+          },
+          "3": {
+            "pins": 571,
+            "id": "Bowlingfreunde Bielefeld 3",
+            "name": "Bowlingfreunde Bielefeld 3"
+          },
+          "4": {
+            "pins": 603,
+            "name": "BV Brackwede 3",
+            "id": "BV Brackwede 3"
+          },
+          "5": {
+            "name": "VfL Holsen 3",
+            "pins": 686,
+            "id": "VfL Holsen 3"
+          }
+        },
+        "number": 2,
+        "gameLineups": {
+          "1": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "2": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "3": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "4": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "5": [
+            "player_klipenstein",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ]
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_baumeister": 223,
+            "player_hatzig": 189,
+            "player_stoewer": 150,
+            "player_hoppe": 164
+          },
+          "2": {
+            "player_hatzig": 169,
+            "player_hoppe": 207,
+            "player_baumeister": 192,
+            "player_klipenstein": 134
+          },
+          "3": {
+            "player_baumeister": 218,
+            "player_hatzig": 179,
+            "player_hoppe": 192,
+            "player_stoewer": 141
+          },
+          "4": {
+            "player_hatzig": 165,
+            "player_klipenstein": 162,
+            "player_hoppe": 185,
+            "player_baumeister": 205
+          },
+          "5": {
+            "player_klipenstein": 156,
+            "player_hoppe": 148,
+            "player_stoewer": 156,
+            "player_baumeister": 158
+          }
+        },
+        "date": "2026-09-20",
+        "matchdayTallies": {
+          "player_hatzig": {
+            "open9": 2,
+            "miss": 5,
+            "bier": 0,
+            "split": 2,
+            "turkey": 2,
+            "gutter": 0
+          },
+          "player_baumeister": {
+            "open9": 0,
+            "turkey": 4,
+            "gutter": 0,
+            "bier": 0,
+            "split": 1,
+            "miss": 9
+          },
+          "player_klipenstein": {
+            "gutter": 0,
+            "split": 2,
+            "bier": 5,
+            "miss": 5,
+            "turkey": 0,
+            "open9": 2
+          },
+          "player_gerdhenrich": {
+            "miss": 0,
+            "open9": 0,
+            "bier": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_hoppe": {
+            "bier": 0,
+            "miss": 7,
+            "split": 1,
+            "gutter": 0,
+            "open9": 2,
+            "turkey": 1
+          },
+          "player_stoewer": {
+            "gutter": 1,
+            "split": 3,
+            "turkey": 0,
+            "open9": 0,
+            "bier": 3,
+            "miss": 9
+          }
+        },
+        "isLocked": true,
+        "centerId": "center_elite"
+      },
+      "3": {
+        "number": 3,
+        "matchdayTallies": {
+          "player_hatzig": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "split": 0,
+            "bier": 0
+          },
+          "player_klipenstein": {
+            "miss": 15,
+            "gutter": 2,
+            "bier": 4,
+            "split": 1,
+            "turkey": 1,
+            "open9": 3
+          },
+          "player_gerdhenrich": {
+            "turkey": 2,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 8,
+            "bier": 0,
+            "split": 2
+          },
+          "player_stoewer": {
+            "turkey": 1,
+            "open9": 2,
+            "gutter": 4,
+            "miss": 19,
+            "bier": 1,
+            "split": 1
+          },
+          "player_baumeister": {
+            "miss": 10,
+            "gutter": 1,
+            "bier": 4,
+            "split": 1,
+            "turkey": 2,
+            "open9": 1
+          },
+          "player_hoppe": {
+            "miss": 0,
+            "gutter": 0,
+            "split": 0,
+            "bier": 0,
+            "turkey": 0,
+            "open9": 0
+          }
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_stoewer": 207,
+            "player_baumeister": 116,
+            "player_klipenstein": 128,
+            "player_gerdhenrich": 221
+          },
+          "2": {
+            "player_klipenstein": 140,
+            "player_gerdhenrich": 205,
+            "player_baumeister": 166,
+            "player_stoewer": 136
+          },
+          "3": {
+            "player_baumeister": 222,
+            "player_gerdhenrich": 166,
+            "player_klipenstein": 153,
+            "player_stoewer": 107
+          },
+          "4": {
+            "player_klipenstein": 150,
+            "player_gerdhenrich": 182,
+            "player_stoewer": 142,
+            "player_baumeister": 204
+          },
+          "5": {
+            "player_stoewer": 158,
+            "player_baumeister": 176,
+            "player_gerdhenrich": 121,
+            "player_klipenstein": 184
+          }
+        },
+        "isLocked": true,
+        "gameLineups": {
+          "1": [
+            "player_klipenstein",
+            "player_gerdhenrich",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "2": [
+            "player_klipenstein",
+            "player_gerdhenrich",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "3": [
+            "player_klipenstein",
+            "player_gerdhenrich",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "4": [
+            "player_klipenstein",
+            "player_gerdhenrich",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "5": [
+            "player_klipenstein",
+            "player_gerdhenrich",
+            "player_baumeister",
+            "player_stoewer"
+          ]
+        },
+        "centerId": "center_muenster",
+        "date": "2026-10-04",
+        "gameOpponents": {
+          "1": {
+            "name": "Bowlingfreunde Bielefeld 3",
+            "id": "Bowlingfreunde Bielefeld 3",
+            "pins": 560
+          },
+          "2": {
+            "pins": 589,
+            "name": "BV Detmold 2",
+            "id": "BV Detmold 2"
+          },
+          "3": {
+            "id": "MaxiStrike Hamm 2",
+            "name": "MaxiStrike Hamm 2",
+            "pins": 570
+          },
+          "4": {
+            "name": "BV Brackwede 3",
+            "pins": 579,
+            "id": "BV Brackwede 3"
+          },
+          "5": {
+            "id": "VfL Holsen 3",
+            "name": "VfL Holsen 3",
+            "pins": 622
+          }
+        }
+      },
+      "4": {
+        "isLocked": true,
+        "gameLineups": {
+          "1": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "2": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "3": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_gerdhenrich",
+            "player_baumeister"
+          ],
+          "4": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ],
+          "5": [
+            "player_klipenstein",
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister"
+          ]
+        },
+        "date": "2026-10-18",
+        "centerId": "center_detmold",
+        "number": 4,
+        "matchdayTallies": {
+          "player_hatzig": {
+            "miss": 3,
+            "bier": 2,
+            "split": 1,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 2
+          },
+          "player_baumeister": {
+            "bier": 1,
+            "gutter": 0,
+            "split": 1,
+            "miss": 4,
+            "turkey": 7,
+            "open9": 0
+          },
+          "player_gerdhenrich": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 1,
+            "bier": 2,
+            "turkey": 0,
+            "open9": 1
+          },
+          "player_klipenstein": {
+            "split": 3,
+            "miss": 5,
+            "open9": 1,
+            "bier": 4,
+            "gutter": 0,
+            "turkey": 1
+          },
+          "player_hoppe": {
+            "open9": 2,
+            "turkey": 1,
+            "bier": 1,
+            "split": 1,
+            "gutter": 0,
+            "miss": 3
+          },
+          "player_stoewer": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          }
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_baumeister": 200,
+            "player_hoppe": 185,
+            "player_hatzig": 192,
+            "player_klipenstein": 180
+          },
+          "2": {
+            "player_baumeister": 256,
+            "player_hatzig": 201,
+            "player_klipenstein": 196,
+            "player_hoppe": 158
+          },
+          "3": {
+            "player_hatzig": 170,
+            "player_baumeister": 195,
+            "player_klipenstein": 216,
+            "player_gerdhenrich": 139
+          },
+          "4": {
+            "player_klipenstein": 170,
+            "player_hoppe": 204,
+            "player_baumeister": 219,
+            "player_hatzig": 215
+          },
+          "5": {
+            "player_baumeister": 190,
+            "player_hatzig": 203,
+            "player_klipenstein": 176,
+            "player_hoppe": 216
+          }
+        },
+        "gameOpponents": {
+          "1": {
+            "id": "VfL Holsen 3",
+            "pins": 641,
+            "name": "VfL Holsen 3"
+          },
+          "2": {
+            "id": "BV Brackwede 3",
+            "pins": 595,
+            "name": "BV Brackwede 3"
+          },
+          "3": {
+            "id": "Bowlingfreunde Bielefeld 3",
+            "pins": 701,
+            "name": "Bowlingfreunde Bielefeld 3"
+          },
+          "4": {
+            "name": "MaxiStrike Hamm 2",
+            "pins": 689,
+            "id": "MaxiStrike Hamm 2"
+          },
+          "5": {
+            "name": "BV Detmold 2",
+            "pins": 679,
+            "id": "BV Detmold 2"
+          }
+        }
+      },
+      "5": {
+        "gamePlayerPins": {
+          "1": {
+            "player_hatzig": 178,
+            "player_hoppe": 180,
+            "player_baumeister": 171,
+            "player_stoewer": 228
+          },
+          "2": {
+            "player_hatzig": 213,
+            "player_hoppe": 173,
+            "player_baumeister": 211,
+            "player_stoewer": 196
+          },
+          "3": {
+            "player_stoewer": 210,
+            "player_baumeister": 181,
+            "player_hatzig": 176,
+            "player_hoppe": 154
+          },
+          "4": {
+            "player_baumeister": 183,
+            "player_stoewer": 128,
+            "player_hatzig": 202,
+            "player_hoppe": 157
+          },
+          "5": {
+            "player_hatzig": 248,
+            "player_hoppe": 149,
+            "player_gerdhenrich": 195,
+            "player_baumeister": 233
+          }
+        },
+        "isLocked": true,
+        "number": 5,
+        "matchdayTallies": {
+          "player_stoewer": {
+            "gutter": 0,
+            "turkey": 4,
+            "split": 0,
+            "miss": 7,
+            "open9": 1,
+            "bier": 3
+          },
+          "player_hoppe": {
+            "turkey": 1,
+            "open9": 3,
+            "gutter": 0,
+            "miss": 11,
+            "bier": 7,
+            "split": 1
+          },
+          "player_hatzig": {
+            "split": 0,
+            "miss": 5,
+            "gutter": 0,
+            "open9": 1,
+            "bier": 3,
+            "turkey": 2
+          },
+          "player_gerdhenrich": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 2,
+            "turkey": 1,
+            "bier": 0,
+            "open9": 0
+          },
+          "player_baumeister": {
+            "bier": 3,
+            "gutter": 0,
+            "split": 1,
+            "miss": 4,
+            "turkey": 2,
+            "open9": 1
+          },
+          "player_klipenstein": {
+            "open9": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          }
+        },
+        "gameOpponents": {
+          "1": {
+            "id": "BV Brackwede 3",
+            "name": "BV Brackwede 3",
+            "pins": 681
+          },
+          "2": {
+            "pins": 637,
+            "id": "Bowlingfreunde Bielefeld 3",
+            "name": "Bowlingfreunde Bielefeld 3"
+          },
+          "3": {
+            "id": "VfL Holsen 3",
+            "name": "VfL Holsen 3",
+            "pins": 724
+          },
+          "4": {
+            "id": "BV Detmold 2",
+            "pins": 722,
+            "name": "BV Detmold 2"
+          },
+          "5": {
+            "id": "MaxiStrike Hamm 2",
+            "name": "MaxiStrike Hamm 2",
+            "pins": 634
+          }
+        },
+        "centerId": "center_hamm",
+        "date": "2026-11-08",
+        "gameLineups": {
+          "1": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "2": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "3": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "4": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_baumeister",
+            "player_stoewer"
+          ],
+          "5": [
+            "player_hatzig",
+            "player_hoppe",
+            "player_gerdhenrich",
+            "player_baumeister"
+          ]
+        }
+      },
+      "6": {
+        "date": "2027-02-14",
+        "gamePlayerPins": {},
+        "number": 6,
+        "matchdayTallies": {
+          "player_hatzig": {
+            "split": 0,
+            "bier": 0,
+            "miss": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          }
+        },
+        "centerId": "center_elite",
+        "isLocked": false,
+        "gameOpponents": {
+          "1": {
+            "id": "",
+            "pins": 0,
+            "name": ""
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_hatzig",
+            "player_klipenstein",
+            "player_baumeister"
+          ]
+        }
+      },
+      "7": {
+        "centerId": "",
+        "gameOpponents": {},
+        "gameLineups": {},
+        "isLocked": true,
+        "matchdayTallies": {},
+        "date": "2027-03-07",
+        "gamePlayerPins": {},
+        "number": 7
+      },
+      "8": {
+        "gameOpponents": {},
+        "gamePlayerPins": {},
+        "number": 8,
+        "date": "2027-04-11",
+        "centerId": "",
+        "gameLineups": {},
+        "matchdayTallies": {},
+        "isLocked": true
+      },
+      "9": {
+        "gamePlayerPins": {},
+        "centerId": "",
+        "matchdayTallies": {},
+        "isLocked": true,
+        "gameLineups": {},
+        "gameOpponents": {},
+        "date": "2027-05-02",
+        "number": 9
+      }
+    },
+    "team_pb3": {
+      "1": {
+        "number": 1,
+        "gamePlayerPins": {
+          "1": {
+            "player_seifert": 188,
+            "player_mandel": 0,
+            "player_poguntke": 174,
+            "player_burshile": 0,
+            "player_engemann": 163,
+            "player_dutkowski": 145
+          },
+          "2": {
+            "player_seifert": 142,
+            "player_burshile": 0,
+            "player_poguntke": 187,
+            "player_mandel": 163,
+            "player_engemann": 123,
+            "player_dutkowski": 0
+          },
+          "3": {
+            "player_engemann": 0,
+            "player_mandel": 177,
+            "player_burshile": 176,
+            "player_poguntke": 212,
+            "player_seifert": 141,
+            "player_dutkowski": 0
+          },
+          "4": {
+            "player_seifert": 145,
+            "player_mandel": 154,
+            "player_burshile": 148,
+            "player_engemann": 0,
+            "player_dutkowski": 124
+          },
+          "5": {
+            "player_dutkowski": 0,
+            "player_seifert": 129,
+            "player_engemann": 184,
+            "player_burshile": 0,
+            "player_mandel": 217,
+            "player_poguntke": 185
+          }
+        },
+        "isLocked": true,
+        "date": "2026-09-06",
+        "gameOpponents": {
+          "1": {
+            "pins": 638,
+            "name": "PaderBowler 4",
+            "id": "PaderBowler 4"
+          },
+          "2": {
+            "pins": 574,
+            "id": "BC Lemgo",
+            "name": "BC Lemgo"
+          },
+          "3": {
+            "pins": 706,
+            "id": "BV Detmold 3",
+            "name": "BV Detmold 3"
+          },
+          "4": {
+            "name": "BV Detmold 4",
+            "id": "BV Detmold 4",
+            "pins": 602
+          },
+          "5": {
+            "id": "BV Brackwede 4",
+            "pins": 610,
+            "name": "BV Brackwede 4"
+          }
+        },
+        "centerId": "center_1794999246844",
+        "matchdayTallies": {
+          "player_burshile": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_poguntke": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "turkey": 0,
+            "open9": 0
+          },
+          "player_seifert": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_engemann": {
+            "split": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_mandel": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0,
+            "open9": 0
+          },
+          "player_dutkowski": {
+            "open9": 0,
+            "turkey": 0,
+            "split": 0,
+            "bier": 0,
+            "gutter": 0,
+            "miss": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_poguntke",
+            "player_engemann",
+            "player_seifert",
+            "player_dutkowski"
+          ],
+          "2": [
+            "player_poguntke",
+            "player_mandel",
+            "player_engemann",
+            "player_seifert"
+          ],
+          "3": [
+            "player_poguntke",
+            "player_mandel",
+            "player_burshile",
+            "player_seifert"
+          ],
+          "4": [
+            "player_mandel",
+            "player_burshile",
+            "player_seifert",
+            "player_dutkowski"
+          ],
+          "5": [
+            "player_poguntke",
+            "player_engemann",
+            "player_mandel",
+            "player_seifert"
+          ]
+        }
+      },
+      "2": {
+        "gamePlayerPins": {
+          "1": {
+            "player_burshile": 135,
+            "player_poguntke": 190,
+            "player_seifert": 178,
+            "player_engemann": 0,
+            "player_dutkowski": 0,
+            "player_mandel": 127
+          },
+          "2": {
+            "player_engemann": 154,
+            "player_mandel": 0,
+            "player_poguntke": 203,
+            "player_burshile": 161,
+            "player_seifert": 160,
+            "player_dutkowski": 0
+          },
+          "3": {
+            "player_dutkowski": 0,
+            "player_engemann": 0,
+            "player_burshile": 236,
+            "player_poguntke": 211,
+            "player_seifert": 192,
+            "player_mandel": 245
+          },
+          "4": {
+            "player_engemann": 0,
+            "player_dutkowski": 0,
+            "player_poguntke": 194,
+            "player_burshile": 149,
+            "player_mandel": 206,
+            "player_seifert": 211
+          },
+          "5": {
+            "player_engemann": 161,
+            "player_poguntke": 146,
+            "player_burshile": 0,
+            "player_mandel": 214,
+            "player_seifert": 154,
+            "player_dutkowski": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_mandel",
+            "player_poguntke",
+            "player_seifert",
+            "player_burshile"
+          ],
+          "2": [
+            "player_poguntke",
+            "player_seifert",
+            "player_burshile",
+            "player_engemann"
+          ],
+          "3": [
+            "player_burshile",
+            "player_poguntke",
+            "player_seifert",
+            "player_mandel"
+          ],
+          "4": [
+            "player_mandel",
+            "player_poguntke",
+            "player_seifert",
+            "player_burshile"
+          ],
+          "5": [
+            "player_mandel",
+            "player_poguntke",
+            "player_seifert",
+            "player_engemann"
+          ]
+        },
+        "centerId": "center_1794999388524",
+        "number": 2,
+        "gameOpponents": {
+          "1": {
+            "pins": 390,
+            "id": "BC Lemgo",
+            "name": "BC Lemgo"
+          },
+          "2": {
+            "id": "PaderBowler 4",
+            "name": "PaderBowler 4",
+            "pins": 560
+          },
+          "3": {
+            "id": "BV Detmold 4",
+            "pins": 652,
+            "name": "BV Detmold 4"
+          },
+          "4": {
+            "id": "BV Brackwede 4",
+            "name": "BV Brackwede 4",
+            "pins": 759
+          },
+          "5": {
+            "id": "BV Detmold 3",
+            "pins": 615,
+            "name": "BV Detmold 3"
+          }
+        },
+        "date": "2026-09-20",
+        "isLocked": true,
+        "matchdayTallies": {
+          "player_seifert": {
+            "miss": 0,
+            "open9": 0,
+            "bier": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_mandel": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "open9": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_burshile": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_poguntke": {
+            "turkey": 0,
+            "miss": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_engemann": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0,
+            "open9": 0
+          },
+          "player_dutkowski": {
+            "open9": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          }
+        }
+      },
+      "3": {
+        "number": 3,
+        "gamePlayerPins": {
+          "1": {
+            "player_poguntke": 181,
+            "player_burshile": 179,
+            "player_engemann": 157,
+            "player_mandel": 0,
+            "player_dutkowski": 145
+          },
+          "2": {
+            "player_dutkowski": 113,
+            "player_mandel": 0,
+            "player_burshile": 176,
+            "player_poguntke": 167,
+            "player_engemann": 169
+          },
+          "3": {
+            "player_engemann": 178,
+            "player_poguntke": 173,
+            "player_burshile": 187,
+            "player_dutkowski": 162,
+            "player_mandel": 0
+          },
+          "4": {
+            "player_engemann": 148,
+            "player_burshile": 190,
+            "player_poguntke": 167,
+            "player_mandel": 0,
+            "player_dutkowski": 128
+          },
+          "5": {
+            "player_dutkowski": 122,
+            "player_engemann": 122,
+            "player_poguntke": 173,
+            "player_burshile": 179,
+            "player_mandel": 0
+          }
+        },
+        "matchdayTallies": {
+          "player_dutkowski": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "bier": 0,
+            "open9": 0,
+            "miss": 0
+          },
+          "player_seifert": {
+            "bier": 0,
+            "miss": 0,
+            "open9": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_engemann": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_mandel": {
+            "open9": 0,
+            "turkey": 0,
+            "gutter": 0,
+            "miss": 0,
+            "split": 0,
+            "bier": 0
+          },
+          "player_poguntke": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_burshile": {
+            "open9": 0,
+            "turkey": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          }
+        },
+        "isLocked": true,
+        "gameOpponents": {
+          "1": {
+            "id": "BV Detmold 4",
+            "name": "BV Detmold 4",
+            "pins": 559
+          },
+          "2": {
+            "id": "BC Lemgo",
+            "name": "BC Lemgo",
+            "pins": 658
+          },
+          "3": {
+            "pins": 575,
+            "name": "PaderBowler 4",
+            "id": "PaderBowler 4"
+          },
+          "4": {
+            "id": "BV Brackwede 4",
+            "name": "BV Brackwede 4",
+            "pins": 617
+          },
+          "5": {
+            "pins": 636,
+            "id": "BV Detmold 3",
+            "name": "BV Detmold 3"
+          }
+        },
+        "centerId": "center_detmold",
+        "gameLineups": {
+          "1": [
+            "player_burshile",
+            "player_poguntke",
+            "player_engemann",
+            "player_dutkowski"
+          ],
+          "2": [
+            "player_burshile",
+            "player_poguntke",
+            "player_engemann",
+            "player_dutkowski"
+          ],
+          "3": [
+            "player_burshile",
+            "player_poguntke",
+            "player_engemann",
+            "player_dutkowski"
+          ],
+          "4": [
+            "player_burshile",
+            "player_poguntke",
+            "player_engemann",
+            "player_dutkowski"
+          ],
+          "5": [
+            "player_burshile",
+            "player_poguntke",
+            "player_engemann",
+            "player_dutkowski"
+          ]
+        },
+        "date": "2026-10-04"
+      },
+      "4": {
+        "centerId": "center_elite",
+        "matchdayTallies": {
+          "player_seifert": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_mandel": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_burshile": {
+            "open9": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_poguntke": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0,
+            "open9": 0
+          },
+          "player_engemann": {
+            "miss": 0,
+            "split": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_dutkowski": {
+            "split": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          }
+        },
+        "isLocked": true,
+        "date": "2026-10-18",
+        "number": 4,
+        "gameLineups": {
+          "1": [
+            "player_poguntke",
+            "player_engemann",
+            "player_mandel",
+            "player_seifert"
+          ],
+          "2": [
+            "player_poguntke",
+            "player_engemann",
+            "player_burshile",
+            "player_seifert"
+          ],
+          "3": [
+            "player_poguntke",
+            "player_engemann",
+            "player_burshile",
+            "player_dutkowski"
+          ],
+          "4": [
+            "player_poguntke",
+            "player_mandel",
+            "player_seifert",
+            "player_dutkowski"
+          ],
+          "5": [
+            "player_poguntke",
+            "player_burshile",
+            "player_mandel",
+            "player_dutkowski"
+          ]
+        },
+        "gameOpponents": {
+          "1": {
+            "id": "BV Detmold 3",
+            "pins": 580,
+            "name": "BV Detmold 3"
+          },
+          "2": {
+            "pins": 654,
+            "name": "BV Brackwede 4",
+            "id": "BV Brackwede 4"
+          },
+          "3": {
+            "name": "BV Detmold 4",
+            "pins": 539,
+            "id": "BV Detmold 4"
+          },
+          "4": {
+            "name": "PaderBowler 4",
+            "pins": 605,
+            "id": "PaderBowler 4"
+          },
+          "5": {
+            "pins": 646,
+            "id": "BC Lemgo",
+            "name": "BC Lemgo"
+          }
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_seifert": 173,
+            "player_dutkowski": 0,
+            "player_poguntke": 215,
+            "player_burshile": 0,
+            "player_engemann": 194,
+            "player_mandel": 118
+          },
+          "2": {
+            "player_seifert": 137,
+            "player_dutkowski": 0,
+            "player_engemann": 150,
+            "player_burshile": 179,
+            "player_poguntke": 155,
+            "player_mandel": 0
+          },
+          "3": {
+            "player_engemann": 165,
+            "player_burshile": 178,
+            "player_poguntke": 133,
+            "player_dutkowski": 131,
+            "player_mandel": 0
+          },
+          "4": {
+            "player_engemann": 0,
+            "player_burshile": 0,
+            "player_poguntke": 203,
+            "player_dutkowski": 1,
+            "player_seifert": 142,
+            "player_mandel": 174
+          },
+          "5": {
+            "player_mandel": 165,
+            "player_dutkowski": 128,
+            "player_engemann": 0,
+            "player_poguntke": 170,
+            "player_burshile": 123
+          }
+        }
+      },
+      "5": {
+        "number": 5,
+        "date": "2026-11-08",
+        "gamePlayerPins": {
+          "1": {
+            "player_dutkowski": 0,
+            "player_engemann": 0,
+            "player_mandel": 157,
+            "player_poguntke": 155,
+            "player_burshile": 133,
+            "player_seifert": 157
+          },
+          "2": {
+            "player_poguntke": 187,
+            "player_mandel": 151,
+            "player_burshile": 0,
+            "player_engemann": 0,
+            "player_dutkowski": 183,
+            "player_seifert": 144
+          },
+          "3": {
+            "player_dutkowski": 123,
+            "player_engemann": 0,
+            "player_poguntke": 163,
+            "player_burshile": 139,
+            "player_mandel": 176
+          },
+          "4": {
+            "player_dutkowski": 140,
+            "player_engemann": 0,
+            "player_poguntke": 217,
+            "player_burshile": 0,
+            "player_seifert": 116,
+            "player_mandel": 149
+          },
+          "5": {
+            "player_seifert": 167,
+            "player_mandel": 176,
+            "player_engemann": 0,
+            "player_poguntke": 195,
+            "player_burshile": 161,
+            "player_dutkowski": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_poguntke",
+            "player_mandel",
+            "player_seifert",
+            "player_burshile"
+          ],
+          "2": [
+            "player_poguntke",
+            "player_mandel",
+            "player_dutkowski",
+            "player_seifert"
+          ],
+          "3": [
+            "player_poguntke",
+            "player_mandel",
+            "player_dutkowski",
+            "player_burshile"
+          ],
+          "4": [
+            "player_poguntke",
+            "player_mandel",
+            "player_dutkowski",
+            "player_seifert"
+          ],
+          "5": [
+            "player_poguntke",
+            "player_mandel",
+            "player_seifert",
+            "player_burshile"
+          ]
+        },
+        "isLocked": true,
+        "matchdayTallies": {
+          "player_dutkowski": {
+            "split": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_mandel": {
+            "open9": 0,
+            "turkey": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "split": 0
+          },
+          "player_engemann": {
+            "open9": 0,
+            "turkey": 0,
+            "gutter": 0,
+            "split": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_burshile": {
+            "split": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "turkey": 0,
+            "miss": 0
+          },
+          "player_poguntke": {
+            "bier": 0,
+            "turkey": 0,
+            "miss": 0,
+            "gutter": 0,
+            "open9": 0,
+            "split": 0
+          },
+          "player_seifert": {
+            "bier": 0,
+            "miss": 0,
+            "open9": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          }
+        },
+        "centerId": "center_detmold",
+        "gameOpponents": {
+          "1": {
+            "pins": 638,
+            "name": "BV Brackwede 4",
+            "id": "BV Brackwede 4"
+          },
+          "2": {
+            "name": "BV Detmold 4",
+            "id": "BV Detmold 4",
+            "pins": 585
+          },
+          "3": {
+            "name": "BV Detmold 3",
+            "pins": 660,
+            "id": "BV Detmold 3"
+          },
+          "4": {
+            "name": "BC Lemgo",
+            "id": "BC Lemgo",
+            "pins": 623
+          },
+          "5": {
+            "id": "PaderBowler 4",
+            "name": "PaderBowler 4",
+            "pins": 675
+          }
+        }
+      }
+    },
+    "team_pb4": {
+      "1": {
+        "matchdayTallies": {
+          "player_vogt": {
+            "bier": 0,
+            "miss": 0,
+            "open9": 0,
+            "turkey": 0,
+            "split": 0,
+            "gutter": 0
+          },
+          "player_beiersdoerfer": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0
+          },
+          "player_dreier": {
+            "open9": 0,
+            "turkey": 0,
+            "split": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0
+          },
+          "player_bronnikow": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_m_hoffmann": {
+            "bier": 0,
+            "turkey": 0,
+            "miss": 0,
+            "gutter": 0,
+            "open9": 0,
+            "split": 0
+          }
+        },
+        "number": 1,
+        "gamePlayerPins": {
+          "1": {
+            "player_bronnikow": 0,
+            "player_vogt": 180,
+            "player_dreier": 214,
+            "player_m_hoffmann": 124,
+            "player_beiersdoerfer": 120
+          },
+          "2": {
+            "player_beiersdoerfer": 122,
+            "player_vogt": 181,
+            "player_m_hoffmann": 143,
+            "player_bronnikow": 0,
+            "player_dreier": 189
+          },
+          "3": {
+            "player_vogt": 154,
+            "player_m_hoffmann": 175,
+            "player_dreier": 179,
+            "player_bronnikow": 0,
+            "player_beiersdoerfer": 105
+          },
+          "4": {
+            "player_m_hoffmann": 144,
+            "player_dreier": 193,
+            "player_bronnikow": 0,
+            "player_beiersdoerfer": 134,
+            "player_vogt": 146
+          },
+          "5": {
+            "player_dreier": 178,
+            "player_vogt": 140,
+            "player_m_hoffmann": 164,
+            "player_bronnikow": 0,
+            "player_beiersdoerfer": 110
+          }
+        },
+        "centerId": "center_1794999246844",
+        "gameOpponents": {
+          "1": {
+            "pins": 670,
+            "name": "PaderBowler 3",
+            "id": "PaderBowler 3"
+          },
+          "2": {
+            "pins": 620,
+            "name": "BV Detmold 3",
+            "id": "BV Detmold 3"
+          },
+          "3": {
+            "id": "BV Brackwede 4",
+            "name": "BV Brackwede 4",
+            "pins": 581
+          },
+          "4": {
+            "pins": 735,
+            "name": "BC Lemgo",
+            "id": "BC Lemgo"
+          },
+          "5": {
+            "id": "BV Detmold 4",
+            "name": "BV Detmold 4",
+            "pins": 742
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_dreier",
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_beiersdoerfer"
+          ],
+          "2": [
+            "player_dreier",
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_beiersdoerfer"
+          ],
+          "3": [
+            "player_dreier",
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_beiersdoerfer"
+          ],
+          "4": [
+            "player_dreier",
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_beiersdoerfer"
+          ],
+          "5": [
+            "player_dreier",
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_beiersdoerfer"
+          ]
+        },
+        "date": "2026-09-06",
+        "isLocked": true
+      },
+      "2": {
+        "centerId": "center_1794999388524",
+        "matchdayTallies": {
+          "player_vogt": {
+            "turkey": 0,
+            "bier": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "split": 0
+          },
+          "player_beiersdoerfer": {
+            "split": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "turkey": 0,
+            "bier": 0
+          },
+          "player_m_hoffmann": {
+            "open9": 0,
+            "bier": 0,
+            "turkey": 0,
+            "miss": 0,
+            "gutter": 0,
+            "split": 0
+          },
+          "player_bronnikow": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_dreier": {
+            "split": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          }
+        },
+        "number": 2,
+        "gamePlayerPins": {
+          "1": {
+            "player_dreier": 0,
+            "player_bronnikow": 123,
+            "player_beiersdoerfer": 136,
+            "player_m_hoffmann": 178,
+            "player_vogt": 142
+          },
+          "2": {
+            "player_beiersdoerfer": 147,
+            "player_m_hoffmann": 135,
+            "player_vogt": 149,
+            "player_bronnikow": 129,
+            "player_dreier": 0
+          },
+          "3": {
+            "player_bronnikow": 128,
+            "player_beiersdoerfer": 124,
+            "player_m_hoffmann": 184,
+            "player_dreier": 0,
+            "player_vogt": 138
+          },
+          "4": {
+            "player_beiersdoerfer": 119,
+            "player_dreier": 0,
+            "player_m_hoffmann": 138,
+            "player_bronnikow": 100,
+            "player_vogt": 140
+          },
+          "5": {
+            "player_bronnikow": 138,
+            "player_beiersdoerfer": 113,
+            "player_m_hoffmann": 132,
+            "player_dreier": 0,
+            "player_vogt": 153
+          }
+        },
+        "isLocked": true,
+        "gameOpponents": {
+          "1": {
+            "id": "BV Detmold 3",
+            "pins": 608,
+            "name": "BV Detmold 3"
+          },
+          "2": {
+            "pins": 678,
+            "id": "PaderBowler 3",
+            "name": "PaderBowler 3"
+          },
+          "3": {
+            "id": "BC Lemgo",
+            "name": "BC Lemgo",
+            "pins": 350
+          },
+          "4": {
+            "name": "BV Detmold 4",
+            "id": "BV Detmold 4",
+            "pins": 558
+          },
+          "5": {
+            "name": "BV Brackwede 4",
+            "id": "BV Brackwede 4",
+            "pins": 670
+          }
+        },
+        "date": "2026-09-20",
+        "gameLineups": {
+          "1": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_beiersdoerfer",
+            "player_bronnikow"
+          ],
+          "2": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_beiersdoerfer",
+            "player_bronnikow"
+          ],
+          "3": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_beiersdoerfer",
+            "player_bronnikow"
+          ],
+          "4": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_beiersdoerfer",
+            "player_bronnikow"
+          ],
+          "5": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_beiersdoerfer",
+            "player_bronnikow"
+          ]
+        }
+      },
+      "3": {
+        "gamePlayerPins": {
+          "1": {
+            "player_beiersdoerfer": 140,
+            "player_bronnikow": 124,
+            "player_vogt": 122,
+            "player_dreier": 0,
+            "player_m_hoffmann": 119
+          },
+          "2": {
+            "player_dreier": 0,
+            "player_beiersdoerfer": 116,
+            "player_bronnikow": 116,
+            "player_m_hoffmann": 122,
+            "player_vogt": 155
+          },
+          "3": {
+            "player_beiersdoerfer": 91,
+            "player_m_hoffmann": 166,
+            "player_bronnikow": 114,
+            "player_dreier": 0,
+            "player_vogt": 204
+          },
+          "4": {
+            "player_beiersdoerfer": 115,
+            "player_bronnikow": 102,
+            "player_m_hoffmann": 113,
+            "player_vogt": 147,
+            "player_dreier": 0
+          },
+          "5": {
+            "player_bronnikow": 183,
+            "player_dreier": 0,
+            "player_beiersdoerfer": 112,
+            "player_m_hoffmann": 120,
+            "player_vogt": 155
+          }
+        },
+        "matchdayTallies": {
+          "player_dreier": {
+            "split": 0,
+            "bier": 0,
+            "miss": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_bronnikow": {
+            "open9": 0,
+            "turkey": 0,
+            "miss": 0,
+            "bier": 0,
+            "gutter": 0,
+            "split": 0
+          },
+          "player_m_hoffmann": {
+            "split": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "turkey": 0,
+            "open9": 0
+          },
+          "player_beiersdoerfer": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_vogt": {
+            "miss": 0,
+            "split": 0,
+            "bier": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          }
+        },
+        "date": "2026-10-04",
+        "number": 3,
+        "gameOpponents": {
+          "1": {
+            "pins": 590,
+            "name": "BC Lemgo",
+            "id": "BC Lemgo"
+          },
+          "2": {
+            "name": "BV Detmold 3",
+            "pins": 706,
+            "id": "BV Detmold 3"
+          },
+          "3": {
+            "name": "PaderBowler 3",
+            "pins": 700,
+            "id": "PaderBowler 3"
+          },
+          "4": {
+            "id": "BV Detmold 4",
+            "name": "BV Detmold 4",
+            "pins": 555
+          },
+          "5": {
+            "id": "BV Brackwede 4",
+            "pins": 616,
+            "name": "BV Brackwede 4"
+          }
+        },
+        "isLocked": false,
+        "gameLineups": {
+          "1": [
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "2": [
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "3": [
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "4": [
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "5": [
+            "player_vogt",
+            "player_m_hoffmann",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ]
+        },
+        "centerId": "center_detmold"
+      },
+      "4": {
+        "gamePlayerPins": {
+          "1": {
+            "player_dreier": 131,
+            "player_beiersdoerfer": 0,
+            "player_vogt": 146,
+            "player_m_hoffmann": 153,
+            "player_bronnikow": 128
+          },
+          "2": {
+            "player_beiersdoerfer": 102,
+            "player_dreier": 127,
+            "player_m_hoffmann": 169,
+            "player_vogt": 157,
+            "player_bronnikow": 0
+          },
+          "3": {
+            "player_dreier": 179,
+            "player_vogt": 159,
+            "player_beiersdoerfer": 132,
+            "player_bronnikow": 121,
+            "player_m_hoffmann": 0
+          },
+          "4": {
+            "player_vogt": 153,
+            "player_beiersdoerfer": 113,
+            "player_bronnikow": 157,
+            "player_m_hoffmann": 182,
+            "player_dreier": 0
+          },
+          "5": {
+            "player_beiersdoerfer": 111,
+            "player_bronnikow": 124,
+            "player_dreier": 147,
+            "player_m_hoffmann": 140
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow"
+          ],
+          "2": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_dreier",
+            "player_beiersdoerfer"
+          ],
+          "3": [
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "4": [
+            "player_m_hoffmann",
+            "player_vogt",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "5": [
+            "player_m_hoffmann",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ]
+        },
+        "centerId": "center_elite",
+        "number": 4,
+        "gameOpponents": {
+          "1": {
+            "id": "BV Brackwede 4",
+            "name": "BV Brackwede 4",
+            "pins": 649
+          },
+          "2": {
+            "id": "BV Detmold 4",
+            "pins": 552,
+            "name": "BV Detmold 4"
+          },
+          "3": {
+            "name": "BC Lemgo",
+            "id": "BC Lemgo",
+            "pins": 659
+          },
+          "4": {
+            "id": "PaderBowler 3",
+            "pins": 708,
+            "name": "PaderBowler 3"
+          },
+          "5": {
+            "name": "BV Detmold 3",
+            "pins": 564,
+            "id": "BV Detmold 3"
+          }
+        },
+        "date": "2026-10-18",
+        "isLocked": true,
+        "matchdayTallies": {
+          "player_vogt": {
+            "split": 0,
+            "open9": 0,
+            "gutter": 0,
+            "turkey": 0,
+            "miss": 0,
+            "bier": 0
+          },
+          "player_m_hoffmann": {
+            "split": 0,
+            "bier": 0,
+            "miss": 0,
+            "gutter": 0,
+            "open9": 0,
+            "turkey": 0
+          },
+          "player_dreier": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "miss": 0,
+            "bier": 0,
+            "split": 0
+          },
+          "player_beiersdoerfer": {
+            "gutter": 0,
+            "bier": 0,
+            "split": 0,
+            "miss": 0,
+            "turkey": 0,
+            "open9": 0
+          },
+          "player_bronnikow": {
+            "gutter": 0,
+            "split": 0,
+            "turkey": 0,
+            "open9": 0,
+            "miss": 0,
+            "bier": 0
+          }
+        }
+      },
+      "5": {
+        "isLocked": true,
+        "date": "2026-11-08",
+        "centerId": "center_detmold",
+        "number": 5,
+        "gameOpponents": {
+          "1": {
+            "pins": 581,
+            "id": "BV Detmold 4",
+            "name": "BV Detmold 4"
+          },
+          "2": {
+            "name": "BC Lemgo",
+            "pins": 681,
+            "id": "BC Lemgo"
+          },
+          "3": {
+            "pins": 608,
+            "id": "BV Brackwede 4",
+            "name": "BV Brackwede 4"
+          },
+          "4": {
+            "id": "BV Detmold 3",
+            "name": "BV Detmold 3",
+            "pins": 716
+          },
+          "5": {
+            "id": "PaderBowler 3",
+            "name": "PaderBowler 3",
+            "pins": 699
+          }
+        },
+        "matchdayTallies": {
+          "player_dreier": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_bronnikow": {
+            "gutter": 0,
+            "turkey": 0,
+            "split": 0,
+            "bier": 0,
+            "open9": 0,
+            "miss": 0
+          },
+          "player_m_hoffmann": {
+            "open9": 0,
+            "bier": 0,
+            "miss": 0,
+            "split": 0,
+            "turkey": 0,
+            "gutter": 0
+          },
+          "player_vogt": {
+            "turkey": 0,
+            "open9": 0,
+            "gutter": 0,
+            "split": 0,
+            "bier": 0,
+            "miss": 0
+          },
+          "player_beiersdoerfer": {
+            "turkey": 0,
+            "open9": 0,
+            "miss": 0,
+            "gutter": 0,
+            "bier": 0,
+            "split": 0
+          }
+        },
+        "gameLineups": {
+          "1": [
+            "player_vogt",
+            "player_bronnikow",
+            "player_beiersdoerfer",
+            "player_dreier"
+          ],
+          "2": [
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "3": [
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "4": [
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ],
+          "5": [
+            "player_vogt",
+            "player_dreier",
+            "player_bronnikow",
+            "player_beiersdoerfer"
+          ]
+        },
+        "gamePlayerPins": {
+          "1": {
+            "player_bronnikow": 189,
+            "player_beiersdoerfer": 123,
+            "player_m_hoffmann": 0,
+            "player_dreier": 135,
+            "player_vogt": 177
+          },
+          "2": {
+            "player_m_hoffmann": 0,
+            "player_vogt": 149,
+            "player_bronnikow": 172,
+            "player_dreier": 144,
+            "player_beiersdoerfer": 135
+          },
+          "3": {
+            "player_dreier": 146,
+            "player_beiersdoerfer": 104,
+            "player_vogt": 136,
+            "player_bronnikow": 107,
+            "player_m_hoffmann": 0
+          },
+          "4": {
+            "player_bronnikow": 167,
+            "player_vogt": 163,
+            "player_beiersdoerfer": 162,
+            "player_dreier": 167,
+            "player_m_hoffmann": 0
+          },
+          "5": {
+            "player_vogt": 212,
+            "player_bronnikow": 162,
+            "player_beiersdoerfer": 96,
+            "player_m_hoffmann": 0,
+            "player_dreier": 205
+          }
+        }
+      }
+    }
+  }
+}

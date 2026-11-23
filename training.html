@@ -1004,6 +1004,40 @@
 
   <!-- JAVASCRIPT LOGIK FÜR DAS TRAININGS-CENTER -->
   <script>
+    // Bowling Split-Erkennung nach offiziellen USBC & DBU Regeln
+    const isBowlingSplit = (typeof window.isBowlingSplit === 'function') ? window.isBowlingSplit : function(standingPins) {
+      if (!Array.isArray(standingPins)) return false;
+      const pins = standingPins.map(p => Number(p)).filter(p => !isNaN(p) && p >= 1 && p <= 10);
+      if (pins.length < 2 || pins.includes(1)) return false;
+      const adj = {
+        2: [3, 4, 5, 8], 3: [2, 5, 6, 9], 4: [2, 7, 8], 5: [2, 3, 8, 9],
+        6: [3, 9, 10], 7: [4], 8: [2, 4, 5], 9: [3, 5, 6], 10: [6]
+      };
+      const set = new Set(pins);
+      const visited = new Set();
+      let comp = 0;
+      for (let i = 0; i < pins.length; i++) {
+        if (!visited.has(pins[i])) {
+          comp++;
+          if (comp > 1) return true;
+          const q = [pins[i]];
+          visited.add(pins[i]);
+          while (q.length > 0) {
+            const cur = q.shift();
+            const nbrs = adj[cur] || [];
+            for (let j = 0; j < nbrs.length; j++) {
+              if (set.has(nbrs[j]) && !visited.has(nbrs[j])) {
+                visited.add(nbrs[j]);
+                q.push(nbrs[j]);
+              }
+            }
+          }
+        }
+      }
+      return comp > 1;
+    };
+    window.isBowlingSplit = isBowlingSplit;
+
     let appState = null;
     let currentUser = null;
     let activeTab = 'player'; // 'player' | 'club'
@@ -1377,7 +1411,9 @@
         if (currentRollIndex === 1) {
           hintEl.innerHTML = 'Klicke die Pins an, die beim <span class="text-[#DE4341] uppercase underline">1. Wurf stehen geblieben</span> sind (oder „✨ Geräumt“ bei Strike):';
         } else {
-          hintEl.innerHTML = `Klicke die Pins an, die beim <span class="text-[#DE4341] uppercase underline">${currentRollIndex}. Wurf noch stehen</span> (graue Pins fielen im Vorwurf, „✨ Geräumt“ für Spare):`;
+          const isSplitLeave = (typeof isBowlingSplit === 'function') && isBowlingSplit(eligiblePins);
+          const splitBadge = isSplitLeave ? ' <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-black text-[10px] ml-1">🔴 Split</span>' : '';
+          hintEl.innerHTML = `Klicke die Pins an, die beim <span class="text-[#DE4341] uppercase underline">${currentRollIndex}. Wurf noch stehen</span>${splitBadge} (graue Pins fielen im Vorwurf, „✨ Geräumt“ für Spare):`;
         }
       }
     }
@@ -1578,9 +1614,16 @@
         col.title = `Klicke hier, um Frame ${f.frameNumber} nachträglich zu bearbeiten`;
         col.onclick = () => openEditFrameModal(f.frameNumber);
 
+        const r1Standing = f.standingRolls?.[0] || f.standingRoll1 || [];
+        const isSplit = (f.rolls[0] !== undefined && f.rolls[0] < 10 && typeof isBowlingSplit === 'function' && isBowlingSplit(r1Standing));
+
         let r1 = f.rolls[0] !== undefined ? (f.rolls[0] === 10 ? 'X' : (f.rolls[0] === 0 ? '-' : f.rolls[0])) : '';
         let r2 = f.rolls[1] !== undefined ? (f.isSpare ? '/' : (f.rolls[1] === 10 ? 'X' : (f.rolls[1] === 0 ? '-' : f.rolls[1]))) : '';
         let r3 = f.rolls[2] !== undefined ? (f.rolls[2] === 10 ? 'X' : (f.rolls[2] === 0 ? '-' : f.rolls[2])) : '';
+
+        const r1Display = isSplit
+          ? `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-rose-500 text-rose-600 font-black text-[11px]" title="Split (${r1Standing.join('-')})">${r1}</span>`
+          : `<span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>`;
 
         col.innerHTML = `
           <div class="text-[10px] font-bold text-slate-500 border-b border-slate-100 pb-0.5 flex items-center justify-between px-0.5">
@@ -1588,7 +1631,7 @@
             <span class="text-[9px] text-[#3E8370] opacity-80">✏️</span>
           </div>
           <div class="flex items-center justify-center gap-1 my-1 font-black text-xs">
-            <span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>
+            ${r1Display}
             <span class="${r2 === '/' ? 'text-[#70C04D]' : (r2 === 'X' ? 'text-[#23548F]' : 'text-slate-800')}">${r2}</span>
             ${f.frameNumber === 10 ? `<span class="${r3 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r3}</span>` : ''}
           </div>
@@ -2266,15 +2309,8 @@
                 pin7Chances++;
                 if (isSpareConverted) pin7Converted++;
               }
-              // Split Erkennung
-              const isSplit = (!r1Standing.includes(1) && r1Standing.length >= 2 && (
-                (r1Standing.includes(7) && r1Standing.includes(10)) ||
-                (r1Standing.includes(4) && r1Standing.includes(6)) ||
-                (r1Standing.includes(5) && r1Standing.includes(7)) ||
-                (r1Standing.includes(5) && r1Standing.includes(10)) ||
-                (r1Standing.includes(3) && r1Standing.includes(10)) ||
-                (r1Standing.includes(2) && r1Standing.includes(7))
-              ));
+              // Split Erkennung nach USBC & DBU Regeln (Kopfpin gefallen, mindestens 2 Pins mit Lücke)
+              const isSplit = isBowlingSplit(r1Standing);
               if (isSplit) {
                 splitChances++;
                 if (isSpareConverted) splitConverted++;
@@ -2557,18 +2593,25 @@
                 <div class="overflow-x-auto pb-1">
                   <div class="grid grid-cols-10 gap-1 text-center min-w-[520px] bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                     ${g.frames.map((f, fIdx) => {
+                      const r1Standing = f.standingRolls?.[0] || f.standingRoll1 || [];
+                      const isSplit = (f.rolls[0] !== undefined && f.rolls[0] < 10 && typeof isBowlingSplit === 'function' && isBowlingSplit(r1Standing));
+
                       let r1 = f.rolls[0] !== undefined ? (f.rolls[0] === 10 ? 'X' : (f.rolls[0] === 0 ? '-' : f.rolls[0])) : '';
                       let r2 = f.rolls[1] !== undefined ? (f.isSpare ? '/' : (f.rolls[1] === 10 ? 'X' : (f.rolls[1] === 0 ? '-' : f.rolls[1]))) : '';
                       let r3 = f.rolls[2] !== undefined ? (f.rolls[2] === 10 ? 'X' : (f.rolls[2] === 0 ? '-' : f.rolls[2])) : '';
 
+                      const r1Display = isSplit
+                        ? `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-rose-500 text-rose-600 font-black text-[10px]" title="Split: ${r1Standing.join('-')}">${r1}</span>`
+                        : `<span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>`;
+
                       return `
                         <div class="border border-[#A499A7]/40 rounded-lg p-1 bg-white flex flex-col justify-between select-none cursor-default"
-                             title="Frame ${f.frameNumber || fIdx + 1} (${r1} ${r2} ${r3})">
+                             title="Frame ${f.frameNumber || fIdx + 1} (${r1} ${r2} ${r3}${isSplit ? ' - Split' : ''})">
                           <div class="text-[10px] font-bold text-slate-500 border-b border-slate-100 pb-0.5 flex items-center justify-center px-0.5">
                             <span>${f.frameNumber || fIdx + 1}</span>
                           </div>
                           <div class="flex items-center justify-center gap-1 my-1 font-black text-xs">
-                            <span class="${r1 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r1}</span>
+                            ${r1Display}
                             <span class="${r2 === '/' ? 'text-[#70C04D]' : (r2 === 'X' ? 'text-[#23548F]' : 'text-slate-800')}">${r2}</span>
                             ${(f.frameNumber === 10 || fIdx === 9) ? `<span class="${r3 === 'X' ? 'text-[#23548F]' : 'text-slate-800'}">${r3}</span>` : ''}
                           </div>

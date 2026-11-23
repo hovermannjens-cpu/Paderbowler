@@ -454,6 +454,64 @@ function formatDate(isoStr) {
 }
 
 /**
+ * Bowling Split-Erkennung nach offiziellen USBC & DBU Regeln (Sportordnung):
+ * 1. Kopfpin (Pin 1) MUSS gefallen sein (!pins.includes(1)). Steht Pin 1, ist es ein Washout, NIEMALS ein Split!
+ * 2. Mindestens 2 Pins stehen noch (pins.length >= 2). Ein einzelner Pin ist kein Split.
+ * 3. Zwischen den stehenden Pins klafft mindestens eine Lücke (mindestens 1 gefallener Zwischenpin).
+ *    Mehrere nicht zusammenhängende Gruppen im Pin-Dreieck = Split.
+ *    Direkt berührende Pins oder Tandem-Sleeper ohne Zwischenpin (z. B. 2-3, 2-8, 3-9, 2-4-7, 3-6-10) = KEIN Split.
+ */
+function isBowlingSplit(standingPins) {
+  if (!Array.isArray(standingPins)) return false;
+  const pins = standingPins.map(p => Number(p)).filter(p => !isNaN(p) && p >= 1 && p <= 10);
+  if (pins.length < 2) return false;
+  if (pins.includes(1)) return false;
+
+  const PIN_ADJACENCY = {
+    2: [3, 4, 5, 8],
+    3: [2, 5, 6, 9],
+    4: [2, 7, 8],
+    5: [2, 3, 8, 9],
+    6: [3, 9, 10],
+    7: [4],
+    8: [2, 4, 5],
+    9: [3, 5, 6],
+    10: [6]
+  };
+
+  const standingSet = new Set(pins);
+  const visited = new Set();
+  let components = 0;
+
+  for (let i = 0; i < pins.length; i++) {
+    const pin = pins[i];
+    if (!visited.has(pin)) {
+      components++;
+      if (components > 1) return true;
+      const queue = [pin];
+      visited.add(pin);
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        const neighbors = PIN_ADJACENCY[curr] || [];
+        for (let j = 0; j < neighbors.length; j++) {
+          const neighbor = neighbors[j];
+          if (standingSet.has(neighbor) && !visited.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push(neighbor);
+          }
+        }
+      }
+    }
+  }
+
+  return components > 1;
+}
+window.isBowlingSplit = isBowlingSplit;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports.isBowlingSplit = isBowlingSplit;
+}
+
+/**
  * Löst das Gegner-Objekt oder einen Gegner-Bezeichner in den echten Mannschaftsnamen auf.
  * Verhindert generische Texte wie "Gegner 1" oder "opp_detmold".
  * Bei neuen/leeren Spieltagen bleibt der Wert leer (""), sodass der Nutzer den Gegner bewusst auswählen muss.
